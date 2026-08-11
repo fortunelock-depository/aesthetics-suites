@@ -143,7 +143,12 @@ export default async function RoomDetailPage({ params }: PageProps) {
             {/* FAQ accordion (first item open, template behavior). */}
             <div className="mt-[50px]">
               <Accordion
-                items={ROOM_DETAILS_CONTENT.faqs.map((faq) => ({
+                // The room's own FAQs; the generic house set fills in
+                // until any are written.
+                items={(room.faqs.length > 0
+                  ? room.faqs
+                  : ROOM_DETAILS_CONTENT.faqs
+                ).map((faq) => ({
                   question: faq.question,
                   answer: faq.answer,
                 }))}

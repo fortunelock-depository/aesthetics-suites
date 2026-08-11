@@ -22,7 +22,9 @@ export function StatusBadge({
     <span
       className={cn(
         'inline-flex w-fit shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap',
-        STATUS_TONE_CLASSES[tone],
+        // Unknown tones (e.g. a new enum value the map doesn't know yet)
+        // degrade to neutral instead of an unstyled - or broken - badge.
+        STATUS_TONE_CLASSES[tone] ?? STATUS_TONE_CLASSES.neutral,
         className,
       )}
     >

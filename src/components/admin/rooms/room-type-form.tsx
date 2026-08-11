@@ -10,9 +10,11 @@
 import * as React from 'react';
 import {
   useFieldArray,
+  type UseFieldArrayReturn,
   type UseFormReturn,
 } from 'react-hook-form';
 import { z } from 'zod';
+import { toast } from 'sonner';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FieldError } from '@/components/forms/field-error';
 import { cn } from '@/lib/utils';
+import { AMENITY_OPTIONS, amenityIcon } from '@/lib/amenity-icons';
 import type {
   ICreateRoomTypeBody,
   IRoomTypeRow,
@@ -141,8 +144,18 @@ export const BLANK_ROOM_TYPE: RoomTypeFormInput = {
 
 const minorToGhsInput = (minor: number): string => String(minor / 100);
 
-/** Saved record -> form field strings, for the detail page's edit card. */
+/** Saved record -> form field strings, for the detail page's edit card.
+ * Array fields are guarded - malformed data must never break the form. */
 export function roomTypeToFormDefaults(rt: IRoomTypeRow): RoomTypeFormInput {
+  const amenities = Array.isArray(rt.amenities) ? rt.amenities : [];
+  const faqs = Array.isArray(rt.faqs)
+    ? rt.faqs.filter(
+        (f) =>
+          f &&
+          typeof f.question === 'string' &&
+          typeof f.answer === 'string',
+      )
+    : [];
   return {
     name: rt.name,
     summary: rt.summary,
@@ -158,8 +171,8 @@ export function roomTypeToFormDefaults(rt: IRoomTypeRow): RoomTypeFormInput {
     sortOrder: String(rt.sortOrder),
     airbnbUrl: rt.airbnbUrl ?? '',
     isPublished: rt.isPublished,
-    amenities: rt.amenities.map((value) => ({ value })),
-    faqs: rt.faqs.map((f) => ({ ...f })),
+    amenities: amenities.map((value) => ({ value })),
+    faqs: faqs.map((f) => ({ question: f.question, answer: f.answer })),
   };
 }
 
@@ -457,6 +470,179 @@ export function RoomTypePricingFields({
   );
 }
 
+/**
+ * Amenities as a checklist of canonical options (each keyword-matches an
+ * icon, so icons always line up), plus an advanced free-text add for
+ * anything unusual - those get amenityIcon's best guess, or the generic
+ * sparkle when nothing matches.
+ */
+function AmenityChecklist({
+  form,
+  active,
+  busy,
+  amenities,
+  disabled,
+}: RoomTypeFieldsProps & {
+  amenities: UseFieldArrayReturn<RoomTypeFormInput, 'amenities'>;
+  disabled: boolean;
+}) {
+  const [customInput, setCustomInput] = React.useState('');
+  const selected = form.watch('amenities') ?? [];
+  const selectedValues = selected.map((entry) => entry.value);
+  const isSelected = (label: string) =>
+    selectedValues.some((v) => v.toLowerCase() === label.toLowerCase());
+  const customValues = selectedValues.filter(
+    (v) =>
+      !AMENITY_OPTIONS.some((o) => o.toLowerCase() === v.toLowerCase()),
+  );
+
+  const toggle = (label: string) => {
+    const index = selectedValues.findIndex(
+      (v) => v.toLowerCase() === label.toLowerCase(),
+    );
+    if (index >= 0) amenities.remove(index);
+    else amenities.append({ value: label });
+  };
+
+  const removeValue = (value: string) => {
+    const index = selectedValues.indexOf(value);
+    if (index >= 0) amenities.remove(index);
+  };
+
+  const addCustom = () => {
+    const value = customInput.trim();
+    if (!value) return;
+    if (value.length > 60) {
+      toast.error('Keep amenity names under 60 characters.');
+      return;
+    }
+    if (selectedValues.some((v) => v.toLowerCase() === value.toLowerCase())) {
+      toast.error('That amenity is already on the list.');
+      return;
+    }
+    if (selected.length >= 50) {
+      toast.error('That is plenty of amenities already (max 50).');
+      return;
+    }
+    amenities.append({ value });
+    setCustomInput('');
+  };
+
+  return (
+    <div className="space-y-3 sm:col-span-2">
+      <div>
+        <Label>Amenities</Label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Check what the room offers - each renders with its matching icon
+          on the public page.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-1.5 min-[480px]:grid-cols-2 sm:grid-cols-3">
+        {AMENITY_OPTIONS.map((option) => {
+          const Icon = amenityIcon(option);
+          return (
+            <label
+              key={option}
+              className={cn(
+                'flex cursor-pointer items-center gap-2.5 border p-2.5 transition-colors',
+                isSelected(option)
+                  ? 'border-brand/50 bg-brand/5'
+                  : 'border-border',
+                disabled && 'cursor-default opacity-70',
+              )}
+            >
+              <Checkbox
+                checked={isSelected(option)}
+                onCheckedChange={() => toggle(option)}
+                disabled={disabled}
+                aria-label={option}
+              />
+              <Icon className="h-4 w-4 flex-none text-brand" aria-hidden />
+              <span className="min-w-0 text-sm [overflow-wrap:anywhere]">
+                {option}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+
+      <div className="space-y-2 border border-dashed border-border p-3">
+        <p className="text-xs font-medium text-foreground">
+          Advanced: custom amenities
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Anything not in the checklist. The icon is best-guessed from the
+          name (&quot;plunge pool&quot; gets the pool icon); unmatched
+          names get a generic sparkle.
+        </p>
+        {customValues.length > 0 && (
+          <ul className="space-y-1.5">
+            {customValues.map((value) => {
+              const Icon = amenityIcon(value);
+              return (
+                <li
+                  key={value}
+                  className="flex items-center gap-2.5 border border-border px-2.5 py-2"
+                >
+                  <Icon
+                    className="h-4 w-4 flex-none text-brand"
+                    aria-hidden
+                  />
+                  <span className="min-w-0 flex-1 text-sm [overflow-wrap:anywhere]">
+                    {value}
+                  </span>
+                  {active && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={`Remove ${value}`}
+                      className="flex-none text-muted-foreground hover:text-destructive"
+                      onClick={() => removeValue(value)}
+                      disabled={busy}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {active && (
+          <div className="flex gap-2">
+            <Input
+              value={customInput}
+              onChange={(e) => setCustomInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addCustom();
+                }
+              }}
+              placeholder="e.g. Private plunge pool"
+              aria-label="Custom amenity name"
+              disabled={busy}
+              className={inputCls(true)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addCustom}
+              disabled={busy}
+              className="flex-none"
+            >
+              <Plus />
+              Add
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** Step 3: the listing extras - link-outs, amenities and FAQs. */
 export function RoomTypeExtrasFields({
   form,
@@ -494,60 +680,13 @@ export function RoomTypeExtrasFields({
       </Field>
 
       {/* ---- Amenities ---- */}
-      <div className="space-y-2 sm:col-span-2">
-        <Label>Amenities</Label>
-        {amenities.fields.length === 0 && (
-          <p className="text-xs text-muted-foreground">
-            {active
-              ? 'Add the amenities guests get - each renders with a matching icon.'
-              : 'No amenities added yet.'}
-          </p>
-        )}
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {amenities.fields.map((field, index) => (
-            <div key={field.id} className="space-y-1">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="e.g. Air conditioning"
-                  aria-label={`Amenity ${index + 1}`}
-                  disabled={disabled}
-                  aria-invalid={!!errors.amenities?.[index]?.value}
-                  className={cls}
-                  {...register(`amenities.${index}.value`)}
-                />
-                {active && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Remove amenity ${index + 1}`}
-                    className="mt-1 flex-none text-muted-foreground hover:text-destructive"
-                    onClick={() => amenities.remove(index)}
-                    disabled={busy}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              <FieldError
-                message={errors.amenities?.[index]?.value?.message}
-              />
-            </div>
-          ))}
-        </div>
-        {active && amenities.fields.length < 50 && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => amenities.append({ value: '' })}
-            disabled={busy}
-          >
-            <Plus />
-            Add amenity
-          </Button>
-        )}
-      </div>
+      <AmenityChecklist
+        form={form}
+        active={active}
+        busy={busy}
+        amenities={amenities}
+        disabled={disabled}
+      />
 
       {/* ---- FAQs ---- */}
       <div className="space-y-2 sm:col-span-2">

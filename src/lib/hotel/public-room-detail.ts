@@ -38,6 +38,28 @@ export interface IPublicRoomDetail {
   }[];
   /** Total approved reviews - drives the client pager. */
   reviewsTotal: number;
+  /** Room-specific FAQs (admin-entered); may be empty. */
+  faqs: { question: string; answer: string }[];
+}
+
+/**
+ * Defensive parse of the faqs Json column: anything that isn't a
+ * well-formed {question, answer} entry is silently dropped, so malformed
+ * data can never break the public page.
+ */
+export function normalizeFaqs(
+  value: unknown,
+): { question: string; answer: string }[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (entry): entry is { question: string; answer: string } =>
+      typeof entry === 'object' &&
+      entry !== null &&
+      typeof (entry as { question?: unknown }).question === 'string' &&
+      typeof (entry as { answer?: unknown }).answer === 'string' &&
+      ((entry as { question: string }).question.trim().length > 0) &&
+      ((entry as { answer: string }).answer.trim().length > 0),
+  );
 }
 
 /** Public reviews page size, shared with the pager component. */
@@ -78,6 +100,7 @@ function demoDetail(slug: string): IPublicRoomDetail | null {
       { url: unsplash(next.photo.id, 1200), alt: next.photo.alt },
     ],
     rating: card.rating,
+    faqs: (demo.faqs ?? []).map((faq) => ({ ...faq })),
     reviewsTotal: (DEMO_REVIEWS[index] ?? []).length,
     reviews: (DEMO_REVIEWS[index] ?? []).map((review, reviewIndex) => ({
       id: `demo-${index}-${reviewIndex}`,
@@ -160,6 +183,7 @@ export async function getPublicRoomDetail(
         createdAt: createdAt.toISOString(),
       })),
       reviewsTotal: aggregate._count._all,
+      faqs: normalizeFaqs(roomType.faqs),
     };
   } catch (error) {
     logger.error({ error, slug }, 'Failed to load room detail');

@@ -42,3 +42,27 @@ export function amenityIcon(label: string): LucideIcon {
   }
   return Sparkles;
 }
+
+/**
+ * The canonical amenity checklist offered in the room form. Every label
+ * here keyword-matches a RULES entry, so checked amenities always render
+ * with a proper icon. Custom (advanced) amenities still go through
+ * amenityIcon - best keyword match, generic sparkle otherwise.
+ */
+export const AMENITY_OPTIONS: string[] = [
+  'Wi-Fi',
+  'Air conditioning',
+  'Smart TV',
+  'Mini bar',
+  'Bathtub',
+  'Breakfast included',
+  'Room service',
+  'Coffee & tea station',
+  'Terrace',
+  'Garden view',
+  'Extra beds on request',
+  'In-room safe',
+  'Parking',
+  'Swimming pool access',
+  'Gym access',
+];
