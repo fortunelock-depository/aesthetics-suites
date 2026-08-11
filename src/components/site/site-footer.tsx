@@ -17,6 +17,12 @@ import { routes } from '@/lib/routes';
  * Contact link.
  */
 export function SiteFooter() {
+  const legalLinks = [
+    { href: '/bookings', label: 'Manage Booking' },
+    { href: routes.privacy, label: 'Privacy Policy' },
+    { href: routes.terms, label: 'Terms of Service' },
+  ];
+
   return (
     <footer id="contact" className="border-t border-border bg-muted/50">
       <div className="mx-auto grid w-full max-w-[1320px] gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-3 lg:py-[90px]">
@@ -29,23 +35,43 @@ export function SiteFooter() {
           <SocialCircles className="mt-5 flex items-center gap-3" />
         </div>
 
-        {/* Quick links */}
-        <nav aria-label="Footer">
-          <h2 className="font-heading text-xl font-medium text-foreground">
-            Quick Links
-          </h2>
-          <ul className="mt-5 space-y-3">
-            {siteNavLinks.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="text-[15px] text-muted-foreground transition-colors hover:text-brand"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+        {/* Quick links; on phones the legal/support links stack beside
+            them (they live in the bottom bar from sm up). */}
+        <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:block">
+          <div>
+            <h2 className="font-heading text-xl font-medium text-foreground">
+              Quick Links
+            </h2>
+            <ul className="mt-5 space-y-3">
+              {siteNavLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-[15px] text-muted-foreground transition-colors hover:text-brand"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="sm:hidden">
+            <h2 className="font-heading text-xl font-medium text-foreground">
+              Support
+            </h2>
+            <ul className="mt-5 space-y-3">
+              {legalLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-[15px] text-muted-foreground transition-colors hover:text-brand"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </nav>
 
         {/* Contact */}
@@ -122,25 +148,19 @@ export function SiteFooter() {
             </span>
           </p>
           <div className="flex items-center gap-5">
-            <nav aria-label="Legal" className="flex items-center gap-5">
-              <Link
-                href="/bookings"
-                className="transition-colors hover:text-brand"
-              >
-                Manage Booking
-              </Link>
-              <Link
-                href={routes.privacy}
-                className="transition-colors hover:text-brand"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                href={routes.terms}
-                className="transition-colors hover:text-brand"
-              >
-                Terms of Service
-              </Link>
+            <nav
+              aria-label="Legal"
+              className="hidden items-center gap-5 sm:flex"
+            >
+              {legalLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="transition-colors hover:text-brand"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </nav>
             <ThemeToggle className="h-8 w-8 border border-border text-foreground hover:bg-muted" />
           </div>

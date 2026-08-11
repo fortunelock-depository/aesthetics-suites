@@ -22,6 +22,14 @@ export async function GET(req: NextRequest) {
 
     const where: Prisma.DiscountWhereInput = {
       ...(query.isActive !== undefined ? { isActive: query.isActive } : {}),
+      ...(query.search
+        ? {
+            OR: [
+              { name: { contains: query.search, mode: 'insensitive' } },
+              { code: { contains: query.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
     };
 
     const [discounts, totalItems] = await Promise.all([

@@ -1,26 +1,29 @@
 // src/app/admin/discounts/page.tsx
 import type { Metadata } from 'next';
-import { TicketPercent } from 'lucide-react';
+import { Suspense } from 'react';
 import { PageHeader } from '@/components/admin/page-header';
-import { EmptyState } from '@/components/ui/empty-state';
+import {
+  AddDiscountButton,
+  DiscountsTable,
+} from '@/components/admin/discounts/discounts-table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const metadata: Metadata = {
   title: 'Discounts',
 };
 
-/**
- * Placeholder while this console section's UI is built - the APIs behind
- * it are live (see src/app/api/admin/*).
- */
-export default function AdminDiscountsPage() {
+// Suspense is required: the table reads useSearchParams (URL-synced state).
+export default function DiscountsPage() {
   return (
     <section className="space-y-6">
-      <PageHeader title="Discounts" description="Promo codes and automatic promotions across the room catalogue." />
-      <EmptyState
-        icon={TicketPercent}
-        title="This section is on its way"
-        description="The management screens for discounts are being built. The underlying APIs are already live."
+      <PageHeader
+        title="Discounts"
+        description="Promo codes guests type at checkout, and automatic discounts on eligible stays."
+        actions={<AddDiscountButton />}
       />
+      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+        <DiscountsTable />
+      </Suspense>
     </section>
   );
 }

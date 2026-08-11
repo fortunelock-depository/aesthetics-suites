@@ -207,6 +207,7 @@ export const discountUpdateSchema = z
 
 export const discountsQuerySchema = z.object({
   ...pagination,
+  search: z.string().trim().max(255).optional(),
   isActive: z
     .enum(['true', 'false'])
     .transform((v) => v === 'true')
