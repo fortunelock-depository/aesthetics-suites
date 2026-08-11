@@ -3,16 +3,20 @@ import type { Metadata } from 'next';
 import { requireSession } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { PageHeader } from '@/components/admin/page-header';
-import { ProfilePhotoCard } from '@/components/admin/profile-photo';
-import { ProfileDetails } from '@/components/admin/profile-details';
+import { ProfileTabs } from '@/components/admin/profile/profile-tabs';
 import type { UserRoleValue } from '@/types/user.types';
 
 export const metadata: Metadata = {
   title: 'Profile',
 };
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const { userId } = await requireSession();
+  const { tab } = await searchParams;
 
   const user = await prisma.user.findFirst({
     where: { id: userId },
@@ -23,30 +27,25 @@ export default async function ProfilePage() {
       role: true,
       twoFactorEnabled: true,
       profilePhoto: true,
-      createdAt: true,
     },
   });
 
   return (
-    <section className="space-y-6">
+    <section className="mx-auto max-w-5xl space-y-6">
       <PageHeader
         title="Profile"
-        description="Your photo and account details."
+        description="Your photo, account details and security settings."
       />
-      <ProfilePhotoCard
-        fullname={user?.fullname ?? 'Account'}
-        role={(user?.role ?? 'FRONT_DESK') as UserRoleValue}
-        photoUrl={user?.profilePhoto ?? null}
-      />
-      <ProfileDetails
+      <ProfileTabs
         user={{
           fullname: user?.fullname ?? '',
           email: user?.email ?? '',
           phone: user?.phone ?? null,
           role: (user?.role ?? 'FRONT_DESK') as UserRoleValue,
-          twoFactorEnabled: user?.twoFactorEnabled ?? false,
-          createdAt: (user?.createdAt ?? new Date()).toISOString(),
+          photoUrl: user?.profilePhoto ?? null,
         }}
+        twoFactorEnabled={user?.twoFactorEnabled ?? false}
+        defaultTab={tab === 'security' ? 'security' : 'profile'}
       />
     </section>
   );

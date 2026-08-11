@@ -2,12 +2,43 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { DateTimeCell } from '@/components/ui/table-bits';
 import type { StatusTone } from '@/lib/status-colors';
+import { initials } from '@/lib/initials';
 import { USER_ROLE_LABEL, type IUserRow } from '@/types/user.types';
+
+/** Mini avatar for list rows: photo when set, initials otherwise. */
+export function UserAvatar({
+  fullname,
+  photoUrl,
+  className = 'h-8 w-8 text-xs',
+}: {
+  fullname: string;
+  photoUrl: string | null;
+  className?: string;
+}) {
+  return (
+    <span
+      className={`relative grid flex-none place-items-center overflow-hidden rounded-full bg-brand font-heading font-bold text-brand-foreground ${className}`}
+    >
+      {photoUrl ? (
+        <Image
+          src={photoUrl}
+          alt={fullname}
+          fill
+          sizes="32px"
+          className="object-cover"
+        />
+      ) : (
+        initials(fullname)
+      )}
+    </span>
+  );
+}
 
 /** Shared by the table, the mobile cards and the detail page. */
 export const ROLE_TONE: Record<IUserRow['role'], StatusTone> = {
@@ -59,10 +90,16 @@ export function createUserColumns({
       cell: ({ row }) => (
         <Link
           href={`/admin/users/${row.original.id}`}
-          className="block max-w-[90%] truncate text-sm font-medium text-foreground hover:underline"
+          className="flex max-w-[85%] items-center gap-2"
           title={row.original.fullname}
         >
-          {row.original.fullname}
+          <UserAvatar
+            fullname={row.original.fullname}
+            photoUrl={row.original.profilePhoto}
+          />
+          <span className="min-w-0 truncate text-sm font-medium text-foreground hover:underline">
+            {row.original.fullname}
+          </span>
         </Link>
       ),
       enableHiding: false,

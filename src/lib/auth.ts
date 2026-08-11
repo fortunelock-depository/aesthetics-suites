@@ -82,6 +82,7 @@ const userSelect = {
   phone: true,
   role: true,
   twoFactorEnabled: true,
+  profilePhoto: true,
   sessionVersion: true,
   createdAt: true,
   updatedAt: true,

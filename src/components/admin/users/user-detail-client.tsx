@@ -4,14 +4,20 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Shield, Trash2, User } from 'lucide-react';
 import { PageHeader } from '@/components/admin/page-header';
 import { BackLink } from '@/components/admin/back-link';
 import { DetailPageSkeleton } from '@/components/admin/detail-skeletons';
-import { DetailRow, SectionCard } from '@/components/admin/detail-bits';
+import { SectionCard } from '@/components/admin/detail-bits';
+import { UserAvatarBand } from '@/components/admin/user-avatar-band';
 import { ErrorState } from '@/components/ui/error-state';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 import { LabeledSelect } from '@/components/forms/labeled-select';
 import { useConfirm } from '@/hooks/use-confirm';
 import {
@@ -23,7 +29,6 @@ import { extractApiError } from '@/lib/extract-api-error';
 import { formatDateTime } from '@/lib/format-date';
 import { EditUserForm } from './edit-user-form';
 import { UserSecurityCard } from './user-security-card';
-import { ROLE_TONE } from './columns';
 import {
   USER_ROLES,
   USER_ROLE_LABEL,
@@ -36,7 +41,7 @@ const ROLE_OPTIONS = USER_ROLES.map((role) => ({
   label: USER_ROLE_LABEL[role],
 }));
 
-function RoleCard({ user, isSelf }: { user: IUserRow; isSelf: boolean }) {
+function RoleCard({ user }: { user: IUserRow }) {
   const [updateRole, { isLoading }] = useUpdateUserRoleMutation();
   const { confirm, confirmDialog } = useConfirm();
 
@@ -60,11 +65,7 @@ function RoleCard({ user, isSelf }: { user: IUserRow; isSelf: boolean }) {
   return (
     <SectionCard
       title="Role"
-      description={
-        isSelf
-          ? 'You cannot change your own role.'
-          : 'What this account can see and do in the console.'
-      }
+      description="What this account can see and do in the console."
     >
       <div className="max-w-56">
         <LabeledSelect
@@ -73,7 +74,7 @@ function RoleCard({ user, isSelf }: { user: IUserRow; isSelf: boolean }) {
           options={ROLE_OPTIONS}
           value={user.role}
           onValueChange={handleChange}
-          disabled={isSelf || isLoading}
+          disabled={isLoading}
         />
       </div>
       {confirmDialog}
@@ -82,23 +83,16 @@ function RoleCard({ user, isSelf }: { user: IUserRow; isSelf: boolean }) {
 }
 
 /**
- * Single-user view. Details are READ-ONLY key/value rows until "Edit
- * details" is clicked (house pattern); role changes are confirmed; the
- * security card holds the super-admin rescue tools. Self-guards mirror
- * the API's.
+ * Another user's profile, presented exactly like one's own (dms shape):
+ * avatar band + always-visible form under a Profile Information tab, and
+ * a Security Settings tab holding the super-admin rescue tools. Viewing
+ * YOURSELF never lands here - the server page redirects to /admin/profile.
  */
-export function UserDetailClient({
-  userId,
-  currentUserId,
-}: {
-  userId: string;
-  currentUserId: string;
-}) {
+export function UserDetailClient({ userId }: { userId: string }) {
   const router = useRouter();
   const { data, isLoading, isError, error, refetch } = useGetUserQuery(userId);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const { confirm, confirmDialog } = useConfirm();
-  const [editing, setEditing] = React.useState(false);
 
   if (isLoading) return <DetailPageSkeleton />;
 
@@ -116,7 +110,6 @@ export function UserDetailClient({
   }
 
   const user = data.data;
-  const isSelf = user.id === currentUserId;
 
   const handleDelete = async () => {
     const ok = await confirm({
@@ -136,75 +129,59 @@ export function UserDetailClient({
   };
 
   return (
-    <section className="space-y-6">
+    <section className="mx-auto max-w-5xl space-y-6">
       <BackLink href="/admin/users" label="All users" />
       <PageHeader
         title={user.fullname}
         description={user.email}
         actions={
-          !isSelf && (
-            <Button
-              variant="outline"
-              disabled={isDeleting}
-              onClick={handleDelete}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 />
-              {isDeleting ? 'Deleting…' : 'Delete'}
-            </Button>
-          )
+          <Button
+            variant="outline"
+            disabled={isDeleting}
+            onClick={handleDelete}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 />
+            {isDeleting ? 'Deleting…' : 'Delete'}
+          </Button>
         }
       />
 
-      <SectionCard
-        title="Details"
-        description="This account as it appears across the console."
-        actions={
-          !editing && (
-            <Button variant="outline" onClick={() => setEditing(true)}>
-              <Pencil />
-              Edit details
-            </Button>
-          )
-        }
-      >
-        {editing ? (
-          <EditUserForm
-            // Remount on fresh data so the fields resync after a save.
-            key={user.updatedAt}
-            user={user}
-            onCancel={() => setEditing(false)}
-            onSaved={() => setEditing(false)}
-          />
-        ) : (
-          <div className="divide-y divide-border">
-            <DetailRow label="Full name">{user.fullname}</DetailRow>
-            <DetailRow label="Email">{user.email}</DetailRow>
-            <DetailRow label="Phone">{user.phone ?? 'Not set'}</DetailRow>
-            <DetailRow label="Role">
-              <StatusBadge tone={ROLE_TONE[user.role]}>
-                {USER_ROLE_LABEL[user.role]}
-              </StatusBadge>
-            </DetailRow>
-            <DetailRow label="Two-factor authentication">
-              <StatusBadge
-                tone={user.twoFactorEnabled ? 'success' : 'neutral'}
-              >
-                {user.twoFactorEnabled ? 'Enabled' : 'Off'}
-              </StatusBadge>
-            </DetailRow>
-            <DetailRow label="Joined">
-              {formatDateTime(user.createdAt)}
-            </DetailRow>
-            <DetailRow label="Last updated">
-              {formatDateTime(user.updatedAt)}
-            </DetailRow>
-          </div>
-        )}
-      </SectionCard>
+      <Tabs defaultValue="profile">
+        <TabsList className="mb-4 grid w-full grid-cols-2 lg:mb-8">
+          <TabsTrigger value="profile">
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">Profile Information</span>
+            <span className="sm:hidden">Profile</span>
+          </TabsTrigger>
+          <TabsTrigger value="security">
+            <Shield className="h-4 w-4" />
+            <span className="hidden sm:inline">Security Settings</span>
+            <span className="sm:hidden">Security</span>
+          </TabsTrigger>
+        </TabsList>
 
-      <RoleCard user={user} isSelf={isSelf} />
-      {!isSelf && <UserSecurityCard user={user} />}
+        <TabsContent value="profile" className="mt-0 space-y-6">
+          <div className="@container border border-border bg-card p-4 sm:p-6">
+            <UserAvatarBand
+              fullname={user.fullname}
+              role={user.role}
+              photoUrl={user.profilePhoto}
+              subtitle={`Joined ${formatDateTime(user.createdAt)} · Last updated ${formatDateTime(user.updatedAt)}`}
+            />
+            <div className="mt-6">
+              {/* Remount on fresh data so the fields resync after a save. */}
+              <EditUserForm key={user.updatedAt} user={user} />
+            </div>
+          </div>
+          <RoleCard user={user} />
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-0">
+          <UserSecurityCard user={user} />
+        </TabsContent>
+      </Tabs>
+
       {confirmDialog}
     </section>
   );

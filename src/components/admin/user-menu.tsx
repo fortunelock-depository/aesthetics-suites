@@ -91,7 +91,7 @@ export function UserMenu({
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/admin/settings">
+            <Link href="/admin/profile?tab=security">
               <Settings />
               Settings
             </Link>

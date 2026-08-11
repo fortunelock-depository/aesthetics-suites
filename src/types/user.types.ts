@@ -22,6 +22,7 @@ export interface IUser {
   phone: string | null;
   role: UserRoleValue;
   twoFactorEnabled: boolean;
+  profilePhoto: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +35,7 @@ export interface IUserRow {
   phone: string | null;
   role: UserRoleValue;
   twoFactorEnabled: boolean;
+  profilePhoto: string | null;
   createdAt: string;
   updatedAt: string;
 }

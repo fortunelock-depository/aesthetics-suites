@@ -22,6 +22,7 @@ const userSelect = {
   phone: true,
   role: true,
   twoFactorEnabled: true,
+  profilePhoto: true,
   createdAt: true,
   updatedAt: true,
 } as const;
