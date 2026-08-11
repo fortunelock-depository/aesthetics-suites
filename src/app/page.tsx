@@ -10,7 +10,6 @@ import { FacilitiesSection } from '@/components/home/facilities-section';
 import { getPublicRoomCards } from '@/lib/hotel/public-rooms';
 import { getPublicFacilities } from '@/lib/hotel/public-facilities';
 import { getPublicServices } from '@/lib/hotel/public-services';
-import { DEMO_ROOM_CARDS } from '@/static-data/demo-rooms';
 import { SITE } from '@/config/constants';
 import { pageMetadata } from '@/lib/seo';
 
@@ -32,7 +31,8 @@ export default async function HomePage() {
     getPublicFacilities(),
     getPublicServices(),
   ]);
-  const rooms = dbRooms.length > 0 ? dbRooms : DEMO_ROOM_CARDS;
+  // The DB is the only source of truth - unpublished means not shown.
+  const rooms = dbRooms;
 
   return (
     <>
@@ -40,10 +40,12 @@ export default async function HomePage() {
       <main className="flex-1">
         <Hero />
         <WelcomeSection />
-        <RoomsSection rooms={rooms} />
+        {rooms.length > 0 && <RoomsSection rooms={rooms} />}
         <VideoBanner />
-        <ServicesRow services={services} />
-        <FacilitiesSection facilities={facilities} />
+        {services.length > 0 && <ServicesRow services={services} />}
+        {facilities.length > 0 && (
+          <FacilitiesSection facilities={facilities} />
+        )}
       </main>
       <SiteFooter />
     </>

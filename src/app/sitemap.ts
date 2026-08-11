@@ -4,7 +4,6 @@ import { SITE } from '@/config/constants';
 import { getPublicRoomCards } from '@/lib/hotel/public-rooms';
 import { getPublicFacilities } from '@/lib/hotel/public-facilities';
 import { getPublicServices } from '@/lib/hotel/public-services';
-import { DEMO_ROOM_CARDS } from '@/static-data/demo-rooms';
 
 // Regenerates hourly so newly published rooms/facilities reach the sitemap
 // without a redeploy (mutations only revalidate the page routes).
@@ -26,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getPublicFacilities(),
     getPublicServices(),
   ]);
-  const rooms = dbRooms.length > 0 ? dbRooms : DEMO_ROOM_CARDS;
+  const rooms = dbRooms;
 
   return [
     ...staticRoutes.map((route) => ({

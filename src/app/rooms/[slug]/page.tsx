@@ -12,7 +12,6 @@ import { RoomReviews } from '@/components/rooms/room-reviews';
 import { RoomsSidebarWidgets } from '@/components/rooms/rooms-sidebar';
 import { getPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 import { getPublicRoomCards } from '@/lib/hotel/public-rooms';
-import { DEMO_ROOM_CARDS } from '@/static-data/demo-rooms';
 import { ROOM_DETAILS_CONTENT, unsplash } from '@/static-data/home';
 import { amenityIcon } from '@/lib/amenity-icons';
 import { clampDescription } from '@/lib/seo';
@@ -43,8 +42,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
   const room = await getPublicRoomDetail(slug);
   if (!room) notFound();
 
-  const dbRooms = await getPublicRoomCards();
-  const allRooms = dbRooms.length > 0 ? dbRooms : DEMO_ROOM_CARDS;
+  const allRooms = await getPublicRoomCards();
 
   return (
     <>

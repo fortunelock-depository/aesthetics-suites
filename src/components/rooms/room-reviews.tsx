@@ -3,6 +3,7 @@ import { MessageSquareText, Star } from 'lucide-react';
 import { SectionHeading } from '@/components/site/section-heading';
 import { Reveal } from '@/components/site/reveal';
 import { RoomReviewsList } from './room-reviews-list';
+import { EmptyState } from '@/components/ui/empty-state';
 import { WriteReviewButton } from './write-review-dialog';
 import { REVIEWS_PAGE_SIZE } from '@/lib/hotel/public-room-detail';
 import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
@@ -47,13 +48,13 @@ export function RoomReviews({
       </Reveal>
 
       {reviews.length === 0 ? (
-        <div className="mt-8 border border-dashed border-border bg-card px-6 py-10 text-center">
-          <MessageSquareText className="mx-auto h-6 w-6 text-brand" />
-          <p className="mt-3 text-[15px] text-muted-foreground">
-            No reviews yet - be the first to stay in this suite and tell us
-            how it was.
-          </p>
-        </div>
+        <EmptyState
+              variant="site"
+          icon={MessageSquareText}
+          title="No reviews yet"
+          description="Be the first to stay in this suite and tell us how it was."
+          className="mt-8 py-10"
+        />
       ) : (
         <RoomReviewsList
           slug={slug}

@@ -3,12 +3,6 @@ import 'server-only';
 import { normalizeFaqs } from '@/lib/hotel/faqs';
 import prisma, { ReviewStatus } from '@/lib/prisma';
 import logger from '@/utils/logger';
-import {
-  DEMO_ROOM_TYPES,
-  DEMO_ROOM_CARDS,
-  DEMO_REVIEWS,
-} from '@/static-data/demo-rooms';
-import { unsplash } from '@/static-data/home';
 
 export interface IPublicRoomDetail {
   id: string;
@@ -52,48 +46,10 @@ const splitParagraphs = (text: string): string[] =>
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 
-/** The static demo detail for a slug (until real rooms are published). */
-function demoDetail(slug: string): IPublicRoomDetail | null {
-  const index = DEMO_ROOM_CARDS.findIndex((card) => card.slug === slug);
-  if (index === -1) return null;
-  const demo = DEMO_ROOM_TYPES[index];
-  const card = DEMO_ROOM_CARDS[index];
-  // Second gallery shot: borrow the next room's photo for variety.
-  const next = DEMO_ROOM_TYPES[(index + 1) % DEMO_ROOM_TYPES.length];
-
-  return {
-    id: card.id,
-    name: demo.name,
-    slug,
-    summary: demo.summary,
-    description: splitParagraphs(demo.description),
-    basePrice: demo.basePrice,
-    currency: 'GHS',
-    capacityAdults: demo.capacityAdults,
-    capacityChildren: demo.capacityChildren,
-    sizeSqm: demo.sizeSqm,
-    unitCount: demo.units.length,
-    amenities: demo.amenities,
-    minNights: 1,
-    airbnbUrl: null,
-    photos: [
-      { url: unsplash(demo.photo.id, 1200), alt: demo.photo.alt },
-      { url: unsplash(next.photo.id, 1200), alt: next.photo.alt },
-    ],
-    rating: card.rating,
-    faqs: (demo.faqs ?? []).map((faq) => ({ ...faq })),
-    reviewsTotal: (DEMO_REVIEWS[index] ?? []).length,
-    reviews: (DEMO_REVIEWS[index] ?? []).map((review, reviewIndex) => ({
-      id: `demo-${index}-${reviewIndex}`,
-      ...review,
-    })),
-  };
-}
-
 /**
- * A published room's full detail + approved reviews. DB first; when the DB
- * has no published rooms (or is unreachable) the demo set answers, so the
- * detail pages work in the static phase too.
+ * A published room's full detail + approved reviews. The DB is the ONLY
+ * source of truth: unpublished or missing rooms 404, and an unreachable
+ * DB reads as not-found rather than a crash.
  */
 export async function getPublicRoomDetail(
   slug: string,
@@ -108,7 +64,7 @@ export async function getPublicRoomDetail(
         },
       },
     });
-    if (!roomType) return demoDetail(slug);
+    if (!roomType) return null;
 
     const [aggregate, reviews] = await Promise.all([
       prisma.review.aggregate({
@@ -168,6 +124,7 @@ export async function getPublicRoomDetail(
     };
   } catch (error) {
     logger.error({ error, slug }, 'Failed to load room detail');
-    return demoDetail(slug);
+    // Fail soft: an unreachable DB reads as "not found", never a crash.
+    return null;
   }
 }

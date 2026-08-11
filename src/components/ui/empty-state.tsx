@@ -5,12 +5,19 @@
 // automatically when imported from one (e.g. tables passing onCreateClick).
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
   title: string;
   description?: string;
-  /** Icon rendered in the badge above the title. */
+  /** Icon rendered above the title. */
   icon?: LucideIcon;
+  /**
+   * 'admin' (default) = the console's compact card; 'site' = the public
+   * pages' display-font treatment. ONE component for every empty state.
+   */
+  variant?: 'admin' | 'site';
+  className?: string;
   /** Primary call-to-action (e.g. "Add your first room"). */
   buttonText?: string;
   buttonIcon?: LucideIcon;
@@ -18,7 +25,7 @@ interface EmptyStateProps {
 }
 
 /**
- * Honest empty state for lists/queries that resolved with no rows - never
+ * Honest empty state for anything that resolved with no rows - never
  * leave a blank area where data was expected. With table-empty-logic this
  * renders ALONE (no toolbar/table) when a module has no data at all.
  */
@@ -26,20 +33,47 @@ export function EmptyState({
   title,
   description,
   icon: Icon,
+  variant = 'admin',
+  className,
   buttonText,
   buttonIcon: ButtonIcon,
   onCreateClick,
 }: EmptyStateProps) {
+  const site = variant === 'site';
   return (
-    <div className="rounded-xl border border-dashed border-border px-5 py-12 text-center">
-      {Icon && (
-        <span className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl border border-border text-muted-foreground">
-          <Icon className="h-5 w-5" />
-        </span>
+    <div
+      className={cn(
+        'border border-dashed border-border text-center',
+        site ? 'bg-card px-6 py-14' : 'rounded-xl px-5 py-12',
+        className,
       )}
-      <p className="text-sm font-semibold text-foreground">{title}</p>
+    >
+      {Icon &&
+        (site ? (
+          <Icon aria-hidden className="mx-auto mb-3 h-6 w-6 text-brand" />
+        ) : (
+          <span className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl border border-border text-muted-foreground">
+            <Icon className="h-5 w-5" />
+          </span>
+        ))}
+      <p
+        className={cn(
+          site
+            ? 'font-heading text-xl font-medium text-foreground'
+            : 'text-sm font-semibold text-foreground',
+        )}
+      >
+        {title}
+      </p>
       {description && (
-        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+        <p
+          className={cn(
+            'mx-auto text-muted-foreground',
+            site
+              ? 'mt-2 max-w-md text-[15px] leading-[26px]'
+              : 'mt-1 max-w-sm text-sm',
+          )}
+        >
           {description}
         </p>
       )}

@@ -2,7 +2,6 @@
 import 'server-only';
 import prisma from '@/lib/prisma';
 import logger from '@/utils/logger';
-import { SERVICES } from '@/static-data/home';
 
 export interface IPublicService {
   id: string;
@@ -22,31 +21,10 @@ const splitParagraphs = (text: string): string[] =>
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 
-/** The static editorial services, shaped like the DB payload. */
-export const STATIC_SERVICES: IPublicService[] = SERVICES.map(
-  (service, index) => ({
-    id: `static-${index}`,
-    slug: service.slug,
-    eyebrow: service.eyebrow,
-    name: service.title,
-    summary: service.description,
-    description: [...service.longDescription],
-    availability: service.availability,
-    highlights: [...service.highlights],
-    photos: [
-      { url: service.image.src, alt: service.image.alt },
-      ...service.gallery.map((photo) => ({
-        url: photo.src,
-        alt: photo.alt,
-      })),
-    ],
-  }),
-);
-
 /**
- * Published services for the public pages. Fails SOFT to the static
- * editorial set, so the site always shows services - before the DB has
- * any, and during outages.
+ * Published services for the public pages. The DB is the ONLY source of
+ * truth: unpublished means not shown; an unreachable DB reads as empty,
+ * never a crash.
  */
 export async function getPublicServices(): Promise<IPublicService[]> {
   try {
@@ -56,7 +34,6 @@ export async function getPublicServices(): Promise<IPublicService[]> {
       include: { photos: { orderBy: { sortOrder: 'asc' } } },
     });
 
-    if (services.length === 0) return STATIC_SERVICES;
 
     return services.map((service) => ({
       id: service.id,
@@ -74,11 +51,12 @@ export async function getPublicServices(): Promise<IPublicService[]> {
     }));
   } catch (error) {
     logger.error({ error }, 'Failed to load public services');
-    return STATIC_SERVICES;
+    // Fail soft: an unreachable DB reads as empty, never a crash.
+    return [];
   }
 }
 
-/** One service by slug (DB first, static fallback), or null. */
+/** One published service by slug, or null (-> 404). */
 export async function getPublicService(
   slug: string,
 ): Promise<IPublicService | null> {

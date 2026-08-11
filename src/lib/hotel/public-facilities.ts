@@ -2,7 +2,6 @@
 import 'server-only';
 import prisma from '@/lib/prisma';
 import logger from '@/utils/logger';
-import { FACILITIES } from '@/static-data/home';
 
 export interface IPublicFacility {
   id: string;
@@ -22,31 +21,10 @@ const splitParagraphs = (text: string): string[] =>
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 
-/** The static editorial facilities, shaped like the DB payload. */
-export const STATIC_FACILITIES: IPublicFacility[] = FACILITIES.map(
-  (facility, index) => ({
-    id: `static-${index}`,
-    slug: facility.slug,
-    eyebrow: facility.eyebrow,
-    name: facility.title,
-    summary: facility.description,
-    description: [...facility.longDescription],
-    openingHours: facility.openingHours,
-    highlights: [...facility.highlights],
-    photos: [
-      { url: facility.image.src, alt: facility.image.alt },
-      ...facility.gallery.map((photo) => ({
-        url: photo.src,
-        alt: photo.alt,
-      })),
-    ],
-  }),
-);
-
 /**
- * Published facilities for the public pages. Fails SOFT to the static
- * editorial set, so the site always shows facilities - before the DB has
- * any, and during outages.
+ * Published facilities for the public pages. The DB is the ONLY source of
+ * truth: unpublished means not shown; an unreachable DB reads as empty,
+ * never a crash.
  */
 export async function getPublicFacilities(): Promise<IPublicFacility[]> {
   try {
@@ -56,7 +34,6 @@ export async function getPublicFacilities(): Promise<IPublicFacility[]> {
       include: { photos: { orderBy: { sortOrder: 'asc' } } },
     });
 
-    if (facilities.length === 0) return STATIC_FACILITIES;
 
     return facilities.map((facility) => ({
       id: facility.id,
@@ -74,11 +51,12 @@ export async function getPublicFacilities(): Promise<IPublicFacility[]> {
     }));
   } catch (error) {
     logger.error({ error }, 'Failed to load public facilities');
-    return STATIC_FACILITIES;
+    // Fail soft: an unreachable DB reads as empty, never a crash.
+    return [];
   }
 }
 
-/** One facility by slug (DB first, static fallback), or null. */
+/** One published facility by slug, or null (-> 404). */
 export async function getPublicFacility(
   slug: string,
 ): Promise<IPublicFacility | null> {
