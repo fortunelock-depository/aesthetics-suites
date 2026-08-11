@@ -1,41 +1,26 @@
 // src/components/rooms/room-reviews.tsx
-import { BadgeCheck, MessageSquareText, Star } from 'lucide-react';
+import { MessageSquareText, Star } from 'lucide-react';
 import { SectionHeading } from '@/components/site/section-heading';
 import { Reveal } from '@/components/site/reveal';
-import { formatDate } from '@/lib/format-date';
+import { RoomReviewsList } from './room-reviews-list';
+import { REVIEWS_PAGE_SIZE } from '@/lib/hotel/public-room-detail';
 import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
-
-function Stars({ rating }: { rating: number }) {
-  return (
-    <span
-      className="flex items-center gap-0.5"
-      aria-label={`${rating} out of 5`}
-    >
-      {[1, 2, 3, 4, 5].map((step) => (
-        <Star
-          key={step}
-          className={
-            step <= rating
-              ? 'h-3.5 w-3.5 fill-brand text-brand'
-              : 'h-3.5 w-3.5 text-border'
-          }
-        />
-      ))}
-    </span>
-  );
-}
 
 /**
  * Guest reviews at the bottom of the room detail page (the product
- * decision: reviews live under each listing). Section heading in the house
- * style with the aggregate beside it; review cards two-up on desktop; an
- * honest empty line when the room has no approved reviews yet.
+ * decision: reviews live under each listing). The heading and aggregate
+ * render on the server; the list itself is server-PAGINATED through the
+ * public API since reviews grow without bound.
  */
 export function RoomReviews({
+  slug,
   reviews,
+  reviewsTotal,
   rating,
 }: {
+  slug: string;
   reviews: IPublicRoomDetail['reviews'];
+  reviewsTotal: number;
   rating: IPublicRoomDetail['rating'];
 }) {
   return (
@@ -67,37 +52,12 @@ export function RoomReviews({
           </p>
         </div>
       ) : (
-        <ul className="mt-8 grid gap-6 lg:grid-cols-2">
-          {reviews.map((review, index) => (
-            <Reveal key={review.id} delay={Math.min(index, 3) * 0.08}>
-              <li className="flex h-full flex-col border border-border bg-card p-6 lg:p-7">
-                <div className="flex flex-col gap-1.5 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between">
-                  <Stars rating={review.rating} />
-                  <span className="flex-none text-xs text-muted-foreground">
-                    {formatDate(review.createdAt)}
-                  </span>
-                </div>
-                {review.title && (
-                  <p className="mt-3 font-heading text-lg font-medium text-foreground [overflow-wrap:anywhere]">
-                    {review.title}
-                  </p>
-                )}
-                <p className="mt-2 flex-1 text-[15px] leading-[26px] text-muted-foreground [overflow-wrap:anywhere]">
-                  {review.body}
-                </p>
-                <p className="mt-4 border-t border-dashed border-border pt-3.5 text-sm font-semibold text-foreground [overflow-wrap:anywhere]">
-                  {review.guestName}
-                  {review.verifiedStay && (
-                    <span className="ml-2 inline-flex items-center gap-1 align-middle text-xs font-normal text-brand">
-                      <BadgeCheck className="h-3.5 w-3.5" />
-                      Verified stay
-                    </span>
-                  )}
-                </p>
-              </li>
-            </Reveal>
-          ))}
-        </ul>
+        <RoomReviewsList
+          slug={slug}
+          initialReviews={reviews}
+          totalCount={reviewsTotal}
+          pageSize={REVIEWS_PAGE_SIZE}
+        />
       )}
     </section>
   );

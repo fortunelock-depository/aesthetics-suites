@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import prisma, { UserRole } from '@/lib/prisma';
 import { BCRYPT_SALT_ROUNDS } from '@/config/constants';
 import { handlePhone } from '@/utils/phone';
-import { DEMO_ROOM_TYPES } from '@/static-data/demo-rooms';
+import { DEMO_REVIEWS, DEMO_ROOM_TYPES } from '@/static-data/demo-rooms';
 import { FACILITIES, SERVICES, unsplash } from '@/static-data/home';
 
 // The ADMIN_* variables are read here (not in src/config/env.ts) because only
@@ -156,6 +156,44 @@ async function seedDemoRooms() {
       });
     } else {
       await prisma.seasonRate.create({ data: rateData });
+    }
+
+    // Reviews: the static demo set goes live as APPROVED, plus a PENDING
+    // one on the first rooms so the moderation queue has real work.
+    await prisma.review.deleteMany({ where: { roomTypeId: roomType.id } });
+    for (const review of DEMO_REVIEWS[index] ?? []) {
+      await prisma.review.create({
+        data: {
+          roomTypeId: roomType.id,
+          guestName: review.guestName,
+          guestEmail: `${review.guestName
+            .toLowerCase()
+            .replace(/[^a-z]+/g, '.')
+            .replace(/^\.|\.$/g, '')}@example.com`,
+          rating: review.rating,
+          title: review.title,
+          body: review.body,
+          status: 'APPROVED',
+          createdAt: new Date(review.createdAt),
+        },
+      });
+    }
+    if (index < 2) {
+      await prisma.review.create({
+        data: {
+          roomTypeId: roomType.id,
+          guestName: index === 0 ? 'Yaw B.' : 'Efua T.',
+          guestEmail:
+            index === 0 ? 'yaw.b@example.com' : 'efua.t@example.com',
+          rating: index === 0 ? 4 : 5,
+          title: index === 0 ? 'Solid stay overall' : 'Would come back',
+          body:
+            index === 0
+              ? 'Comfortable room and friendly staff. The Wi-Fi dipped once in the evening but everything else was smooth from check-in to check-out.'
+              : 'The lounge made our anniversary stay feel special, and breakfast was excellent every single morning. Genuinely hard to fault.',
+          status: 'PENDING',
+        },
+      });
     }
   }
 

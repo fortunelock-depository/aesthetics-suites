@@ -334,6 +334,8 @@ export const reviewsQuerySchema = z.object({
   ...pagination,
   status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
   roomTypeId: z.uuid().optional(),
+  /** Admin moderation queue only - matches guest name/email/title. */
+  search: z.string().trim().max(255).optional(),
 });
 
 export const reviewModerateSchema = z.object({

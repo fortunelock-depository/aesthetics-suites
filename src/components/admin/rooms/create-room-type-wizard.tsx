@@ -159,7 +159,6 @@ export function CreateRoomTypeWizard() {
 
   const form = useForm<RoomTypeFormInput, unknown, RoomTypeFormOutput>({
     resolver: zodResolver(roomTypeFormSchema),
-    mode: 'onTouched',
     defaultValues: BLANK_ROOM_TYPE,
   });
 

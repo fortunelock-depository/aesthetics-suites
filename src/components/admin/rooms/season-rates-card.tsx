@@ -103,7 +103,6 @@ function RateFormDialog({
 
   const form = useForm<RateFormInput, unknown, RateFormOutput>({
     resolver: zodResolver(rateFormSchema),
-    mode: 'onTouched',
     defaultValues: BLANK_RATE,
   });
 

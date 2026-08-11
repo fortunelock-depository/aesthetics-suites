@@ -47,7 +47,6 @@ export function EditUserForm({ user }: { user: IUserRow }) {
     formState: { errors },
   } = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(updateUserDetailsSchema),
-    mode: 'onTouched',
     defaultValues: {
       fullname: user.fullname,
       phone: user.phone ?? '',

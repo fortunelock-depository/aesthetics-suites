@@ -26,6 +26,7 @@ export interface IPublicRoomDetail {
   airbnbUrl: string | null;
   photos: { url: string; alt: string | null }[];
   rating: { average: number; count: number } | null;
+  /** First page of approved reviews (REVIEWS_PAGE_SIZE). */
   reviews: {
     id: string;
     guestName: string;
@@ -35,7 +36,12 @@ export interface IPublicRoomDetail {
     verifiedStay: boolean;
     createdAt: string;
   }[];
+  /** Total approved reviews - drives the client pager. */
+  reviewsTotal: number;
 }
+
+/** Public reviews page size, shared with the pager component. */
+export const REVIEWS_PAGE_SIZE = 6;
 
 const splitParagraphs = (text: string): string[] =>
   text
@@ -72,6 +78,7 @@ function demoDetail(slug: string): IPublicRoomDetail | null {
       { url: unsplash(next.photo.id, 1200), alt: next.photo.alt },
     ],
     rating: card.rating,
+    reviewsTotal: (DEMO_REVIEWS[index] ?? []).length,
     reviews: (DEMO_REVIEWS[index] ?? []).map((review, reviewIndex) => ({
       id: `demo-${index}-${reviewIndex}`,
       ...review,
@@ -108,7 +115,7 @@ export async function getPublicRoomDetail(
       prisma.review.findMany({
         where: { roomTypeId: roomType.id, status: ReviewStatus.APPROVED },
         orderBy: { createdAt: 'desc' },
-        take: 6,
+        take: REVIEWS_PAGE_SIZE,
         select: {
           id: true,
           guestName: true,
@@ -152,6 +159,7 @@ export async function getPublicRoomDetail(
         verifiedStay: Boolean(bookingId),
         createdAt: createdAt.toISOString(),
       })),
+      reviewsTotal: aggregate._count._all,
     };
   } catch (error) {
     logger.error({ error, slug }, 'Failed to load room detail');

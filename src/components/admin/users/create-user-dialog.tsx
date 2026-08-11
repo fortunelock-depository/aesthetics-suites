@@ -64,7 +64,6 @@ export function CreateUserDialog({
     formState: { errors },
   } = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(createUserSchema),
-    mode: 'onTouched',
     defaultValues: BLANK,
   });
 

@@ -1,26 +1,25 @@
 // src/app/admin/reviews/page.tsx
 import type { Metadata } from 'next';
-import { Star } from 'lucide-react';
+import { Suspense } from 'react';
 import { PageHeader } from '@/components/admin/page-header';
-import { EmptyState } from '@/components/ui/empty-state';
+import { ReviewsTable } from '@/components/admin/reviews/reviews-table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const metadata: Metadata = {
   title: 'Reviews',
 };
 
-/**
- * Placeholder while this console section's UI is built - the APIs behind
- * it are live (see src/app/api/admin/*).
- */
-export default function AdminReviewsPage() {
+// Suspense is required: the table reads useSearchParams (URL-synced state).
+export default function ReviewsPage() {
   return (
     <section className="space-y-6">
-      <PageHeader title="Reviews" description="Moderate guest reviews before they appear under each room listing." />
-      <EmptyState
-        icon={Star}
-        title="This section is on its way"
-        description="The management screens for reviews are being built. The underlying APIs are already live."
+      <PageHeader
+        title="Reviews"
+        description="Guest reviews await approval here before appearing under their room."
       />
+      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+        <ReviewsTable />
+      </Suspense>
     </section>
   );
 }

@@ -154,7 +154,12 @@ export default async function RoomDetailPage({ params }: PageProps) {
         </section>
 
         {/* Guest reviews - full-width at the bottom of the page. */}
-        <RoomReviews reviews={room.reviews} rating={room.rating} />
+        <RoomReviews
+          slug={room.slug}
+          reviews={room.reviews}
+          reviewsTotal={room.reviewsTotal}
+          rating={room.rating}
+        />
       </main>
       <SiteFooter />
     </>

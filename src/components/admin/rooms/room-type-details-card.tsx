@@ -34,7 +34,6 @@ export function RoomTypeDetailsCard({
 
   const form = useForm<RoomTypeFormInput, unknown, RoomTypeFormOutput>({
     resolver: zodResolver(roomTypeFormSchema),
-    mode: 'onTouched',
     defaultValues: roomTypeToFormDefaults(roomType),
   });
 

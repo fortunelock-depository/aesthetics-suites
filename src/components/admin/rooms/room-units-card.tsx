@@ -89,7 +89,6 @@ function UnitFormDialog({
 
   const form = useForm<UnitFormValues>({
     resolver: zodResolver(unitFormSchema),
-    mode: 'onTouched',
     defaultValues: BLANK_UNIT,
   });
 

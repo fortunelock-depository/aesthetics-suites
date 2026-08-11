@@ -17,6 +17,15 @@ export async function GET(req: NextRequest) {
     const where: Prisma.ReviewWhereInput = {
       ...(query.status ? { status: query.status } : {}),
       ...(query.roomTypeId ? { roomTypeId: query.roomTypeId } : {}),
+      ...(query.search
+        ? {
+            OR: [
+              { guestName: { contains: query.search, mode: 'insensitive' } },
+              { guestEmail: { contains: query.search, mode: 'insensitive' } },
+              { title: { contains: query.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
     };
 
     const [reviews, totalItems] = await Promise.all([

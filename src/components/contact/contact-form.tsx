@@ -68,7 +68,6 @@ export function ContactForm() {
     formState: { errors },
   } = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(contactSchema),
-    mode: 'onTouched',
     defaultValues: { website: '', turnstileToken: '' },
   });
 
