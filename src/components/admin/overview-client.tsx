@@ -9,6 +9,8 @@ import { ErrorState } from '@/components/ui/error-state';
 import { OverviewSkeleton } from '@/components/admin/skeletons';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LabeledSelect } from '@/components/forms/labeled-select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { formatMoney, formatMoneyCompact } from '@/lib/format-money';
 import { formatDate } from '@/lib/format-date';
 import {
@@ -29,6 +31,7 @@ const PRESET_OPTIONS: { value: DashboardPreset; label: string }[] = [
   { value: 'LAST_MONTH', label: 'Last month' },
   { value: 'LAST_90_DAYS', label: 'Last 90 days' },
   { value: 'THIS_YEAR', label: 'This year' },
+  { value: 'CUSTOM', label: 'Custom range' },
 ];
 
 const BOOKING_STATUS_TONE: Record<string, StatusTone> = {
@@ -109,9 +112,31 @@ function SectionCard({
  */
 export function OverviewClient() {
   const [preset, setPreset] = useState<DashboardPreset>('THIS_MONTH');
-  const { data, isLoading, isError, error, refetch } = useGetOverviewQuery({
-    preset,
-  });
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
+  // The QUERIED range; Custom only lands here on Apply, so half-typed
+  // dates never fire requests.
+  const [applied, setApplied] = useState<{
+    preset: DashboardPreset;
+    from?: string;
+    to?: string;
+  }>({ preset: 'THIS_MONTH' });
+
+  const { data, isLoading, isError, error, refetch } =
+    useGetOverviewQuery(applied);
+
+  const handlePresetChange = (value: DashboardPreset) => {
+    setPreset(value);
+    if (value !== 'CUSTOM') setApplied({ preset: value });
+  };
+
+  const customValid = Boolean(
+    customFrom && customTo && customTo >= customFrom,
+  );
+  const applyCustom = () => {
+    if (!customValid) return;
+    setApplied({ preset: 'CUSTOM', from: customFrom, to: customTo });
+  };
 
   if (isLoading) return <OverviewSkeleton />;
 
@@ -137,14 +162,57 @@ export function OverviewClient() {
 
   return (
     <div className="space-y-6">
-      {/* Range picker */}
-      <div className="max-w-[220px]">
-        <LabeledSelect
-          label="Period"
-          options={PRESET_OPTIONS}
-          value={preset}
-          onValueChange={(value) => setPreset(value as DashboardPreset)}
-        />
+      {/* Range picker: presets, or a custom from/to (the dms filter). */}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="w-full max-w-[220px] min-[480px]:w-[180px]">
+          <LabeledSelect
+            label="Period"
+            options={PRESET_OPTIONS}
+            value={preset}
+            onValueChange={(value) =>
+              handlePresetChange(value as DashboardPreset)
+            }
+          />
+        </div>
+        {preset === 'CUSTOM' && (
+          <>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="overview-from"
+                className="block text-sm font-medium text-muted-foreground"
+              >
+                From
+              </label>
+              <Input
+                id="overview-from"
+                type="date"
+                value={customFrom}
+                max={customTo || undefined}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="w-40"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="overview-to"
+                className="block text-sm font-medium text-muted-foreground"
+              >
+                To
+              </label>
+              <Input
+                id="overview-to"
+                type="date"
+                value={customTo}
+                min={customFrom || undefined}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="w-40"
+              />
+            </div>
+            <Button onClick={applyCustom} disabled={!customValid}>
+              Apply
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Headline cards (trend vs the previous period) */}

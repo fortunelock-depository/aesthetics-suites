@@ -28,16 +28,51 @@ const detailRows = (booking: Booking, roomTypeName: string): string => {
     .join('');
 };
 
-/** Guest confirmation, sent once when the booking is paid/confirmed. */
+export interface IPaymentReceipt {
+  reference: string;
+  amount: number;
+  currency: string;
+  channel: string | null;
+  paidAt: Date | null;
+}
+
+/**
+ * Guest confirmation, sent once when the booking is paid/confirmed. When
+ * the settling payment is passed, the email doubles as the receipt.
+ */
 export async function sendBookingConfirmedEmail(
   booking: Booking,
   roomTypeName: string,
+  payment?: IPaymentReceipt,
 ): Promise<void> {
+  const receiptBlock = payment
+    ? `
+    <div style="margin:0 0 16px;padding:14px 16px;background:#F3F1D9;border-radius:8px;">
+      <p style="margin:0 0 8px;font-size:13px;font-weight:700;">Payment received</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+        <tr>
+          <td class="detail-label" style="padding:3px 12px 3px 0;color:#8B8E74;font-size:13px;white-space:nowrap;">Amount paid</td>
+          <td class="detail-value" style="padding:3px 0;font-size:13px;font-weight:600;">${formatMoney(payment.amount, payment.currency)}</td>
+        </tr>
+        <tr>
+          <td class="detail-label" style="padding:3px 12px 3px 0;color:#8B8E74;font-size:13px;white-space:nowrap;">Reference</td>
+          <td class="detail-value" style="padding:3px 0;font-size:13px;font-weight:600;word-break:break-all;">${escapeHtml(payment.reference)}</td>
+        </tr>
+        ${payment.channel ? `<tr>
+          <td class="detail-label" style="padding:3px 12px 3px 0;color:#8B8E74;font-size:13px;white-space:nowrap;">Method</td>
+          <td class="detail-value" style="padding:3px 0;font-size:13px;font-weight:600;">${escapeHtml(payment.channel)}</td>
+        </tr>` : ''}
+      </table>
+      <p style="margin:8px 0 0;color:#8B8E74;font-size:12px;">Keep this email as your receipt.</p>
+    </div>`
+    : '';
+
   const html = shell(`
     <h2 style="margin:0 0 16px;font-size:18px;">Your booking is confirmed</h2>
     <p style="margin:0 0 16px;">Hi ${escapeHtml(booking.guestName)},</p>
     <p style="margin:0 0 16px;">Thank you for booking with ${SITE.name}. Here are your stay details - keep the booking code handy at check-in.</p>
     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 16px;">${detailRows(booking, roomTypeName)}</table>
+    ${receiptBlock}
     <p style="margin:0;color:#6b7280;font-size:13px;">Questions? Just reply to this email.</p>
   `);
 

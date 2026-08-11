@@ -7,7 +7,8 @@ export type DashboardPreset =
   | 'THIS_MONTH'
   | 'LAST_MONTH'
   | 'LAST_90_DAYS'
-  | 'THIS_YEAR';
+  | 'THIS_YEAR'
+  | 'CUSTOM';
 
 export interface ITrendData {
   percentage: number;

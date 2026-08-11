@@ -10,10 +10,14 @@ export const overviewApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getOverview: builder.query<
       IOverviewResponse,
-      { preset?: DashboardPreset } | void
+      { preset?: DashboardPreset; from?: string; to?: string } | void
     >({
       query: (params) =>
-        toQueryString('admin/overview', { preset: params?.preset }),
+        toQueryString('admin/overview', {
+          preset: params?.preset,
+          from: params?.from,
+          to: params?.to,
+        }),
       providesTags: ['Overview'],
       // Keep the cached result for 2 minutes so navigating back is instant.
       keepUnusedDataFor: 120,

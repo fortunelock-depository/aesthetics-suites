@@ -19,18 +19,16 @@ const RECENT_BOOKINGS_LIMIT = 8;
 const UPCOMING_ARRIVALS_DAYS = 7;
 const STALE_CALENDAR_HOURS = 24;
 
-export type DashboardPreset =
-  | 'TODAY'
-  | 'THIS_WEEK'
-  | 'THIS_MONTH'
-  | 'LAST_MONTH'
-  | 'LAST_90_DAYS'
-  | 'THIS_YEAR';
-
-export interface ITrendData {
-  percentage: number;
-  direction: 'upward' | 'downward' | 'neutral';
-}
+// The shared dashboard contract lives in types/overview.types.ts - one
+// definition for the API, the service and the client.
+export type {
+  DashboardPreset,
+  ITrendData,
+} from '@/types/overview.types';
+import type {
+  DashboardPreset,
+  ITrendData,
+} from '@/types/overview.types';
 
 /** Statuses that represent real (revenue-bearing) stays. */
 const REVENUE_STATUSES: BookingStatus[] = [
@@ -39,7 +37,12 @@ const REVENUE_STATUSES: BookingStatus[] = [
   BookingStatus.CHECKED_OUT,
 ];
 
-export function resolveRange(preset: DashboardPreset, now = new Date()) {
+export function resolveRange(
+  preset: DashboardPreset,
+  now = new Date(),
+  /** CUSTOM only: [start, end) resolved by the route from ?from&to. */
+  custom?: { start: Date; end: Date },
+) {
   const today = todayUtc();
   const startOfMonth = new Date(
     Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1),
@@ -47,6 +50,16 @@ export function resolveRange(preset: DashboardPreset, now = new Date()) {
 
   let start: Date;
   let end: Date;
+  if (preset === 'CUSTOM' && custom) {
+    ({ start, end } = custom);
+    const length = end.getTime() - start.getTime();
+    return {
+      start,
+      end,
+      previousStart: new Date(start.getTime() - length),
+      previousEnd: start,
+    };
+  }
   switch (preset) {
     case 'TODAY':
       start = today;
@@ -116,11 +129,18 @@ const overlapNights = (
   return Math.max(0, Math.round((end - start) / MS_PER_DAY));
 };
 
-export async function getDashboardStats(preset: DashboardPreset) {
+export async function getDashboardStats(
+  preset: DashboardPreset,
+  custom?: { start: Date; end: Date },
+) {
   const now = new Date();
   const today = todayUtc();
   const tomorrow = new Date(today.getTime() + MS_PER_DAY);
-  const { start, end, previousStart, previousEnd } = resolveRange(preset, now);
+  const { start, end, previousStart, previousEnd } = resolveRange(
+    preset,
+    now,
+    custom,
+  );
 
   const [
     arrivalsToday,

@@ -5,6 +5,16 @@ import { SITE } from '@/config/constants';
 export const BRAND = SITE.name;
 export const TAGLINE = SITE.tagline;
 
+/**
+ * The agritrade logo approach: a HOSTED image, never a cid attachment (cid
+ * displays fine but clients list it as an attachment, so every email wears
+ * a paperclip). Gmail proxies remote images by default; clients that block
+ * them fall back to the brand text beside it. Renders once the site is
+ * deployed on https - a localhost URL is unfetchable by inboxes, which is
+ * fine in development.
+ */
+const LOGO_URL = `${SITE.url}/logo-mark.png`;
+
 export const escapeHtml = (s: string): string =>
   s
     .replace(/&/g, '&amp;')
@@ -46,8 +56,17 @@ export function shell(bodyHtml: string): string {
         <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border:1px solid #E4E5CC;border-radius:14px;overflow:hidden;">
           <tr>
             <td class="email-header" style="background:#252A1C;padding:22px 28px;">
-              <p style="margin:0;font-size:18px;font-weight:600;color:#ffffff;letter-spacing:-0.01em;">${BRAND}</p>
-              <p style="margin:4px 0 0;font-size:12px;color:#C9CBB0;">${TAGLINE}</p>
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:0 14px 0 0;vertical-align:middle;">
+                    <img src="${LOGO_URL}" alt="" width="40" height="40" style="display:block;border:0;" />
+                  </td>
+                  <td style="vertical-align:middle;">
+                    <p style="margin:0;font-size:18px;font-weight:600;color:#ffffff;letter-spacing:-0.01em;">${BRAND}</p>
+                    <p style="margin:4px 0 0;font-size:12px;color:#C9CBB0;">${TAGLINE}</p>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
           <tr>

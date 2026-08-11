@@ -241,8 +241,25 @@ export async function markBookingPaid(bookingId: string): Promise<void> {
       .catch(() => {});
   }
 
+  // The settling payment doubles the confirmation into a receipt.
+  const payment = await prisma.payment.findFirst({
+    where: { purpose: 'BOOKING', purposeId: bookingId, status: 'SUCCESS' },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      reference: true,
+      amount: true,
+      currency: true,
+      channel: true,
+      paidAt: true,
+    },
+  });
+
   // Fire-and-forget: mail failures never affect settlement.
-  void sendBookingConfirmedEmail(booking, booking.roomType.name).catch(
+  void sendBookingConfirmedEmail(
+    booking,
+    booking.roomType.name,
+    payment ?? undefined,
+  ).catch(
     (error) => logger.error({ error }, 'Booking confirmation email failed'),
   );
   void sendBookingNotificationToAdmins(booking, booking.roomType.name).catch(
