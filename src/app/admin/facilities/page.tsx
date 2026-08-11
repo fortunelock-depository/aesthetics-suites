@@ -1,26 +1,36 @@
 // src/app/admin/facilities/page.tsx
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import Link from 'next/link';
 import { Landmark } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/page-header';
-import { EmptyState } from '@/components/ui/empty-state';
+import { FacilitiesTable } from '@/components/admin/facilities/facilities-table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const metadata: Metadata = {
   title: 'Facilities',
 };
 
-/**
- * Placeholder while this console section's UI is built - the APIs behind
- * it are live (see src/app/api/admin/*).
- */
-export default function AdminFacilitiesPage() {
+// Suspense is required: the table reads useSearchParams (URL-synced state).
+export default function FacilitiesPage() {
   return (
     <section className="space-y-6">
-      <PageHeader title="Facilities" description="The facility pages shown on the public site - copy, hours, photos." />
-      <EmptyState
-        icon={Landmark}
-        title="This section is on its way"
-        description="The management screens for facilities are being built. The underlying APIs are already live."
+      <PageHeader
+        title="Facilities"
+        description="The amenities pages guests browse - pool, restaurant, garden and more."
+        actions={
+          <Button asChild>
+            <Link href="/admin/facilities/create">
+              <Landmark />
+              Add facility
+            </Link>
+          </Button>
+        }
       />
+      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+        <FacilitiesTable />
+      </Suspense>
     </section>
   );
 }

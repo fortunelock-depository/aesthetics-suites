@@ -202,6 +202,163 @@ async function seedDemoRooms() {
   );
 }
 
+/**
+ * Seeds demo bookings across statuses (DEMO_SEED_ENABLED) so the admin
+ * ledger, detail pages and status actions have real work. Upsert-by-code,
+ * so re-runs update rather than duplicate. One checked-out stay is linked
+ * to an approved review, making it a verified stay.
+ */
+async function seedDemoBookings() {
+  if (!demoSeedEnabled) {
+    console.log('Demo booking seed skipped (DEMO_SEED_ENABLED=false).');
+    return;
+  }
+
+  const day = 24 * 60 * 60 * 1000;
+  const demoBookings = [
+    {
+      code: 'ASB-DEMO-1001',
+      roomIndex: 0,
+      unitName: 'Suite 101',
+      guestName: 'Akosua Mensah',
+      guestEmail: 'akosua.m@example.com',
+      guestPhone: '+233241234501',
+      checkIn: '2026-07-20',
+      checkOut: '2026-07-23',
+      status: 'CHECKED_OUT',
+      source: 'WEBSITE',
+    },
+    {
+      code: 'ASB-DEMO-1002',
+      roomIndex: 0,
+      unitName: 'Suite 102',
+      guestName: 'Kwame Boateng',
+      guestEmail: 'kwame.b@example.com',
+      guestPhone: '+233241234502',
+      checkIn: '2026-09-10',
+      checkOut: '2026-09-13',
+      status: 'CONFIRMED',
+      source: 'WEBSITE',
+      specialRequests: 'Late arrival - flight lands around 9pm.',
+    },
+    {
+      code: 'ASB-DEMO-1003',
+      roomIndex: 1,
+      unitName: 'Suite 201',
+      guestName: 'Efua Tetteh',
+      guestEmail: 'efua.t@example.com',
+      guestPhone: '+233241234503',
+      checkIn: toDateOnly(new Date(Date.now() - day)),
+      checkOut: toDateOnly(new Date(Date.now() + 2 * day)),
+      status: 'CHECKED_IN',
+      source: 'MANUAL',
+    },
+    {
+      code: 'ASB-DEMO-1004',
+      roomIndex: 1,
+      unitName: 'Suite 202',
+      guestName: 'Yaw Darko',
+      guestEmail: 'yaw.d@example.com',
+      guestPhone: null,
+      checkIn: '2026-08-28',
+      checkOut: '2026-08-30',
+      status: 'CANCELLED',
+      source: 'WEBSITE',
+      refundFull: true,
+    },
+    {
+      code: 'ASB-DEMO-1005',
+      roomIndex: 2,
+      unitName: 'Suite 105',
+      guestName: 'Adjoa Owusu',
+      guestEmail: 'adjoa.o@example.com',
+      guestPhone: '+233241234505',
+      checkIn: '2026-09-01',
+      checkOut: '2026-09-05',
+      status: 'PENDING',
+      source: 'WEBSITE',
+      holdMinutes: 30,
+    },
+  ] as const;
+
+  for (const demo of demoBookings) {
+    const roomTypeName = DEMO_ROOM_TYPES[demo.roomIndex].name;
+    const roomType = await prisma.roomType.findFirst({
+      where: { name: roomTypeName },
+      select: { id: true, basePrice: true, currency: true },
+    });
+    const unit = await prisma.room.findFirst({
+      where: { name: demo.unitName },
+      select: { id: true },
+    });
+    if (!roomType || !unit) continue;
+
+    const checkIn = new Date(`${demo.checkIn}T00:00:00.000Z`);
+    const checkOut = new Date(`${demo.checkOut}T00:00:00.000Z`);
+    const nights = Math.round(
+      (checkOut.getTime() - checkIn.getTime()) / day,
+    );
+    const baseAmount = roomType.basePrice * nights;
+
+    const data = {
+      roomTypeId: roomType.id,
+      roomId: unit.id,
+      guestName: demo.guestName,
+      guestEmail: demo.guestEmail,
+      guestPhone: demo.guestPhone ?? null,
+      checkIn,
+      checkOut,
+      nights,
+      adults: 2,
+      children: 0,
+      status: demo.status,
+      source: demo.source,
+      baseAmount,
+      occupancyAmount: 0,
+      discountAmount: 0,
+      taxAmount: 0,
+      totalAmount: baseAmount,
+      refundedAmount: 'refundFull' in demo && demo.refundFull ? baseAmount : 0,
+      currency: roomType.currency,
+      specialRequests:
+        'specialRequests' in demo ? demo.specialRequests : null,
+      holdExpiresAt:
+        'holdMinutes' in demo
+          ? new Date(Date.now() + demo.holdMinutes * 60 * 1000)
+          : null,
+    };
+
+    await prisma.booking.upsert({
+      where: { code: demo.code },
+      create: { code: demo.code, ...data },
+      update: data,
+    });
+  }
+
+  // The checked-out stay verifies its guest's approved review.
+  const checkedOut = await prisma.booking.findFirst({
+    where: { code: 'ASB-DEMO-1001' },
+    select: { id: true, roomTypeId: true },
+  });
+  if (checkedOut) {
+    await prisma.review.updateMany({
+      where: {
+        roomTypeId: checkedOut.roomTypeId,
+        guestName: { startsWith: 'Akosua' },
+      },
+      data: { bookingId: checkedOut.id },
+    });
+  }
+
+  console.log(
+    `Demo booking seed: upserted ${demoBookings.length} bookings across statuses.`,
+  );
+}
+
+function toDateOnly(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
 /** Seeds the editorial facilities (DEMO_SEED_ENABLED), upsert-by-name. */
 async function seedDemoFacilities() {
   if (!demoSeedEnabled) {
@@ -315,6 +472,7 @@ async function seedDemoServices() {
 async function main() {
   await seedAdmin();
   await seedDemoRooms();
+  await seedDemoBookings();
   await seedDemoFacilities();
   await seedDemoServices();
 }
