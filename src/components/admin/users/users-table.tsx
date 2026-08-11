@@ -6,15 +6,22 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
-import { MoreHorizontal, Search, Shield, Trash2, Users } from 'lucide-react';
+import {
+  Eye,
+  MoreHorizontal,
+  Search,
+  Shield,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import { DataTable, useDataTable } from '@/components/ui/data-table';
 import { ROW_BADGE, RowCard } from '@/components/ui/table-bits';
 import { clearAllFiltersPatch } from '@/components/ui/table-empty-logic';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge } from '@/components/ui/status-badge';
-import type { StatusTone } from '@/lib/status-colors';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,19 +42,13 @@ import { useGetUsersQuery, useDeleteUserMutation } from '@/redux/users-api';
 import { extractApiError } from '@/lib/extract-api-error';
 import { formatDate } from '@/lib/format-date';
 import { ErrorState } from '@/components/ui/error-state';
-import { createUserColumns } from './columns';
+import { createUserColumns, ROLE_TONE } from './columns';
 import {
   USER_ROLE_LABEL,
   USER_ROLES,
   type IUserRow,
   type UserRoleValue,
 } from '@/types/user.types';
-
-const ROLE_TONE: Record<UserRoleValue, StatusTone> = {
-  SUPER_ADMIN: 'info',
-  ADMIN: 'success',
-  FRONT_DESK: 'neutral',
-};
 
 interface UsersFilters extends Record<string, string | boolean | undefined> {
   search?: string;
@@ -117,6 +118,12 @@ export function UsersTable() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link href={`/admin/users/${user.id}`}>
+              <Eye />
+              View details
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
             onClick={() => handleDelete(user)}
@@ -251,9 +258,12 @@ export function UsersTable() {
                 </span>
               </div>
               <div className="mt-1 min-w-0">
-                <p className="truncate text-sm font-medium text-foreground">
+                <Link
+                  href={`/admin/users/${user.id}`}
+                  className="block truncate text-sm font-medium text-foreground hover:underline"
+                >
                   {user.fullname}
-                </p>
+                </Link>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">
                   {user.email}
                 </p>

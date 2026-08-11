@@ -28,16 +28,24 @@ export const createUserSchema = z.object({
   password: passwordSchema,
 });
 
-export const updateUserSchema = z
+/**
+ * Detail edits (name/email/phone). Role changes go through the dedicated
+ * /role endpoint so the destructive permission move is a deliberate call.
+ */
+export const updateUserDetailsSchema = z
   .object({
     fullname: z.string().trim().min(2).max(50).optional(),
-    /** E.164, or null to clear the saved number. */
-    phone: z.null().or(phoneField).optional(),
-    role: roleEnum.optional(),
+    email: z.email({ message: 'Invalid email format' }).optional(),
+    /** E.164; empty string or null clears the saved number. */
+    phone: z
+      .union([z.literal('').transform(() => null), z.null(), phoneField])
+      .optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'Nothing to update',
   });
+
+export const updateUserRoleSchema = z.object({ role: roleEnum });
 
 export type UsersQuery = z.infer<typeof usersQuerySchema>;
 

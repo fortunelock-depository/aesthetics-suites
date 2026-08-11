@@ -1,6 +1,7 @@
 // src/components/admin/users/columns.tsx
 'use client';
 
+import Link from 'next/link';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -8,7 +9,8 @@ import type { StatusTone } from '@/lib/status-colors';
 import { formatDate } from '@/lib/format-date';
 import { USER_ROLE_LABEL, type IUserRow } from '@/types/user.types';
 
-const ROLE_TONE: Record<IUserRow['role'], StatusTone> = {
+/** Shared by the table, the mobile cards and the detail page. */
+export const ROLE_TONE: Record<IUserRow['role'], StatusTone> = {
   SUPER_ADMIN: 'info',
   ADMIN: 'success',
   FRONT_DESK: 'neutral',
@@ -55,12 +57,13 @@ export function createUserColumns({
       header: 'Name',
       meta: { headClassName: 'w-2/5', cellClassName: 'w-2/5 max-w-0' },
       cell: ({ row }) => (
-        <p
-          className="max-w-[90%] truncate text-sm font-medium text-foreground"
+        <Link
+          href={`/admin/users/${row.original.id}`}
+          className="block max-w-[90%] truncate text-sm font-medium text-foreground hover:underline"
           title={row.original.fullname}
         >
           {row.original.fullname}
-        </p>
+        </Link>
       ),
       enableHiding: false,
     },

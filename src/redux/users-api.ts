@@ -3,9 +3,12 @@ import { apiSlice } from './api-slice';
 import { toQueryString } from '@/utils/query-params';
 import type { IApiResponse } from '@/types/api';
 import type {
+  ICreateUserBody,
+  IUpdateUserDetailsBody,
   IUserResponse,
   IUsersQueryParams,
   IUsersResponse,
+  UserRoleValue,
 } from '@/types/user.types';
 
 export const usersApi = apiSlice.injectEndpoints({
@@ -20,9 +23,13 @@ export const usersApi = apiSlice.injectEndpoints({
             ]
           : [{ type: 'Users' as const, id: 'LIST' }],
     }),
+    getUser: builder.query<IUserResponse, string>({
+      query: (id) => `users/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'User', id }],
+    }),
     updateUser: builder.mutation<
       IUserResponse,
-      { id: string; body: Record<string, unknown> }
+      { id: string; body: IUpdateUserDetailsBody }
     >({
       query: ({ id, body }) => ({ url: `users/${id}`, method: 'PATCH', body }),
       invalidatesTags: (_result, _error, { id }) => [
@@ -30,7 +37,21 @@ export const usersApi = apiSlice.injectEndpoints({
         { type: 'Users', id: 'LIST' },
       ],
     }),
-    createUser: builder.mutation<IUserResponse, Record<string, unknown>>({
+    updateUserRole: builder.mutation<
+      IUserResponse,
+      { id: string; role: UserRoleValue }
+    >({
+      query: ({ id, role }) => ({
+        url: `users/${id}/role`,
+        method: 'PATCH',
+        body: { role },
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'User', id },
+        { type: 'Users', id: 'LIST' },
+      ],
+    }),
+    createUser: builder.mutation<IUserResponse, ICreateUserBody>({
       query: (body) => ({ url: 'users', method: 'POST', body }),
       invalidatesTags: [{ type: 'Users', id: 'LIST' }, 'Overview'],
     }),
@@ -47,7 +68,9 @@ export const usersApi = apiSlice.injectEndpoints({
 
 export const {
   useGetUsersQuery,
+  useGetUserQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
+  useUpdateUserRoleMutation,
   useDeleteUserMutation,
 } = usersApi;

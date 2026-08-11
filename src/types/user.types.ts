@@ -38,6 +38,22 @@ export interface IUserRow {
   updatedAt: string;
 }
 
+/** POST /api/users body (phone already normalized by the form schema). */
+export interface ICreateUserBody {
+  email: string;
+  fullname: string;
+  phone?: string;
+  role: UserRoleValue;
+  password: string;
+}
+
+/** PATCH /api/users/[id] body. `phone: null` clears the saved number. */
+export interface IUpdateUserDetailsBody {
+  fullname?: string;
+  email?: string;
+  phone?: string | null;
+}
+
 export interface IUsersQueryParams {
   page: number;
   limit: number;
