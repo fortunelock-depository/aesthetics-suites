@@ -15,11 +15,11 @@ import {
   MoreHorizontal,
   Search,
   Shield,
-  Star,
   Trash2,
   X,
 } from 'lucide-react';
 import { DataTable, useDataTable } from '@/components/ui/data-table';
+import { Stars } from '@/components/ui/stars';
 import { DateTimeCell, ROW_BADGE, RowCard } from '@/components/ui/table-bits';
 import { clearAllFiltersPatch } from '@/components/ui/table-empty-logic';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -79,26 +79,6 @@ const STATUS_OPTIONS = [
     label: REVIEW_STATUS_LABEL[status],
   })),
 ];
-
-export function Stars({ rating }: { rating: number }) {
-  return (
-    <span
-      className="flex items-center gap-0.5"
-      aria-label={`${rating} out of 5`}
-    >
-      {[1, 2, 3, 4, 5].map((step) => (
-        <Star
-          key={step}
-          className={
-            step <= rating
-              ? 'h-3.5 w-3.5 fill-brand text-brand'
-              : 'h-3.5 w-3.5 text-border'
-          }
-        />
-      ))}
-    </span>
-  );
-}
 
 /** Full review in a read-only dialog, with the moderation actions. */
 function ReviewViewDialog({

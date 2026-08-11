@@ -32,40 +32,22 @@ import {
 } from '@/redux/rooms-api';
 import { extractApiError } from '@/lib/extract-api-error';
 import { formatDate } from '@/lib/format-date';
+import {
+  dateOnlyString,
+  ghsAmountField,
+  optionalIntStringField,
+} from '@/validations/form-primitives';
 import { formatMoney } from '@/lib/format-money';
 import type { IRoomTypeDetail, ISeasonRateRow } from '@/types/room.types';
-
-const dateOnly = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date');
 
 /** Mirrors validations/hotel-validation.ts (seasonRateCreateSchema). */
 const rateFormSchema = z
   .object({
     name: z.string().trim().min(2, 'Name the season').max(150),
-    startDate: dateOnly,
-    endDate: dateOnly,
-    nightlyPrice: z
-      .string()
-      .trim()
-      .regex(/^\d+(\.\d{1,2})?$/, 'Enter the price in GHS, e.g. 650')
-      .transform((v) => Math.round(parseFloat(v) * 100))
-      .refine((v) => v >= 1, { message: 'Too low' }),
-    minNights: z
-      .string()
-      .trim()
-      .transform((v, ctx) => {
-        if (!v) return undefined;
-        const n = Number(v);
-        if (!Number.isInteger(n) || n < 1 || n > 90) {
-          ctx.addIssue({
-            code: 'custom',
-            message: 'Enter a whole number between 1 and 90',
-          });
-          return z.NEVER;
-        }
-        return n;
-      }),
+    startDate: dateOnlyString,
+    endDate: dateOnlyString,
+    nightlyPrice: ghsAmountField('the price', 1),
+    minNights: optionalIntStringField(1, 90),
   })
   .refine((data) => data.endDate > data.startDate, {
     message: 'End date must be after the start date',

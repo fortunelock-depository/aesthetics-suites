@@ -2,30 +2,11 @@
 'use client';
 
 import * as React from 'react';
-import { BadgeCheck, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { BadgeCheck, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Stars } from '@/components/ui/stars';
 import { useGetRoomReviewsQuery } from '@/redux/reviews-api';
 import { formatDate } from '@/lib/format-date';
 import type { IPublicReviewItem } from '@/types/review.types';
-
-function Stars({ rating }: { rating: number }) {
-  return (
-    <span
-      className="flex items-center gap-0.5"
-      aria-label={`${rating} out of 5`}
-    >
-      {[1, 2, 3, 4, 5].map((step) => (
-        <Star
-          key={step}
-          className={
-            step <= rating
-              ? 'h-3.5 w-3.5 fill-brand text-brand'
-              : 'h-3.5 w-3.5 text-border'
-          }
-        />
-      ))}
-    </span>
-  );
-}
 
 function ReviewCard({ review }: { review: IPublicReviewItem }) {
   return (

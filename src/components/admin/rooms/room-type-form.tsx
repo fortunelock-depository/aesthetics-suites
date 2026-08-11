@@ -24,6 +24,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FieldError } from '@/components/forms/field-error';
 import { cn } from '@/lib/utils';
 import { AMENITY_OPTIONS, amenityIcon } from '@/lib/amenity-icons';
+import {
+  ghsAmountField,
+  intStringField,
+  optionalIntStringField,
+} from '@/validations/form-primitives';
 import type {
   ICreateRoomTypeBody,
   IRoomTypeRow,
@@ -38,66 +43,20 @@ export const inputCls = (active: boolean) =>
       : 'border-border bg-muted/50 text-foreground',
   );
 
-/** "450" / "450.5" / "450.50" (GHS) -> integer pesewas. */
-const ghsAmount = (label: string, minMinor: number) =>
-  z
-    .string()
-    .trim()
-    .regex(/^\d+(\.\d{1,2})?$/, `Enter ${label} in GHS, e.g. 450 or 450.50`)
-    .transform((v) => Math.round(parseFloat(v) * 100))
-    .refine((v) => v >= minMinor, {
-      message:
-        minMinor > 0 ? `Must be at least GHS ${minMinor / 100}` : 'Too low',
-    });
-
-const intField = (min: number, max: number) =>
-  z
-    .string()
-    .trim()
-    .min(1, 'Required')
-    .transform((v, ctx) => {
-      const n = Number(v);
-      if (!Number.isInteger(n) || n < min || n > max) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `Enter a whole number between ${min} and ${max}`,
-        });
-        return z.NEVER;
-      }
-      return n;
-    });
-
-const optionalIntField = (min: number, max: number) =>
-  z
-    .string()
-    .trim()
-    .transform((v, ctx) => {
-      if (!v) return undefined;
-      const n = Number(v);
-      if (!Number.isInteger(n) || n < min || n > max) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `Enter a whole number between ${min} and ${max}`,
-        });
-        return z.NEVER;
-      }
-      return n;
-    });
-
 /** Mirrors validations/hotel-validation.ts (roomTypeCreateSchema). */
 export const roomTypeFormSchema = z.object({
   name: z.string().trim().min(2, 'Enter the room name').max(150),
   summary: z.string().trim().min(10, 'At least 10 characters').max(300),
   description: z.string().trim().min(20, 'At least 20 characters').max(10_000),
-  basePrice: ghsAmount('the nightly price', 1),
-  capacityAdults: intField(1, 20),
-  capacityChildren: intField(0, 20),
-  sizeSqm: optionalIntField(1, 10_000),
-  baseOccupancy: intField(1, 20),
-  extraGuestFeePerNight: ghsAmount('the extra-guest fee', 0),
-  freeCancellationDays: intField(0, 60),
-  minNights: intField(1, 90),
-  sortOrder: intField(0, 10_000),
+  basePrice: ghsAmountField('the nightly price', 1),
+  capacityAdults: intStringField(1, 20),
+  capacityChildren: intStringField(0, 20),
+  sizeSqm: optionalIntStringField(1, 10_000),
+  baseOccupancy: intStringField(1, 20),
+  extraGuestFeePerNight: ghsAmountField('the extra-guest fee', 0),
+  freeCancellationDays: intStringField(0, 60),
+  minNights: intStringField(1, 90),
+  sortOrder: intStringField(0, 10_000),
   airbnbUrl: z.union([
     z.literal('').transform(() => undefined),
     z.url('Enter a valid URL').max(500),

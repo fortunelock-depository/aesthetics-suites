@@ -1,5 +1,6 @@
 // src/lib/hotel/public-room-detail.ts
 import 'server-only';
+import { normalizeFaqs } from '@/lib/hotel/faqs';
 import prisma, { ReviewStatus } from '@/lib/prisma';
 import logger from '@/utils/logger';
 import {
@@ -40,26 +41,6 @@ export interface IPublicRoomDetail {
   reviewsTotal: number;
   /** Room-specific FAQs (admin-entered); may be empty. */
   faqs: { question: string; answer: string }[];
-}
-
-/**
- * Defensive parse of the faqs Json column: anything that isn't a
- * well-formed {question, answer} entry is silently dropped, so malformed
- * data can never break the public page.
- */
-export function normalizeFaqs(
-  value: unknown,
-): { question: string; answer: string }[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter(
-    (entry): entry is { question: string; answer: string } =>
-      typeof entry === 'object' &&
-      entry !== null &&
-      typeof (entry as { question?: unknown }).question === 'string' &&
-      typeof (entry as { answer?: unknown }).answer === 'string' &&
-      ((entry as { question: string }).question.trim().length > 0) &&
-      ((entry as { answer: string }).answer.trim().length > 0),
-  );
 }
 
 /** Public reviews page size, shared with the pager component. */
