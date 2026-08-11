@@ -19,6 +19,22 @@ export async function deliver(opts: {
   replyTo?: string;
   devConsole: string;
 }): Promise<void> {
+  // Dev preview seam: render every email to disk instead of sending, so
+  // templates can be reviewed in a browser (MAIL_PREVIEW_DIR=… script).
+  if (process.env.MAIL_PREVIEW_DIR) {
+    const { mkdir, writeFile } = await import('node:fs/promises');
+    const { join } = await import('node:path');
+    const dir = process.env.MAIL_PREVIEW_DIR;
+    await mkdir(dir, { recursive: true });
+    const slug = opts.subject
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 60);
+    const meta = `<div style="background:#1E2118;color:#FFF9E2;font-family:monospace;font-size:12px;padding:10px 16px;">PREVIEW · To: ${opts.to} · Subject: ${opts.subject}${opts.replyTo ? ` · Reply-To: ${opts.replyTo}` : ''}</div>`;
+    await writeFile(join(dir, `${slug}.html`), meta + opts.html);
+    return;
+  }
+
   const transporter = getTransporter();
 
   if (!transporter) {

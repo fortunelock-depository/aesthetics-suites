@@ -1,50 +1,14 @@
 // src/lib/mail/auth-emails.ts
 import 'server-only';
 import { ENV } from '@/config/env';
-import logger from '@/utils/logger';
-import { getTransporter } from './transporter';
 import { shell } from './email-shell';
+import { deliver } from './deliver';
 import {
   TWO_FACTOR_CODE_TTL_MINUTES,
   PASSWORD_RESET_TTL_MINUTES,
 } from '@/utils/user-security-tokens';
 
 type Recipient = { id: string; fullname: string; email: string };
-
-const from = () => `"${ENV.EMAIL_FROM_NAME}" <${ENV.GMAIL_USER}>`;
-
-/**
- * Sends an email, or - when Gmail isn't configured - logs it to the server
- * console so local development works without SMTP. Fire-and-forget: failures
- * are logged and swallowed so mail issues never block or leak account state.
- */
-async function deliver(opts: {
-  to: string;
-  subject: string;
-  html: string;
-  devConsole: string;
-}): Promise<void> {
-  const transporter = getTransporter();
-
-  if (!transporter) {
-    // Dev fallback - no email configured.
-    logger.info(
-      `\n──────── DEV EMAIL (no SMTP configured) ────────\nTo: ${opts.to}\nSubject: ${opts.subject}\n${opts.devConsole}\n────────────────────────────────────────────────\n`,
-    );
-    return;
-  }
-
-  try {
-    await transporter.sendMail({
-      from: from(),
-      to: opts.to,
-      subject: opts.subject,
-      html: opts.html,
-    });
-  } catch (error) {
-    logger.error({ error }, `Failed to send email "${opts.subject}"`);
-  }
-}
 
 const codeBlock = (code: string): string => `
   <div style="background-color:#F3F1D9;padding:20px;text-align:center;font-size:32px;font-weight:bold;letter-spacing:5px;margin:20px 0;border-radius:8px;">
