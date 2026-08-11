@@ -1,0 +1,568 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────── Users & auth ─────────────────────────
+
+/// SUPER_ADMIN: everything, incl. managing users and roles.
+/// ADMIN: rooms, pricing, bookings, reviews, payments - not user management.
+/// FRONT_DESK: bookings, check-ins/outs, guests - read-only elsewhere.
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  FRONT_DESK
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  fullname         String
+  phone            String?
+  password         String
+  role             UserRole  @default(FRONT_DESK)
+  twoFactorEnabled Boolean   @default(false)
+  /// Session epoch: bumping it invalidates every outstanding session JWT
+  /// (password change / "log out everywhere"). The current device gets a
+  /// fresh cookie with the new value.
+  sessionVersion   Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  /// Soft delete - non-null means the record is archived/hidden.
+  deletedAt        DateTime?
+
+  securityTokens   UserSecurityToken[]
+  moderatedReviews Review[]            @relation("ReviewModeratedBy")
+
+  @@index([email])
+  @@index([role])
+  @@index([deletedAt])
+}
+
+/// Short-lived, single-use auth tokens (2FA codes, password-reset links).
+/// Intentionally HARD-deleted (no deletedAt).
+model UserSecurityToken {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  /// sha256 of the plain code - the plain value is never stored.
+  tokenHash String                @unique
+  type      UserSecurityTokenType
+
+  attempts    Int @default(0)
+  maxAttempts Int @default(5)
+
+  expiresAt  DateTime
+  consumedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, type])
+  @@index([expiresAt])
+}
+
+enum UserSecurityTokenType {
+  TWO_FACTOR_LOGIN // 6-digit email OTP challenged at login
+  TWO_FACTOR_SETUP // 6-digit email OTP confirming 2FA enablement
+  PASSWORD_RESET // long random token embedded in the email reset link
+}
+
+// ───────────────────────── Rooms ─────────────────────────
+
+/// The marketing listing guests browse and book ("Deluxe Suite"): copy,
+/// photos, pricing, capacity. Physical inventory lives in Room units below,
+/// so one listing can have several identical units.
+model RoomType {
+  id          String  @id @default(uuid())
+  name        String  @unique @db.VarChar(150)
+  slug        String  @unique @db.VarChar(180)
+  /// Short card blurb.
+  summary     String  @db.VarChar(300)
+  /// Full description shown on the detail page.
+  description String
+  /// Nightly base price in minor units (pesewas); SeasonRate overrides per date.
+  basePrice   Int
+  currency    String  @default("GHS") @db.VarChar(3)
+
+  capacityAdults   Int @default(2)
+  capacityChildren Int @default(0)
+  /// Optional room size in square metres.
+  sizeSqm          Int?
+  /// Amenity labels rendered as-is ("Wi-Fi", "Air conditioning", ...).
+  amenities        String[]
+
+  /// Link out to the same listing on Airbnb (shown as "View on Airbnb").
+  airbnbUrl String? @db.VarChar(500)
+
+  minNights   Int     @default(1)
+  isPublished Boolean @default(false)
+  sortOrder   Int     @default(0)
+
+  /// Guests included in the nightly price; extras pay the per-night fee.
+  baseOccupancy         Int @default(2)
+  /// Minor units per extra guest per night (0 = no surcharge).
+  extraGuestFeePerNight Int @default(0)
+  /// Full refund when cancelled at least this many days before check-in.
+  freeCancellationDays  Int @default(2)
+
+  photos      RoomPhoto[]
+  units       Room[]
+  seasonRates SeasonRate[]
+  bookings    Booking[]
+  reviews     Review[]
+  discounts   Discount[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  /// Soft delete - non-null means the record is archived/hidden.
+  deletedAt DateTime?
+
+  @@index([slug])
+  @@index([isPublished])
+  @@index([deletedAt])
+}
+
+/// A gallery photo of a room type. Hard-deleted (the Cloudinary asset is
+/// removed alongside).
+model RoomPhoto {
+  id         String   @id @default(uuid())
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  roomTypeId String
+
+  url       String  @db.VarChar(500)
+  /// Cloudinary public_id, for deletion.
+  publicId  String? @db.VarChar(255)
+  alt       String? @db.VarChar(255)
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([roomTypeId])
+}
+
+enum RoomStatus {
+  ACTIVE
+  MAINTENANCE // temporarily out of inventory
+}
+
+/// A physical unit ("Suite 204") of a RoomType. Calendars are per unit:
+/// bookings are assigned to a unit, external (Airbnb) busy ranges import as
+/// CalendarBlocks, and each unit exposes a secret iCal export feed.
+model Room {
+  id         String   @id @default(uuid())
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+  roomTypeId String
+
+  name   String     @unique @db.VarChar(100)
+  floor  String?    @db.VarChar(50)
+  status RoomStatus @default(ACTIVE)
+  notes  String?    @db.VarChar(500)
+
+  /// Secret token in the iCal export URL (/api/ical/<token>).
+  icalToken String @unique @default(uuid())
+
+  /// Airbnb calendar export URL for this unit; when set, the sync job
+  /// imports its busy ranges as CalendarBlocks so double-booking across
+  /// platforms is impossible.
+  airbnbIcalUrl    String?   @db.VarChar(500)
+  icalLastSyncedAt DateTime?
+
+  bookings Booking[]
+  blocks   CalendarBlock[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  /// Soft delete - non-null means the record is archived/hidden.
+  deletedAt DateTime?
+
+  @@index([roomTypeId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+enum BlockSource {
+  AIRBNB
+  MANUAL
+}
+
+/// A date range a unit is NOT bookable, from an external calendar (Airbnb
+/// iCal import) or set by staff (maintenance, owner stay). Half-open range:
+/// startDate inclusive, endDate exclusive (checkout day) - same convention
+/// as bookings and iCal DTEND.
+model CalendarBlock {
+  id     String @id @default(uuid())
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId String
+
+  startDate DateTime    @db.Date
+  endDate   DateTime    @db.Date
+  source    BlockSource
+  /// iCal VEVENT UID - the idempotency key for imported events.
+  externalUid String? @db.VarChar(255)
+  summary     String? @db.VarChar(255)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roomId, externalUid])
+  @@index([roomId, startDate, endDate])
+}
+
+/// An editorial facility page (restaurant, pool, fitness studio, ...):
+/// shown in the homepage's interlocking rows, the /facilities page, and its
+/// own detail page. Admin-managed (CRUD) with photos like room types.
+model Facility {
+  id          String  @id @default(uuid())
+  name        String  @unique @db.VarChar(80)
+  slug        String  @unique @db.VarChar(100)
+  /// Small gold kicker, e.g. "Our Food".
+  eyebrow     String  @db.VarChar(60)
+  /// Short row blurb.
+  summary     String  @db.VarChar(300)
+  /// Full detail-page copy.
+  description String
+  /// Display hours, e.g. "6:30 AM - 10:00 PM".
+  openingHours String? @db.VarChar(120)
+  /// Short feature bullets rendered as an icon grid ("Free towels", ...).
+  highlights   String[]
+
+  isPublished Boolean @default(false)
+  sortOrder   Int     @default(0)
+
+  photos FacilityPhoto[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  /// Soft delete - non-null means the record is archived/hidden.
+  deletedAt DateTime?
+
+  @@index([slug])
+  @@index([isPublished])
+  @@index([deletedAt])
+}
+
+/// A facility photo (first = cover). Hard-deleted with its Cloudinary asset.
+model FacilityPhoto {
+  id         String   @id @default(uuid())
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  facilityId String
+
+  url       String  @db.VarChar(500)
+  publicId  String? @db.VarChar(255)
+  alt       String? @db.VarChar(255)
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([facilityId])
+}
+
+/// A guest service page (housekeeping, Wi-Fi, transfers, ...): the
+/// homepage trio, the /services catalogue, and its own detail page.
+/// Admin-managed (CRUD) with photos, mirroring Facility.
+model Service {
+  id          String  @id @default(uuid())
+  name        String  @unique @db.VarChar(80)
+  slug        String  @unique @db.VarChar(100)
+  /// Small gold kicker, e.g. "Fresh Daily".
+  eyebrow     String  @db.VarChar(60)
+  /// Short row blurb.
+  summary     String  @db.VarChar(300)
+  /// Full detail-page copy.
+  description String
+  /// Display availability, e.g. "Daily, on request".
+  availability String? @db.VarChar(120)
+  /// Short feature bullets rendered as an icon grid.
+  highlights   String[]
+
+  isPublished Boolean @default(false)
+  sortOrder   Int     @default(0)
+
+  photos ServicePhoto[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  /// Soft delete - non-null means the record is archived/hidden.
+  deletedAt DateTime?
+
+  @@index([slug])
+  @@index([isPublished])
+  @@index([deletedAt])
+}
+
+/// A service photo (first = cover). Hard-deleted with its Cloudinary asset.
+model ServicePhoto {
+  id        String  @id @default(uuid())
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId String
+
+  url       String  @db.VarChar(500)
+  publicId  String? @db.VarChar(255)
+  alt       String? @db.VarChar(255)
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([serviceId])
+}
+
+// ───────────────────────── Pricing ─────────────────────────
+
+/// A dated nightly price override for a room type ("Christmas peak"). The
+/// price for a night = the season rate covering that date, else basePrice.
+/// Ranges are half-open (endDate exclusive).
+model SeasonRate {
+  id         String   @id @default(uuid())
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  roomTypeId String
+
+  name         String   @db.VarChar(150)
+  startDate    DateTime @db.Date
+  endDate      DateTime @db.Date
+  /// Minor units per night.
+  nightlyPrice Int
+  /// Optional stricter minimum stay during this season.
+  minNights    Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([roomTypeId, startDate, endDate])
+}
+
+enum DiscountType {
+  PERCENT // value = percentage points (e.g. 15 = 15% off)
+  FIXED // value = minor units off the total
+}
+
+/// A promotion. With a `code` it's a promo code the guest types at booking;
+/// without one it applies automatically when its window/conditions match.
+/// Scoped to one room type or (roomTypeId null) all of them.
+model Discount {
+  id   String  @id @default(uuid())
+  code String? @unique @db.VarChar(50)
+  name String  @db.VarChar(150)
+
+  type  DiscountType
+  value Int
+
+  roomType   RoomType? @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  roomTypeId String?
+
+  startsAt  DateTime?
+  endsAt    DateTime?
+  minNights Int?
+  maxUses   Int?
+  usedCount Int       @default(0)
+  isActive  Boolean   @default(true)
+
+  bookings Booking[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  /// Soft delete - non-null means the record is archived/hidden.
+  deletedAt DateTime?
+
+  @@index([isActive])
+  @@index([deletedAt])
+}
+
+// ───────────────────────── Bookings ─────────────────────────
+
+enum BookingStatus {
+  PENDING // created, awaiting payment (holdExpiresAt set)
+  CONFIRMED // paid (or manually confirmed for walk-ins)
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+  NO_SHOW
+  EXPIRED // hold lapsed unpaid (freed by the housekeeping cron)
+}
+
+enum BookingSource {
+  WEBSITE
+  MANUAL // walk-in / phone booking entered by staff
+}
+
+/// A stay. Dates are half-open: checkIn inclusive, checkOut exclusive.
+/// Money is denormalized at booking time (base, discount, total) so later
+/// rate changes never rewrite history. Payments link via the generic rail:
+/// Payment.purpose = "BOOKING", Payment.purposeId = Booking.id.
+model Booking {
+  id   String @id @default(uuid())
+  /// Human reference ("ASB-20260810-4F2A"), printed everywhere.
+  code String @unique @db.VarChar(30)
+
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+  roomTypeId String
+  /// The assigned unit. Set at creation (first free unit) so availability
+  /// math and iCal export are always unit-accurate.
+  room       Room?    @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  roomId     String?
+
+  guestName  String  @db.VarChar(150)
+  guestEmail String  @db.VarChar(255)
+  guestPhone String? @db.VarChar(50)
+
+  checkIn  DateTime @db.Date
+  checkOut DateTime @db.Date
+  nights   Int
+  adults   Int      @default(1)
+  children Int      @default(0)
+
+  status BookingStatus @default(PENDING)
+  source BookingSource @default(WEBSITE)
+
+  /// Minor units. total = base + occupancy - discount + tax.
+  baseAmount      Int
+  /// Extra-guest surcharge for the whole stay.
+  occupancyAmount Int    @default(0)
+  discountAmount  Int    @default(0)
+  taxAmount       Int    @default(0)
+  /// Itemized taxes/fees at booking time: [{ name, rateBps, amount }].
+  taxBreakdown    Json?
+  totalAmount     Int
+  /// Minor units refunded on cancellation (via Paystack refund).
+  refundedAmount  Int    @default(0)
+  currency        String @default("GHS") @db.VarChar(3)
+
+  discount     Discount? @relation(fields: [discountId], references: [id], onDelete: SetNull)
+  discountId   String?
+  /// The code as typed, kept even if the Discount row is later removed.
+  discountCode String?   @db.VarChar(50)
+
+  specialRequests String? @db.VarChar(1000)
+
+  /// PENDING bookings hold their unit until this instant; the cron expires
+  /// them so abandoned checkouts free inventory.
+  holdExpiresAt      DateTime?
+  confirmedAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?   @db.VarChar(500)
+  checkedInAt        DateTime?
+  checkedOutAt       DateTime?
+
+  /// Lifecycle-email send markers (set by the housekeeping cron).
+  reminderSentAt     DateTime?
+  reviewInviteSentAt DateTime?
+
+  reviews Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([roomTypeId, checkIn, checkOut])
+  @@index([roomId, checkIn, checkOut])
+  @@index([status])
+  @@index([guestEmail])
+  @@index([createdAt])
+}
+
+/// A percentage tax or levy applied to every booking (VAT, tourism levy).
+/// Rates are basis points (1500 = 15%) applied to the taxable amount
+/// (base + occupancy - discount); the itemized result is frozen onto the
+/// booking's taxBreakdown.
+model TaxFee {
+  id        String  @id @default(uuid())
+  name      String  @unique @db.VarChar(100)
+  rateBps   Int
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+// ───────────────────────── Reviews ─────────────────────────
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// A guest review of a room type, shown under its listing once approved.
+/// `bookingId` marks a verified stay (set when the supplied booking code
+/// checks out against the room type).
+model Review {
+  id         String   @id @default(uuid())
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  roomTypeId String
+
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  bookingId String?
+
+  guestName  String @db.VarChar(150)
+  guestEmail String @db.VarChar(255)
+  /// 1..5
+  rating     Int
+  title      String? @db.VarChar(150)
+  body       String  @db.VarChar(2000)
+
+  status        ReviewStatus @default(PENDING)
+  moderatedBy   User?        @relation("ReviewModeratedBy", fields: [moderatedById], references: [id], onDelete: SetNull)
+  moderatedById String?
+  moderatedAt   DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  /// Soft delete - non-null means the record is archived/hidden.
+  deletedAt DateTime?
+
+  @@index([roomTypeId, status])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+// ───────────────────────── Payments ─────────────────────────
+
+/// One Paystack transaction (generic rail). Created when a checkout is
+/// initialized and settled by verify and/or webhook (both idempotent).
+model Payment {
+  id        String        @id @default(uuid())
+  /// Our idempotency key; Paystack echoes it back on verify and webhook.
+  reference String        @unique @db.VarChar(100)
+  status    PaymentStatus @default(PENDING)
+
+  /// Minor units (pesewas) end-to-end - no float conversion.
+  amount   Int
+  currency String @default("GHS") @db.VarChar(3)
+
+  /// What is being paid for - "BOOKING" + the booking id. Kept as strings
+  /// so the payment rail stays generic while features evolve.
+  purpose   String
+  purposeId String?
+
+  customerEmail String
+  customerName  String?
+
+  providerReference String? @db.VarChar(100)
+  /// Paystack checkout URL for a still-PENDING charge; re-opening a pay
+  /// link reuses this same transaction, so two tabs can't double-charge.
+  authorizationUrl  String? @db.VarChar(500)
+  channel           String?
+
+  paidAt     DateTime?
+  reversedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([status])
+  @@index([purpose, purposeId])
+  @@index([customerEmail])
+  @@index([createdAt])
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REVERSED
+}
