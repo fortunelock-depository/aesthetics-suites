@@ -6,7 +6,8 @@ import { ENV } from '@/config/env';
 let cachedTransporter: Transporter | null = null;
 
 export const isEmailConfigured = (): boolean =>
-  Boolean(ENV.SMTP_HOST && ENV.SMTP_USER && ENV.SMTP_PASSWORD);
+  // Host has a Gmail default, so credentials are the real gate.
+  Boolean(ENV.SMTP_USER && ENV.SMTP_PASSWORD);
 
 /**
  * Lazily builds (and caches) the SMTP transporter (agritrade pattern), or

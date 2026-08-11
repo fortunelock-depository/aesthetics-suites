@@ -44,13 +44,16 @@ export const ENV = {
   // SMTP - optional (agritrade pattern). When unset, the mail layer logs
   // codes/links to the server console instead of sending email (fine for
   // local development). Gmail works with host smtp.gmail.com + app password.
-  SMTP_HOST: optional('SMTP_HOST'),
+  SMTP_HOST: optional('SMTP_HOST') ?? 'smtp.gmail.com',
   SMTP_PORT: Number(optional('SMTP_PORT') ?? '587'),
   SMTP_USER: optional('SMTP_USER'),
   SMTP_PASSWORD: optional('SMTP_PASSWORD'),
   /** 'true' for implicit TLS (port 465); STARTTLS on 587 leaves it 'false'. */
   SMTP_SECURE: optional('SMTP_SECURE') ?? 'false',
-  EMAIL_FROM_NAME: optional('EMAIL_FROM_NAME') ?? 'Aesthetics Suites',
+  EMAIL_FROM_NAME:
+    optional('EMAIL_FROM_NAME') ??
+    optional('MAIL_FROM_NAME') ??
+    'Aesthetics Suites',
   /** From address override; defaults to SMTP_USER. */
   MAIL_FROM_EMAIL: optional('MAIL_FROM_EMAIL'),
 
