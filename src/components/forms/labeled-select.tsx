@@ -25,6 +25,12 @@ interface LabeledSelectProps {
   error?: string;
   id?: string;
   disabled?: boolean;
+  /**
+   * Keep the label for screen readers only - for compact slots (a lone
+   * toolbar filter beside the search box) where a visible label would
+   * misalign the control.
+   */
+  srOnlyLabel?: boolean;
 }
 
 /**
@@ -43,10 +49,13 @@ export function LabeledSelect({
   error,
   id,
   disabled,
+  srOnlyLabel = false,
 }: LabeledSelectProps) {
   return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
+    <div className={srOnlyLabel ? undefined : 'space-y-1.5'}>
+      <Label htmlFor={id} className={srOnlyLabel ? 'sr-only' : undefined}>
+        {label}
+      </Label>
       <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger id={id} aria-invalid={!!error}>
           <SelectValue placeholder={placeholder} />

@@ -21,7 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { useIsBelowLg, useIsBelowMd } from '@/hooks/use-below';
+import { useIsBelowLg, useIsBelowMd } from '@/hooks/use-breakpoint';
 import { cn } from '@/lib/utils';
 
 interface ResponsiveFormDialogProps {

@@ -196,10 +196,13 @@ export function UsersTable() {
                 Boolean(filters.search) || filters.role !== undefined
               }
               onClearAll={() => patchFilters(clearAllFiltersPatch(filters))}
-              panelClassName="lg:grid-cols-3"
-              filterFields={
+              // ONE filter -> inline beside the search, no Filters toggle
+              // (the dms rule; 2+ filters would use filterFields instead).
+              inlineFilter={
                 <LabeledSelect
-                  label="Role"
+                  id="users-role-filter"
+                  label="Filter by role"
+                  srOnlyLabel
                   options={ROLE_OPTIONS}
                   value={roleFilterValue}
                   onValueChange={(value) =>

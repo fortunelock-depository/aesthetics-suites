@@ -22,5 +22,8 @@ function useMediaQuery(query: string): boolean {
 /** Below Tailwind's `sm` (640px). */
 export const useIsBelowSm = () => useMediaQuery('(max-width: 639.98px)');
 
+/** Below Tailwind's `md` (768px). */
+export const useIsBelowMd = () => useMediaQuery('(max-width: 767.98px)');
+
 /** Below Tailwind's `lg` (1024px). */
 export const useIsBelowLg = () => useMediaQuery('(max-width: 1023.98px)');

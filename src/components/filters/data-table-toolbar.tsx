@@ -14,9 +14,25 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useIsBelowLg } from '@/hooks/use-breakpoint';
+import { useIsBelowLg, useIsBelowSm } from '@/hooks/use-breakpoint';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { cn } from '@/lib/utils';
+
+/**
+ * The dms panel-grid rule: 2 columns on phones, 3 on tablets; on desktop
+ * fewer than 4 filters sit in a 4-col grid filling from the left, while
+ * 4-7 filters all share ONE row (grid-cols-n). Literal classes so
+ * Tailwind can see them; no page has 8+ filters.
+ */
+function panelGridClasses(count: number): string {
+  const desktop =
+    {
+      5: 'lg:grid-cols-5',
+      6: 'lg:grid-cols-6',
+      7: 'lg:grid-cols-7',
+    }[count] ?? 'lg:grid-cols-4';
+  return `grid-cols-2 md:grid-cols-3 ${desktop}`;
+}
 
 interface IDataTableToolbarProps<TData> {
   /** Omit on tables without a column-visibility menu. */
@@ -31,11 +47,22 @@ interface IDataTableToolbarProps<TData> {
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
   /**
-   * Filter controls for multi-filter tables: rendered in the desktop inline
-   * panel and the mobile bottom sheet (behind the filter toggle). Omit for
-   * search-only tables.
+   * Filter controls for MULTI-filter tables (2+): rendered in the desktop
+   * inline panel behind the Filters toggle, and the mobile bottom sheet.
+   * Mutually exclusive with `inlineFilter`.
    */
   filterFields?: React.ReactNode;
+  /**
+   * How many controls `filterFields` holds - drives the panel grid (see
+   * panelGridClasses). Required when `filterFields` is set.
+   */
+  filterFieldCount?: number;
+  /**
+   * A SINGLE filter control: shown inline beside the search box from `sm`
+   * up (no Filters toggle), collapsed behind the mobile-only toggle into
+   * the bottom sheet below `sm`. Mutually exclusive with `filterFields`.
+   */
+  inlineFilter?: React.ReactNode;
   /** Active (non-search) filter count shown as a badge on the toggle. */
   filterCount?: number;
   /** Whether any filter is applied - drives the highlight and clear-all. */
@@ -43,17 +70,16 @@ interface IDataTableToolbarProps<TData> {
   onClearAll?: () => void;
   /** Show the column-visibility menu (desktop only). Defaults to true. */
   showColumns?: boolean;
-  /** Grid layout classes for the desktop inline filter panel. */
-  panelClassName?: string;
 }
 
 /**
- * Shared toolbar for every admin data table.
+ * Shared toolbar for every admin data table (the dms conventions).
  *
- * - Search box takes the available width; the filter toggle is icon-only on
- *   phones and gains a label from `sm` upward.
- * - `filterFields` open as an inline panel on `lg+` and a bottom sheet
- *   below `lg` - desktop-spread filter rows never just wrap on mobile.
+ * - Search box takes the available width.
+ * - ONE filter (`inlineFilter`) sits beside the search from `sm` up with
+ *   no Filters button; 2+ filters (`filterFields`) live behind the toggle
+ *   as an inline panel on `lg+` and a bottom sheet below - desktop-spread
+ *   filter rows never just wrap on mobile.
  * - The column-visibility menu is hidden below `lg`.
  */
 export function DataTableToolbar<TData>({
@@ -62,14 +88,16 @@ export function DataTableToolbar<TData>({
   onSearchChange,
   searchPlaceholder = 'Search…',
   filterFields,
+  filterFieldCount = 0,
+  inlineFilter,
   filterCount = 0,
   hasFiltersApplied = false,
   onClearAll,
   showColumns = true,
-  panelClassName = 'lg:grid-cols-4',
 }: IDataTableToolbarProps<TData>) {
   const [showFilters, setShowFilters] = React.useState(false);
   const isBelowLg = useIsBelowLg();
+  const isBelowSm = useIsBelowSm();
 
   // Owns the search input and debounces commits upward. `lastEmitted` lets
   // us tell our own debounced commits apart from external resets (e.g.
@@ -92,28 +120,49 @@ export function DataTableToolbar<TData>({
     }
   }, [searchValue]);
 
-  const filterToggle = filterFields ? (
-    <Button
-      variant="outline"
-      onClick={() => setShowFilters((v) => !v)}
-      aria-expanded={showFilters}
-      className={cn('gap-1.5', filterCount > 0 && 'border-brand/50')}
-    >
-      <SlidersHorizontal className="h-4 w-4" />
-      <span className="hidden sm:inline">Filters</span>
-      {filterCount > 0 && (
-        <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
-          {filterCount}
-        </Badge>
-      )}
-      <ChevronDown
+  // A single inline filter only needs the toggle on phones (where it
+  // collapses into the sheet); multi-filter tables always have it.
+  const filterToggle =
+    filterFields || inlineFilter ? (
+      <Button
+        variant="outline"
+        onClick={() => setShowFilters((v) => !v)}
+        aria-expanded={showFilters}
         className={cn(
-          'hidden h-3.5 w-3.5 transition-transform sm:block',
-          showFilters && 'rotate-180',
+          'gap-1.5',
+          filterCount > 0 && 'border-brand/50',
+          inlineFilter && !filterFields && 'sm:hidden',
         )}
-      />
-    </Button>
-  ) : null;
+      >
+        <SlidersHorizontal className="h-4 w-4" />
+        <span
+          className={cn(
+            inlineFilter && !filterFields ? 'hidden' : 'hidden sm:inline',
+          )}
+        >
+          Filters
+        </span>
+        {filterCount > 0 && (
+          <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+            {filterCount}
+          </Badge>
+        )}
+        {filterFields && (
+          <ChevronDown
+            className={cn(
+              'hidden h-3.5 w-3.5 transition-transform sm:block',
+              showFilters && 'rotate-180',
+            )}
+          />
+        )}
+      </Button>
+    ) : null;
+
+  const sheetContent = filterFields ?? inlineFilter;
+  const sheetOpen =
+    showFilters &&
+    ((!!filterFields && isBelowLg) ||
+      (!!inlineFilter && !filterFields && isBelowSm));
 
   return (
     <div className="space-y-3">
@@ -139,6 +188,13 @@ export function DataTableToolbar<TData>({
             </button>
           )}
         </div>
+
+        {/* The lone filter sits beside the search from sm up - no toggle. */}
+        {inlineFilter && (
+          <div className="hidden w-44 shrink-0 sm:block lg:w-52">
+            {inlineFilter}
+          </div>
+        )}
 
         {filterToggle}
 
@@ -182,18 +238,15 @@ export function DataTableToolbar<TData>({
         <div
           className={cn(
             'grid gap-3 rounded-lg border border-border bg-card p-4',
-            panelClassName,
+            panelGridClasses(filterFieldCount),
           )}
         >
           {filterFields}
         </div>
       )}
 
-      {filterFields && (
-        <Dialog.Root
-          open={showFilters && isBelowLg}
-          onOpenChange={setShowFilters}
-        >
+      {sheetContent && (
+        <Dialog.Root open={sheetOpen} onOpenChange={setShowFilters}>
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 lg:hidden" />
             <Dialog.Content
@@ -211,7 +264,14 @@ export function DataTableToolbar<TData>({
                   </Button>
                 </Dialog.Close>
               </div>
-              <div className="grid gap-3">{filterFields}</div>
+              <div
+                className={cn(
+                  'grid gap-3',
+                  filterFields && 'grid-cols-2 md:grid-cols-3',
+                )}
+              >
+                {sheetContent}
+              </div>
               {hasFiltersApplied && onClearAll && (
                 <Button
                   variant="outline"
