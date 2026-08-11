@@ -49,10 +49,12 @@ export interface ICreateUserBody {
   password: string;
 }
 
-/** PATCH /api/users/[id] body. `phone: null` clears the saved number. */
+/**
+ * PATCH /api/users/[id] body. `phone: null` clears the saved number.
+ * Email is deliberately absent - it is self-service only (profile flow).
+ */
 export interface IUpdateUserDetailsBody {
   fullname?: string;
-  email?: string;
   phone?: string | null;
 }
 

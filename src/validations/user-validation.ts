@@ -29,13 +29,14 @@ export const createUserSchema = z.object({
 });
 
 /**
- * Detail edits (name/email/phone). Role changes go through the dedicated
+ * Detail edits (name/phone). Email is deliberately absent - users change
+ * their OWN email from their profile (guarded by password + confirmation
+ * link), it is not admin-managed. Role changes go through the dedicated
  * /role endpoint so the destructive permission move is a deliberate call.
  */
 export const updateUserDetailsSchema = z
   .object({
     fullname: z.string().trim().min(2).max(50).optional(),
-    email: z.email({ message: 'Invalid email format' }).optional(),
     /** E.164; empty string or null clears the saved number. */
     phone: z
       .union([z.literal('').transform(() => null), z.null(), phoneField])
@@ -64,8 +65,14 @@ export const adminResetPasswordSchema = z
 
 export type UsersQuery = z.infer<typeof usersQuerySchema>;
 
-/** Self-service profile edit (role/email stay admin-managed). */
+/**
+ * Self-service profile edit. Role stays admin-managed; a changed email is
+ * NOT applied directly - it requires the current password and a
+ * confirmation link sent to the current address (dms flow).
+ */
 export const profileUpdateSchema = z.object({
   fullname: z.string().trim().min(2, 'Enter your name').max(50),
   phone: z.null().or(phoneField).optional(),
+  email: z.email({ message: 'Invalid email format' }).optional(),
+  currentPassword: z.string().max(255).optional(),
 });

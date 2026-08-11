@@ -30,6 +30,9 @@ model User {
   /// removing the photo can reclaim the old asset.
   profilePhoto     String?
   profilePhotoId   String?
+  /// Requested new sign-in email, applied only when the EMAIL_CHANGE token
+  /// from the confirmation link (sent to the CURRENT address) is consumed.
+  pendingEmail     String?
   /// Session epoch: bumping it invalidates every outstanding session JWT
   /// (password change / "log out everywhere"). The current device gets a
   /// fresh cookie with the new value.
@@ -74,6 +77,7 @@ enum UserSecurityTokenType {
   TWO_FACTOR_LOGIN // 6-digit email OTP challenged at login
   TWO_FACTOR_SETUP // 6-digit email OTP confirming 2FA enablement
   PASSWORD_RESET // long random token embedded in the email reset link
+  EMAIL_CHANGE // long random token confirming a login-email change
 }
 
 // ───────────────────────── Rooms ─────────────────────────

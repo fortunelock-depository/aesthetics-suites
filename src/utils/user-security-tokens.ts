@@ -5,6 +5,7 @@ import prisma, { UserSecurityTokenType } from '@/lib/prisma';
 
 export const TWO_FACTOR_CODE_TTL_MINUTES = 10;
 export const PASSWORD_RESET_TTL_MINUTES = 30;
+export const EMAIL_CHANGE_TTL_MINUTES = 60 * 24;
 
 /** 6-digit one-time code for email OTP challenges. */
 export const generateOtpCode = (): string =>
@@ -100,11 +101,14 @@ export const verifyUserOtp = async (
 };
 
 /**
- * Consumes a password-reset token (looked up by hash). Returns the owning
- * userId, or null when the token is unknown, expired, wrong-type, or used.
+ * Consumes a link-style opaque token (looked up by hash). Returns the
+ * owning userId, or null when the token is unknown, expired, wrong-type,
+ * or already used. The guarded updateMany makes redemption single-use
+ * even under concurrent requests.
  */
-export const consumePasswordResetToken = async (
+export const consumeOpaqueToken = async (
   plainToken: string,
+  type: UserSecurityTokenType,
 ): Promise<string | null> => {
   const record = await prisma.userSecurityToken.findUnique({
     where: { tokenHash: hashSecurityToken(plainToken) },
@@ -112,7 +116,7 @@ export const consumePasswordResetToken = async (
 
   if (
     !record ||
-    record.type !== UserSecurityTokenType.PASSWORD_RESET ||
+    record.type !== type ||
     record.consumedAt !== null ||
     record.expiresAt.getTime() < Date.now()
   ) {
@@ -127,6 +131,12 @@ export const consumePasswordResetToken = async (
 
   return record.userId;
 };
+
+/** Consumes a password-reset token; see consumeOpaqueToken. */
+export const consumePasswordResetToken = (
+  plainToken: string,
+): Promise<string | null> =>
+  consumeOpaqueToken(plainToken, UserSecurityTokenType.PASSWORD_RESET);
 
 /** Removes every outstanding token for a user (e.g. after a password reset). */
 export const revokeAllUserSecurityTokens = async (

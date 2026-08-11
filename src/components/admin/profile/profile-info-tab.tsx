@@ -8,6 +8,8 @@ import { Dialog as DialogPrimitive } from 'radix-ui';
 import { toast } from 'sonner';
 import {
   Camera,
+  Eye,
+  EyeOff,
   Loader2,
   Pencil,
   Save,
@@ -37,6 +39,8 @@ export interface ProfileUser {
   phone: string | null;
   role: UserRoleValue;
   photoUrl: string | null;
+  /** A requested new email awaiting its confirmation link. */
+  pendingEmail: string | null;
 }
 
 /** dms input treatment: calm muted fill at rest, alive while editing. */
@@ -70,11 +74,20 @@ export function ProfileInfoTab({ user }: { user: ProfileUser }) {
   const [editing, setEditing] = React.useState(false);
   const [fullname, setFullname] = React.useState(user.fullname);
   const [phone, setPhone] = React.useState(user.phone ?? '');
+  const [email, setEmail] = React.useState(user.email);
+  const [currentPassword, setCurrentPassword] = React.useState('');
+  const [showPassword, setShowPassword] = React.useState(false);
   const [errors, setErrors] = React.useState<{
     fullname?: string[];
     phone?: string[];
+    email?: string[];
+    currentPassword?: string[];
   }>({});
   const [formPending, startForm] = React.useTransition();
+
+  // The guarded dms email flow: changing the address needs the current
+  // password, and only takes effect via the emailed confirmation link.
+  const emailChanged = editing && email.trim().toLowerCase() !== user.email;
 
   const clearPreview = React.useCallback(() => {
     setPreview((current) => {
@@ -142,6 +155,8 @@ export function ProfileInfoTab({ user }: { user: ProfileUser }) {
   const handleCancelEdit = () => {
     setFullname(user.fullname);
     setPhone(user.phone ?? '');
+    setEmail(user.email);
+    setCurrentPassword('');
     setErrors({});
     setEditing(false);
   };
@@ -152,9 +167,17 @@ export function ProfileInfoTab({ user }: { user: ProfileUser }) {
       const formData = new FormData();
       formData.set('fullname', fullname);
       formData.set('phone', phone);
+      formData.set('email', email);
+      if (emailChanged) formData.set('currentPassword', currentPassword);
       const r = await updateProfile({ success: false }, formData);
       if (r.success) {
-        toast.success(r.message ?? 'Profile updated.');
+        toast.success(r.message ?? 'Profile updated.', {
+          duration: r.emailChangeRequested ? 8000 : undefined,
+        });
+        // A changed email is NOT applied yet - revert the field to the
+        // still-current address so the UI never implies it switched.
+        setEmail(user.email);
+        setCurrentPassword('');
         setErrors({});
         setEditing(false);
         router.refresh();
@@ -359,14 +382,73 @@ export function ProfileInfoTab({ user }: { user: ProfileUser }) {
             <Label htmlFor="profile-email">Email</Label>
             <Input
               id="profile-email"
-              value={user.email}
-              disabled
-              className={inputCls(false)}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={!editing || formPending}
+              aria-invalid={!!errors.email}
+              className={inputCls(editing)}
             />
-            <p className="text-xs text-muted-foreground">
-              Your sign-in email is managed by a super admin.
-            </p>
+            {errors.email ? (
+              <p className="text-xs text-destructive">{errors.email[0]}</p>
+            ) : user.pendingEmail ? (
+              <p className="text-xs text-muted-foreground">
+                Pending change to{' '}
+                <span className="font-medium text-foreground">
+                  {user.pendingEmail}
+                </span>{' '}
+                - confirm it from the link in your current inbox.
+              </p>
+            ) : (
+              editing && (
+                <p className="text-xs text-muted-foreground">
+                  Changing your email requires your password and a
+                  confirmation link sent to your current inbox.
+                </p>
+              )
+            )}
           </div>
+
+          {emailChanged && (
+            <div className="space-y-2 @xl:col-span-2">
+              <Label htmlFor="profile-current-password">
+                Current password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="profile-current-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  placeholder="Required to change your email address"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  disabled={formPending}
+                  aria-invalid={!!errors.currentPassword}
+                  className={cn(inputCls(true), 'pr-10')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                  aria-label={
+                    showPassword ? 'Hide password' : 'Show password'
+                  }
+                  className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              {errors.currentPassword && (
+                <p className="text-xs text-destructive">
+                  {errors.currentPassword[0]}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap justify-end gap-2 pt-2">

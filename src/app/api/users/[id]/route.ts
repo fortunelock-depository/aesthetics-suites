@@ -4,7 +4,6 @@ import { requireSuperAdmin } from '@/lib/api-auth';
 import { successResponse, handleApiError } from '@/utils/api-response';
 import {
   BadRequestError,
-  ConflictError,
   NotFoundError,
 } from '@/middlewares/error-handler';
 import { updateUserDetailsSchema } from '@/validations/user-validation';
@@ -42,7 +41,10 @@ export async function GET(
   }
 }
 
-/** Detail update (name/email/phone). Role changes live at /role. */
+/**
+ * Detail update (name/phone). Email is self-service only (profile flow);
+ * role changes live at /role.
+ */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -54,26 +56,14 @@ export async function PATCH(
 
     const existing = await prisma.user.findFirst({
       where: { id },
-      select: { id: true, email: true },
+      select: { id: true },
     });
     if (!existing) throw new NotFoundError('User not found');
-
-    const email = input.email?.toLowerCase().trim();
-    if (email && email !== existing.email) {
-      const taken = await prisma.user.findFirst({
-        where: { email, NOT: { id } },
-        select: { id: true },
-      });
-      if (taken) {
-        throw new ConflictError('A user with that email already exists');
-      }
-    }
 
     const user = await prisma.user.update({
       where: { id },
       data: {
         ...(input.fullname !== undefined ? { fullname: input.fullname } : {}),
-        ...(email !== undefined ? { email } : {}),
         ...(input.phone !== undefined ? { phone: input.phone } : {}),
       },
       select: userSelect,

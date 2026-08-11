@@ -27,6 +27,7 @@ export default async function ProfilePage({
       role: true,
       twoFactorEnabled: true,
       profilePhoto: true,
+      pendingEmail: true,
     },
   });
 
@@ -43,6 +44,7 @@ export default async function ProfilePage({
           phone: user?.phone ?? null,
           role: (user?.role ?? 'FRONT_DESK') as UserRoleValue,
           photoUrl: user?.profilePhoto ?? null,
+          pendingEmail: user?.pendingEmail ?? null,
         }}
         twoFactorEnabled={user?.twoFactorEnabled ?? false}
         defaultTab={tab === 'security' ? 'security' : 'profile'}

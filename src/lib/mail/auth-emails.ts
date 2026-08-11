@@ -105,6 +105,36 @@ export const sendPasswordResetEmail = async (
   });
 };
 
+/**
+ * Confirmation link for a login-email change, sent to the CURRENT address
+ * (proving the account owner approves). Nothing changes until it's clicked.
+ */
+export const sendEmailChangeConfirmEmail = async (
+  user: Recipient,
+  confirmUrl: string,
+  newEmail: string,
+): Promise<void> => {
+  const html = shell(`
+    <h2 style="margin:0 0 16px;font-size:18px;">Confirm Your New Email</h2>
+    <p style="margin:0 0 16px;">Hi ${user.fullname},</p>
+    <p style="margin:0 0 16px;">You asked to change your sign-in email to <strong>${newEmail}</strong>. Your address stays the same until you confirm below.</p>
+    <div style="text-align:center;margin:24px 0;">
+      <a href="${confirmUrl}" style="display:inline-block;background-color:#252A1C;color:#fff;padding:12px 28px;border-radius:6px;font-weight:bold;text-decoration:none;">Confirm Email Change</a>
+    </div>
+    <p style="margin:0 0 16px;">This link expires in 24 hours and can be used once. After confirming, every device is signed out and you sign in with the new address.</p>
+    <p style="margin:0 0 8px;">If the button doesn't work, paste this link into your browser:</p>
+    <p style="margin:0 0 16px;word-break:break-all;font-size:13px;color:#555;">${confirmUrl}</p>
+    <p style="margin:0;color:#6b7280;font-size:13px;">If you did not request this, ignore this email - your address will not change.</p>
+  `);
+
+  await deliver({
+    to: user.email,
+    subject: `Confirm your new email - ${ENV.EMAIL_FROM_NAME}`,
+    html,
+    devConsole: `Email-change confirm link: ${confirmUrl}  (new address: ${newEmail})`,
+  });
+};
+
 export const sendPasswordChangedEmail = async (
   user: Recipient,
 ): Promise<void> => {

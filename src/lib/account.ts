@@ -7,9 +7,19 @@
 'use server';
 import bcrypt from 'bcrypt';
 import prisma from '@/lib/prisma';
+import { ENV } from '@/config/env';
 import { createSession, verifySession } from '@/lib/session';
-import { revokeAllUserSecurityTokens } from '@/utils/user-security-tokens';
-import { sendPasswordChangedEmail } from '@/lib/mail/auth-emails';
+import {
+  EMAIL_CHANGE_TTL_MINUTES,
+  consumeOpaqueToken,
+  generateResetToken,
+  issueUserSecurityToken,
+  revokeAllUserSecurityTokens,
+} from '@/utils/user-security-tokens';
+import {
+  sendEmailChangeConfirmEmail,
+  sendPasswordChangedEmail,
+} from '@/lib/mail/auth-emails';
 import { BCRYPT_SALT_ROUNDS } from '@/config/constants';
 import { changePasswordSchema } from '@/validations/auth-validation';
 import { profileUpdateSchema } from '@/validations/user-validation';
@@ -17,7 +27,15 @@ import { profileUpdateSchema } from '@/validations/user-validation';
 export type ProfileState = {
   success: boolean;
   message?: string;
-  errors?: { fullname?: string[]; phone?: string[]; _form?: string[] };
+  /** True when the submit started a pending email change (link emailed). */
+  emailChangeRequested?: boolean;
+  errors?: {
+    fullname?: string[];
+    phone?: string[];
+    email?: string[];
+    currentPassword?: string[];
+    _form?: string[];
+  };
 };
 
 export async function updateProfile(
@@ -27,13 +45,61 @@ export async function updateProfile(
   const { userId } = await verifySession();
 
   const phoneRaw = formData.get('phone');
+  const emailRaw = formData.get('email');
+  const passwordRaw = formData.get('currentPassword');
   const parsed = profileUpdateSchema.safeParse({
     fullname: formData.get('fullname'),
     // An emptied field clears the saved number.
     phone: typeof phoneRaw === 'string' && phoneRaw.trim() === '' ? null : phoneRaw,
+    email: typeof emailRaw === 'string' && emailRaw.trim() !== '' ? emailRaw : undefined,
+    currentPassword:
+      typeof passwordRaw === 'string' && passwordRaw !== ''
+        ? passwordRaw
+        : undefined,
   });
   if (!parsed.success) {
     return { success: false, errors: parsed.error.flatten().fieldErrors };
+  }
+
+  const user = await prisma.user.findFirst({
+    where: { id: userId },
+    select: { id: true, email: true, fullname: true, password: true },
+  });
+  if (!user) return { success: false, errors: { _form: ['Account not found.'] } };
+
+  const newEmail = parsed.data.email?.toLowerCase().trim();
+  const changingEmail = !!newEmail && newEmail !== user.email;
+
+  // The dms guarded email flow: the current password re-authorizes the
+  // change, then a confirmation link goes to the CURRENT address. Nothing
+  // switches until that link is clicked.
+  if (changingEmail) {
+    if (!parsed.data.currentPassword) {
+      return {
+        success: false,
+        errors: {
+          currentPassword: [
+            'Enter your password to change your email address',
+          ],
+        },
+      };
+    }
+    if (!(await bcrypt.compare(parsed.data.currentPassword, user.password))) {
+      return {
+        success: false,
+        errors: { currentPassword: ['Current password is incorrect'] },
+      };
+    }
+    const taken = await prisma.user.findFirst({
+      where: { email: newEmail, NOT: { id: userId } },
+      select: { id: true },
+    });
+    if (taken) {
+      return {
+        success: false,
+        errors: { email: ['An account with that email already exists'] },
+      };
+    }
   }
 
   await prisma.user.update({
@@ -41,10 +107,99 @@ export async function updateProfile(
     data: {
       fullname: parsed.data.fullname,
       phone: parsed.data.phone ?? null,
+      ...(changingEmail ? { pendingEmail: newEmail } : {}),
     },
   });
 
+  if (changingEmail && newEmail) {
+    const token = generateResetToken();
+    await issueUserSecurityToken(
+      userId,
+      'EMAIL_CHANGE',
+      token,
+      EMAIL_CHANGE_TTL_MINUTES,
+    );
+    await sendEmailChangeConfirmEmail(
+      user,
+      `${ENV.BASE_URL}/confirm-email?token=${token}`,
+      newEmail,
+    );
+    return {
+      success: true,
+      emailChangeRequested: true,
+      message:
+        'Profile updated. Check your current inbox to confirm the email change - your address stays the same until you click the link.',
+    };
+  }
+
   return { success: true, message: 'Profile updated.' };
+}
+
+export type ConfirmEmailChangeResult = {
+  success: boolean;
+  message: string;
+};
+
+/**
+ * Applies a pending login-email change. Public - the token from the email
+ * sent to the previous address IS the credential. Bumps the session epoch,
+ * so every device must sign in again with the new email.
+ */
+export async function confirmEmailChange(
+  token: string,
+): Promise<ConfirmEmailChangeResult> {
+  const invalid = {
+    success: false,
+    message:
+      'This confirmation link is invalid or has expired. Please request the email change again from your profile.',
+  };
+
+  const userId = await consumeOpaqueToken(token, 'EMAIL_CHANGE');
+  if (!userId) return invalid;
+
+  const user = await prisma.user.findFirst({
+    where: { id: userId },
+    select: { id: true, pendingEmail: true },
+  });
+  if (!user) return invalid;
+  if (!user.pendingEmail) {
+    return {
+      success: false,
+      message: 'There is no pending email change for this account.',
+    };
+  }
+
+  // Someone may have registered the address between request and confirm.
+  const taken = await prisma.user.findFirst({
+    where: { email: user.pendingEmail, NOT: { id: userId } },
+    select: { id: true },
+  });
+  if (taken) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { pendingEmail: null },
+    });
+    return {
+      success: false,
+      message: 'An account with that email already exists.',
+    };
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      email: user.pendingEmail,
+      pendingEmail: null,
+      // Epoch bump: every session dies; sign in again with the new email.
+      sessionVersion: { increment: 1 },
+    },
+  });
+
+  return {
+    success: true,
+    message:
+      'Your sign-in email has been updated. Please sign in again with the new address.',
+  };
 }
 
 export type ProfilePhotoState = {

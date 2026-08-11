@@ -50,7 +50,6 @@ export function EditUserForm({ user }: { user: IUserRow }) {
     mode: 'onTouched',
     defaultValues: {
       fullname: user.fullname,
-      email: user.email,
       phone: user.phone ?? '',
     },
   });
@@ -58,7 +57,6 @@ export function EditUserForm({ user }: { user: IUserRow }) {
   const handleCancel = () => {
     reset({
       fullname: user.fullname,
-      email: user.email,
       phone: user.phone ?? '',
     });
     setEditing(false);
@@ -128,14 +126,15 @@ export function EditUserForm({ user }: { user: IUserRow }) {
           <Input
             id="user-email"
             type="email"
-            disabled={disabled}
-            aria-invalid={!!errors.email}
-            className={inputCls(editing)}
-            {...register('email')}
+            value={user.email}
+            disabled
+            readOnly
+            className={inputCls(false)}
           />
-          {errors.email && (
-            <p className="text-xs text-destructive">{errors.email.message}</p>
-          )}
+          <p className="text-xs text-muted-foreground">
+            Users change their own email from their profile - it is not
+            admin-managed.
+          </p>
         </div>
       </div>
 
