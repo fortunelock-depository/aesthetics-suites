@@ -1,26 +1,36 @@
 // src/app/admin/rooms/page.tsx
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import Link from 'next/link';
 import { BedDouble } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/page-header';
-import { EmptyState } from '@/components/ui/empty-state';
+import { RoomTypesTable } from '@/components/admin/rooms/room-types-table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const metadata: Metadata = {
   title: 'Rooms',
 };
 
-/**
- * Placeholder while this console section's UI is built - the APIs behind
- * it are live (see src/app/api/admin/*).
- */
-export default function AdminRoomsPage() {
+// Suspense is required: the table reads useSearchParams (URL-synced state).
+export default function RoomsPage() {
   return (
     <section className="space-y-6">
-      <PageHeader title="Rooms" description="Room types, physical units, photos, season rates, and Airbnb calendar sync." />
-      <EmptyState
-        icon={BedDouble}
-        title="This section is on its way"
-        description="The management screens for rooms are being built. The underlying APIs are already live."
+      <PageHeader
+        title="Rooms"
+        description="The listings guests browse and book, with their photos, units and rates."
+        actions={
+          <Button asChild>
+            <Link href="/admin/rooms/create">
+              <BedDouble />
+              Add room
+            </Link>
+          </Button>
+        }
       />
+      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+        <RoomTypesTable />
+      </Suspense>
     </section>
   );
 }

@@ -1,0 +1,669 @@
+// src/components/admin/rooms/room-type-form.tsx
+//
+// The one source of truth for room-type form fields, shared by the create
+// dialog and the detail page's read-only-until-edit card (dms pattern).
+// Inputs hold strings; the schema transforms to the API contract
+// (roomTypeCreateSchema) on submit - GHS amounts become integer pesewas,
+// numerics become ints, amenity rows become plain strings.
+'use client';
+
+import * as React from 'react';
+import {
+  useFieldArray,
+  type UseFormReturn,
+} from 'react-hook-form';
+import { z } from 'zod';
+import { Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FieldError } from '@/components/forms/field-error';
+import { cn } from '@/lib/utils';
+import type {
+  ICreateRoomTypeBody,
+  IRoomTypeRow,
+} from '@/types/room.types';
+
+/** dms input treatment: calm muted fill at rest, alive while editing. */
+export const inputCls = (active: boolean) =>
+  cn(
+    'transition-all duration-200',
+    active
+      ? 'border-brand/40 bg-background focus:border-brand'
+      : 'border-border bg-muted/50 text-foreground',
+  );
+
+/** "450" / "450.5" / "450.50" (GHS) -> integer pesewas. */
+const ghsAmount = (label: string, minMinor: number) =>
+  z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d{1,2})?$/, `Enter ${label} in GHS, e.g. 450 or 450.50`)
+    .transform((v) => Math.round(parseFloat(v) * 100))
+    .refine((v) => v >= minMinor, {
+      message:
+        minMinor > 0 ? `Must be at least GHS ${minMinor / 100}` : 'Too low',
+    });
+
+const intField = (min: number, max: number) =>
+  z
+    .string()
+    .trim()
+    .min(1, 'Required')
+    .transform((v, ctx) => {
+      const n = Number(v);
+      if (!Number.isInteger(n) || n < min || n > max) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Enter a whole number between ${min} and ${max}`,
+        });
+        return z.NEVER;
+      }
+      return n;
+    });
+
+const optionalIntField = (min: number, max: number) =>
+  z
+    .string()
+    .trim()
+    .transform((v, ctx) => {
+      if (!v) return undefined;
+      const n = Number(v);
+      if (!Number.isInteger(n) || n < min || n > max) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Enter a whole number between ${min} and ${max}`,
+        });
+        return z.NEVER;
+      }
+      return n;
+    });
+
+/** Mirrors validations/hotel-validation.ts (roomTypeCreateSchema). */
+export const roomTypeFormSchema = z.object({
+  name: z.string().trim().min(2, 'Enter the room name').max(150),
+  summary: z.string().trim().min(10, 'At least 10 characters').max(300),
+  description: z.string().trim().min(20, 'At least 20 characters').max(10_000),
+  basePrice: ghsAmount('the nightly price', 1),
+  capacityAdults: intField(1, 20),
+  capacityChildren: intField(0, 20),
+  sizeSqm: optionalIntField(1, 10_000),
+  baseOccupancy: intField(1, 20),
+  extraGuestFeePerNight: ghsAmount('the extra-guest fee', 0),
+  freeCancellationDays: intField(0, 60),
+  minNights: intField(1, 90),
+  sortOrder: intField(0, 10_000),
+  airbnbUrl: z.union([
+    z.literal('').transform(() => undefined),
+    z.url('Enter a valid URL').max(500),
+  ]),
+  isPublished: z.boolean(),
+  amenities: z
+    .array(
+      z.object({
+        value: z.string().trim().min(1, 'Enter the amenity').max(60),
+      }),
+    )
+    .max(50),
+  faqs: z
+    .array(
+      z.object({
+        question: z.string().trim().min(5, 'At least 5 characters').max(150),
+        answer: z.string().trim().min(5, 'At least 5 characters').max(1000),
+      }),
+    )
+    .max(12),
+});
+
+export type RoomTypeFormInput = z.input<typeof roomTypeFormSchema>;
+export type RoomTypeFormOutput = z.output<typeof roomTypeFormSchema>;
+
+export const BLANK_ROOM_TYPE: RoomTypeFormInput = {
+  name: '',
+  summary: '',
+  description: '',
+  basePrice: '',
+  capacityAdults: '2',
+  capacityChildren: '0',
+  sizeSqm: '',
+  baseOccupancy: '2',
+  extraGuestFeePerNight: '0',
+  freeCancellationDays: '2',
+  minNights: '1',
+  sortOrder: '0',
+  airbnbUrl: '',
+  isPublished: false,
+  amenities: [],
+  faqs: [],
+};
+
+const minorToGhsInput = (minor: number): string => String(minor / 100);
+
+/** Saved record -> form field strings, for the detail page's edit card. */
+export function roomTypeToFormDefaults(rt: IRoomTypeRow): RoomTypeFormInput {
+  return {
+    name: rt.name,
+    summary: rt.summary,
+    description: rt.description,
+    basePrice: minorToGhsInput(rt.basePrice),
+    capacityAdults: String(rt.capacityAdults),
+    capacityChildren: String(rt.capacityChildren),
+    sizeSqm: rt.sizeSqm === null ? '' : String(rt.sizeSqm),
+    baseOccupancy: String(rt.baseOccupancy),
+    extraGuestFeePerNight: minorToGhsInput(rt.extraGuestFeePerNight),
+    freeCancellationDays: String(rt.freeCancellationDays),
+    minNights: String(rt.minNights),
+    sortOrder: String(rt.sortOrder),
+    airbnbUrl: rt.airbnbUrl ?? '',
+    isPublished: rt.isPublished,
+    amenities: rt.amenities.map((value) => ({ value })),
+    faqs: rt.faqs.map((f) => ({ ...f })),
+  };
+}
+
+/** Parsed form output -> the API body. */
+export function toRoomTypeBody(d: RoomTypeFormOutput): ICreateRoomTypeBody {
+  return {
+    name: d.name,
+    summary: d.summary,
+    description: d.description,
+    basePrice: d.basePrice,
+    capacityAdults: d.capacityAdults,
+    capacityChildren: d.capacityChildren,
+    sizeSqm: d.sizeSqm,
+    amenities: d.amenities.map((a) => a.value),
+    faqs: d.faqs,
+    airbnbUrl: d.airbnbUrl,
+    minNights: d.minNights,
+    isPublished: d.isPublished,
+    sortOrder: d.sortOrder,
+    baseOccupancy: d.baseOccupancy,
+    extraGuestFeePerNight: d.extraGuestFeePerNight,
+    freeCancellationDays: d.freeCancellationDays,
+  };
+}
+
+function Field({
+  id,
+  label,
+  hint,
+  error,
+  className,
+  children,
+}: {
+  id?: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn('space-y-1.5', className)}>
+      <Label htmlFor={id}>{label}</Label>
+      {children}
+      {hint && !error && (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      )}
+      <FieldError message={error} />
+    </div>
+  );
+}
+
+/** Shared props for every field group. */
+export interface RoomTypeFieldsProps {
+  form: UseFormReturn<RoomTypeFormInput, unknown, RoomTypeFormOutput>;
+  /** Drives the dms muted-at-rest treatment; false disables everything. */
+  active: boolean;
+  busy: boolean;
+}
+
+/** Per-step field names, for the create wizard's step validation. */
+export const ROOM_TYPE_STEP_FIELDS = {
+  basics: ['name', 'summary', 'description'],
+  pricing: [
+    'basePrice',
+    'capacityAdults',
+    'capacityChildren',
+    'baseOccupancy',
+    'extraGuestFeePerNight',
+    'sizeSqm',
+    'minNights',
+    'freeCancellationDays',
+    'sortOrder',
+  ],
+  extras: ['airbnbUrl', 'amenities', 'faqs'],
+} as const satisfies Record<string, readonly (keyof RoomTypeFormInput)[]>;
+
+/** Step 1: identity and copy. */
+export function RoomTypeBasicsFields({
+  form,
+  active,
+  busy,
+}: RoomTypeFieldsProps) {
+  const {
+    register,
+    formState: { errors },
+  } = form;
+  const disabled = !active || busy;
+  const cls = inputCls(active);
+
+  return (
+    <div className="grid grid-cols-1 gap-5">
+      <Field id="rt-name" label="Name" error={errors.name?.message}>
+        <Input
+          id="rt-name"
+          placeholder="e.g. Deluxe King Suite"
+          disabled={disabled}
+          aria-invalid={!!errors.name}
+          className={cls}
+          {...register('name')}
+        />
+      </Field>
+
+      <Field
+        id="rt-summary"
+        label="Summary"
+        hint="Short blurb shown on room cards."
+        error={errors.summary?.message}
+        className="sm:col-span-2"
+      >
+        <Textarea
+          id="rt-summary"
+          rows={2}
+          disabled={disabled}
+          aria-invalid={!!errors.summary}
+          className={cls}
+          {...register('summary')}
+        />
+      </Field>
+
+      <Field
+        id="rt-description"
+        label="Description"
+        hint="Full description for the room's detail page."
+        error={errors.description?.message}
+        className="sm:col-span-2"
+      >
+        <Textarea
+          id="rt-description"
+          rows={5}
+          disabled={disabled}
+          aria-invalid={!!errors.description}
+          className={cls}
+          {...register('description')}
+        />
+      </Field>
+    </div>
+  );
+}
+
+/** Step 2: price, occupancy and stay rules. */
+export function RoomTypePricingFields({
+  form,
+  active,
+  busy,
+}: RoomTypeFieldsProps) {
+  const {
+    register,
+    formState: { errors },
+  } = form;
+  const disabled = !active || busy;
+  const cls = inputCls(active);
+
+  return (
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <Field
+        id="rt-base-price"
+        label="Nightly price (GHS)"
+        error={errors.basePrice?.message}
+      >
+        <Input
+          id="rt-base-price"
+          inputMode="decimal"
+          placeholder="450.00"
+          disabled={disabled}
+          aria-invalid={!!errors.basePrice}
+          className={cls}
+          {...register('basePrice')}
+        />
+      </Field>
+
+      <Field
+        id="rt-adults"
+        label="Adults (max)"
+        error={errors.capacityAdults?.message}
+      >
+        <Input
+          id="rt-adults"
+          inputMode="numeric"
+          disabled={disabled}
+          aria-invalid={!!errors.capacityAdults}
+          className={cls}
+          {...register('capacityAdults')}
+        />
+      </Field>
+
+      <Field
+        id="rt-children"
+        label="Children (max)"
+        error={errors.capacityChildren?.message}
+      >
+        <Input
+          id="rt-children"
+          inputMode="numeric"
+          disabled={disabled}
+          aria-invalid={!!errors.capacityChildren}
+          className={cls}
+          {...register('capacityChildren')}
+        />
+      </Field>
+
+      <Field
+        id="rt-base-occupancy"
+        label="Guests included in price"
+        hint="Extras pay the per-night fee."
+        error={errors.baseOccupancy?.message}
+      >
+        <Input
+          id="rt-base-occupancy"
+          inputMode="numeric"
+          disabled={disabled}
+          aria-invalid={!!errors.baseOccupancy}
+          className={cls}
+          {...register('baseOccupancy')}
+        />
+      </Field>
+
+      <Field
+        id="rt-extra-fee"
+        label="Extra-guest fee per night (GHS)"
+        error={errors.extraGuestFeePerNight?.message}
+      >
+        <Input
+          id="rt-extra-fee"
+          inputMode="decimal"
+          placeholder="0"
+          disabled={disabled}
+          aria-invalid={!!errors.extraGuestFeePerNight}
+          className={cls}
+          {...register('extraGuestFeePerNight')}
+        />
+      </Field>
+
+      <Field
+        id="rt-size"
+        label="Size (m², optional)"
+        error={errors.sizeSqm?.message}
+      >
+        <Input
+          id="rt-size"
+          inputMode="numeric"
+          disabled={disabled}
+          aria-invalid={!!errors.sizeSqm}
+          className={cls}
+          {...register('sizeSqm')}
+        />
+      </Field>
+
+      <Field
+        id="rt-min-nights"
+        label="Minimum nights"
+        error={errors.minNights?.message}
+      >
+        <Input
+          id="rt-min-nights"
+          inputMode="numeric"
+          disabled={disabled}
+          aria-invalid={!!errors.minNights}
+          className={cls}
+          {...register('minNights')}
+        />
+      </Field>
+
+      <Field
+        id="rt-cancel-days"
+        label="Free cancellation (days before check-in)"
+        error={errors.freeCancellationDays?.message}
+      >
+        <Input
+          id="rt-cancel-days"
+          inputMode="numeric"
+          disabled={disabled}
+          aria-invalid={!!errors.freeCancellationDays}
+          className={cls}
+          {...register('freeCancellationDays')}
+        />
+      </Field>
+
+      <Field
+        id="rt-sort"
+        label="Sort order"
+        hint="Lower numbers list first."
+        error={errors.sortOrder?.message}
+      >
+        <Input
+          id="rt-sort"
+          inputMode="numeric"
+          disabled={disabled}
+          aria-invalid={!!errors.sortOrder}
+          className={cls}
+          {...register('sortOrder')}
+        />
+      </Field>
+    </div>
+  );
+}
+
+/** Step 3: the listing extras - link-outs, amenities and FAQs. */
+export function RoomTypeExtrasFields({
+  form,
+  active,
+  busy,
+}: RoomTypeFieldsProps) {
+  const {
+    register,
+    control,
+    formState: { errors },
+  } = form;
+  const amenities = useFieldArray({ control, name: 'amenities' });
+  const faqs = useFieldArray({ control, name: 'faqs' });
+  const disabled = !active || busy;
+  const cls = inputCls(active);
+
+  return (
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <Field
+        id="rt-airbnb"
+        label="Airbnb listing URL (optional)"
+        hint='Shown as "View on Airbnb" on the public page.'
+        error={errors.airbnbUrl?.message}
+        className="sm:col-span-2"
+      >
+        <Input
+          id="rt-airbnb"
+          type="url"
+          placeholder="https://airbnb.com/rooms/…"
+          disabled={disabled}
+          aria-invalid={!!errors.airbnbUrl}
+          className={cls}
+          {...register('airbnbUrl')}
+        />
+      </Field>
+
+      {/* ---- Amenities ---- */}
+      <div className="space-y-2 sm:col-span-2">
+        <Label>Amenities</Label>
+        {amenities.fields.length === 0 && (
+          <p className="text-xs text-muted-foreground">
+            {active
+              ? 'Add the amenities guests get - each renders with a matching icon.'
+              : 'No amenities added yet.'}
+          </p>
+        )}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {amenities.fields.map((field, index) => (
+            <div key={field.id} className="space-y-1">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="e.g. Air conditioning"
+                  aria-label={`Amenity ${index + 1}`}
+                  disabled={disabled}
+                  aria-invalid={!!errors.amenities?.[index]?.value}
+                  className={cls}
+                  {...register(`amenities.${index}.value`)}
+                />
+                {active && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Remove amenity ${index + 1}`}
+                    className="mt-1 flex-none text-muted-foreground hover:text-destructive"
+                    onClick={() => amenities.remove(index)}
+                    disabled={busy}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <FieldError
+                message={errors.amenities?.[index]?.value?.message}
+              />
+            </div>
+          ))}
+        </div>
+        {active && amenities.fields.length < 50 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => amenities.append({ value: '' })}
+            disabled={busy}
+          >
+            <Plus />
+            Add amenity
+          </Button>
+        )}
+      </div>
+
+      {/* ---- FAQs ---- */}
+      <div className="space-y-2 sm:col-span-2">
+        <Label>Frequently asked questions</Label>
+        {faqs.fields.length === 0 && (
+          <p className="text-xs text-muted-foreground">
+            {active
+              ? 'Shown as the accordion on the room detail page.'
+              : 'No FAQs added yet.'}
+          </p>
+        )}
+        <div className="space-y-3">
+          {faqs.fields.map((field, index) => (
+            <div
+              key={field.id}
+              className="space-y-2 border border-border p-3"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-xs font-medium text-muted-foreground">
+                  FAQ {index + 1}
+                </span>
+                {active && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Remove FAQ ${index + 1}`}
+                    className="flex-none text-muted-foreground hover:text-destructive"
+                    onClick={() => faqs.remove(index)}
+                    disabled={busy}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Input
+                  placeholder="Question, e.g. Is breakfast included?"
+                  aria-label={`FAQ ${index + 1} question`}
+                  disabled={disabled}
+                  aria-invalid={!!errors.faqs?.[index]?.question}
+                  className={cls}
+                  {...register(`faqs.${index}.question`)}
+                />
+                <FieldError
+                  message={errors.faqs?.[index]?.question?.message}
+                />
+              </div>
+              <div className="space-y-1">
+                <Textarea
+                  rows={2}
+                  placeholder="Answer"
+                  aria-label={`FAQ ${index + 1} answer`}
+                  disabled={disabled}
+                  aria-invalid={!!errors.faqs?.[index]?.answer}
+                  className={cls}
+                  {...register(`faqs.${index}.answer`)}
+                />
+                <FieldError
+                  message={errors.faqs?.[index]?.answer?.message}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+        {active && faqs.fields.length < 12 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => faqs.append({ question: '', answer: '' })}
+            disabled={busy}
+          >
+            <Plus />
+            Add FAQ
+          </Button>
+        )}
+      </div>
+
+    </div>
+  );
+}
+
+/** The publish toggle - last step of the wizard, inline on the edit card. */
+export function RoomTypePublishField({
+  form,
+  active,
+  busy,
+}: RoomTypeFieldsProps) {
+  const disabled = !active || busy;
+  return (
+    <label htmlFor="rt-published" className="flex items-center gap-2.5">
+      <Checkbox
+        id="rt-published"
+        checked={form.watch('isPublished')}
+        onCheckedChange={(v) =>
+          form.setValue('isPublished', v === true, { shouldDirty: true })
+        }
+        disabled={disabled}
+      />
+      <span className="text-sm">Published - visible on the public site</span>
+    </label>
+  );
+}
+
+/**
+ * Every field group at once - the detail page's read-only-until-edit
+ * card. The create wizard renders the groups per step instead.
+ */
+export function RoomTypeFields(props: RoomTypeFieldsProps) {
+  return (
+    <div className="space-y-5">
+      <RoomTypeBasicsFields {...props} />
+      <RoomTypePricingFields {...props} />
+      <RoomTypeExtrasFields {...props} />
+      <RoomTypePublishField {...props} />
+    </div>
+  );
+}

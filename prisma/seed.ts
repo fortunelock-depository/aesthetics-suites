@@ -107,16 +107,24 @@ async function seedDemoRooms() {
       update: { ...fields, isPublished: true, sortOrder: index },
     });
 
-    // One cover photo per type; replaced (not duplicated) on re-runs.
+    // Cover + a small gallery borrowed from the neighbouring rooms'
+    // photos; replaced (not duplicated) on re-runs.
+    const gallery = [
+      photo,
+      DEMO_ROOM_TYPES[(index + 1) % DEMO_ROOM_TYPES.length].photo,
+      DEMO_ROOM_TYPES[(index + 2) % DEMO_ROOM_TYPES.length].photo,
+    ];
     await prisma.roomPhoto.deleteMany({ where: { roomTypeId: roomType.id } });
-    await prisma.roomPhoto.create({
-      data: {
-        roomTypeId: roomType.id,
-        url: unsplash(photo.id),
-        alt: photo.alt,
-        sortOrder: 0,
-      },
-    });
+    for (const [order, item] of gallery.entries()) {
+      await prisma.roomPhoto.create({
+        data: {
+          roomTypeId: roomType.id,
+          url: unsplash(item.id),
+          alt: item.alt,
+          sortOrder: order,
+        },
+      });
+    }
 
     for (const unitName of units) {
       await prisma.room.upsert({
@@ -125,10 +133,34 @@ async function seedDemoRooms() {
         update: { roomTypeId: roomType.id, deletedAt: null },
       });
     }
+
+    // A festive-peak season rate per room so the Rates tab has real
+    // content: +40% nightly over the year-end holidays.
+    const seasonName = 'Festive Peak';
+    const existingRate = await prisma.seasonRate.findFirst({
+      where: { roomTypeId: roomType.id, name: seasonName },
+      select: { id: true },
+    });
+    const rateData = {
+      roomTypeId: roomType.id,
+      name: seasonName,
+      startDate: new Date('2026-12-18'),
+      endDate: new Date('2027-01-05'),
+      nightlyPrice: Math.round(fields.basePrice * 1.4),
+      minNights: 2,
+    };
+    if (existingRate) {
+      await prisma.seasonRate.update({
+        where: { id: existingRate.id },
+        data: rateData,
+      });
+    } else {
+      await prisma.seasonRate.create({ data: rateData });
+    }
   }
 
   console.log(
-    `Demo room seed: upserted ${DEMO_ROOM_TYPES.length} room types with units and photos.`,
+    `Demo room seed: upserted ${DEMO_ROOM_TYPES.length} room types with units, galleries, FAQs and season rates.`,
   );
 }
 

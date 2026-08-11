@@ -18,6 +18,7 @@ export interface DemoRoomType {
   capacityChildren: number;
   sizeSqm: number;
   amenities: string[];
+  faqs: { question: string; answer: string }[];
   photo: { id: string; alt: string };
   units: string[];
 }
@@ -46,6 +47,18 @@ export const DEMO_ROOM_TYPES: DemoRoomType[] = [
       id: '1631049307264-da0ec9d70304',
       alt: 'A tidy queen bedroom with soft light',
     },
+    faqs: [
+      {
+        question: 'What time are check-in and check-out?',
+        answer:
+          'Check-in opens at 2:00 pm and check-out is by 11:00 am. Early check-in is free when the room is ready.',
+      },
+      {
+        question: 'Is breakfast included?',
+        answer:
+          'Breakfast is available at the restaurant from 6:30 am; it is not included in the Standard Queen rate.',
+      },
+    ],
     units: ['Suite 101', 'Suite 102'],
   },
   {
@@ -69,6 +82,23 @@ export const DEMO_ROOM_TYPES: DemoRoomType[] = [
       id: '1611892440504-42a792e24d32',
       alt: 'A deluxe king bedroom with warm bedside lighting',
     },
+    faqs: [
+      {
+        question: 'Does the room have a workspace?',
+        answer:
+          'Yes - a dedicated reading nook with a desk, plus fast Wi-Fi throughout the suite.',
+      },
+      {
+        question: 'Can we get an extra bed?',
+        answer:
+          'One cot or child bed fits comfortably; request it at booking and the front desk sets it up before arrival.',
+      },
+      {
+        question: 'Is smoking allowed?',
+        answer:
+          'All rooms are non-smoking. A covered smoking area sits off the garden courtyard.',
+      },
+    ],
     units: ['Suite 201', 'Suite 202'],
   },
   {
@@ -85,6 +115,18 @@ export const DEMO_ROOM_TYPES: DemoRoomType[] = [
       id: '1595576508898-0ad5c879a061',
       alt: 'A twin room with two made-up beds',
     },
+    faqs: [
+      {
+        question: 'How many guests fit comfortably?',
+        answer:
+          'Two adults and two children across the two full beds; cots for infants are available on request.',
+      },
+      {
+        question: 'Are cots and high chairs available?',
+        answer:
+          'Yes, both are free - mention them when booking so the room is set up before you arrive.',
+      },
+    ],
     units: ['Suite 105', 'Suite 106'],
   },
   {
@@ -108,6 +150,23 @@ export const DEMO_ROOM_TYPES: DemoRoomType[] = [
       id: '1591088398332-8a7791972843',
       alt: 'An executive suite with a separate lounge area',
     },
+    faqs: [
+      {
+        question: 'Is breakfast really included?',
+        answer:
+          'Yes - breakfast for two at the restaurant every morning of your stay is part of the suite rate.',
+      },
+      {
+        question: 'Can the lounge host a small meeting?',
+        answer:
+          'The separate living room seats four around the dining corner and is yours to use privately.',
+      },
+      {
+        question: 'What is the cancellation policy?',
+        answer:
+          'Free cancellation up to 2 days before check-in; later cancellations forfeit the first night.',
+      },
+    ],
     units: ['Suite 301'],
   },
   {
@@ -124,6 +183,18 @@ export const DEMO_ROOM_TYPES: DemoRoomType[] = [
       id: '1590490360182-c33d57733427',
       alt: 'A bright double room with garden light',
     },
+    faqs: [
+      {
+        question: 'Does the terrace get morning or evening sun?',
+        answer:
+          'Morning sun - the room faces east over the courtyard, which also keeps evenings cool and quiet.',
+      },
+      {
+        question: 'Is the garden accessible at night?',
+        answer:
+          'The courtyard stays open to guests until midnight, with soft path lighting throughout.',
+      },
+    ],
     units: ['Suite 103'],
   },
 ];

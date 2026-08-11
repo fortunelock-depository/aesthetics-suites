@@ -26,6 +26,15 @@ export const roomTypeCreateSchema = z.object({
   capacityChildren: z.number().int().min(0).max(20).default(0),
   sizeSqm: z.number().int().min(1).max(10_000).optional(),
   amenities: z.array(z.string().trim().min(1).max(60)).max(50).default([]),
+  faqs: z
+    .array(
+      z.object({
+        question: z.string().trim().min(5).max(150),
+        answer: z.string().trim().min(5).max(1000),
+      }),
+    )
+    .max(12)
+    .default([]),
   airbnbUrl: z.url().max(500).optional(),
   minNights: z.number().int().min(1).max(90).default(1),
   isPublished: z.boolean().default(false),

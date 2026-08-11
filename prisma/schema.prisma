@@ -103,6 +103,9 @@ model RoomType {
   sizeSqm          Int?
   /// Amenity labels rendered as-is ("Wi-Fi", "Air conditioning", ...).
   amenities        String[]
+  /// Frequently asked questions: [{ question, answer }], rendered as the
+  /// detail-page accordion.
+  faqs             Json @default("[]")
 
   /// Link out to the same listing on Airbnb (shown as "View on Airbnb").
   airbnbUrl String? @db.VarChar(500)
