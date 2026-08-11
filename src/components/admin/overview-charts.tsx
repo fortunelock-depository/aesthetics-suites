@@ -84,8 +84,12 @@ export function RevenueTrendChart({
   }
 
   return (
-    <div className="h-72 w-full">
-      <ResponsiveContainer width="100%" height="100%">
+    // 12 months can't squeeze into a fold's ~250px of card - the chart
+    // keeps a readable minimum and scrolls INSIDE this container, so the
+    // page itself never grows sideways.
+    <div className="w-full overflow-x-auto overflow-y-hidden">
+      <div className="h-72 min-w-[420px]">
+        <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
           data={rows}
           margin={{ top: 8, right: 4, bottom: 0, left: 4 }}
@@ -143,8 +147,9 @@ export function RevenueTrendChart({
             dot={{ r: 2.5, fill: COLORS.bookings }}
           />
         </ComposedChart>
-      </ResponsiveContainer>
-      <p className="mt-2 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+        </ResponsiveContainer>
+      </div>
+      <p className="mt-2 flex min-w-[420px] items-center justify-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <span
             className="h-2.5 w-2.5"
@@ -190,8 +195,8 @@ export function BookingStatusChart({
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 min-[480px]:flex-row">
-      <div className="relative h-44 w-44 flex-none">
+    <div className="flex min-w-0 flex-col items-center gap-4 min-[480px]:flex-row">
+      <div className="relative h-44 w-44 max-w-full flex-none">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

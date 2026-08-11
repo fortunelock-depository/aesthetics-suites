@@ -99,7 +99,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="min-w-0 rounded-xl border border-border bg-card p-4">
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>
       <div className="mt-3">{children}</div>
     </div>

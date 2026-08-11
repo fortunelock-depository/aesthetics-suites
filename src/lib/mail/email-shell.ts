@@ -43,10 +43,8 @@ export function shell(bodyHtml: string): string {
       .email-header { padding: 18px 20px !important; }
       .email-body { padding: 22px 20px !important; }
       .email-footer { padding: 16px 20px !important; }
-      /* Stack detail rows: label on top, value below. */
-      .detail-label, .detail-value { display: block !important; width: 100% !important; }
-      .detail-label { padding: 8px 0 0 !important; }
-      .detail-value { padding: 2px 0 6px !important; }
+      /* Detail rows keep the desktop label|value layout on phones too -
+         this site's values are short enough to always fit one row. */
     }
   </style>
 </head>
