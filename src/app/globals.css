@@ -1,0 +1,268 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-heading);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Aesthetics Suites brand palette (from the brand board):
+     Ivory #FFF9E2 (field) · Pistachio #EBECCC (soft surfaces) ·
+     Eucalyptus #CDD3B1 (secondary) · Clay #DCA278 (accent) ·
+     Peach #FEECD0 (hover warmth) · derived deep-olive ink for text. */
+  --background: oklch(0.981 0.031 94.9); /* ivory */
+  --foreground: oklch(0.275 0.026 124); /* olive ink */
+  --card: oklch(0.993 0.015 98.3);
+  --card-foreground: oklch(0.275 0.026 124);
+  --popover: oklch(0.993 0.015 98.3);
+  --popover-foreground: oklch(0.275 0.026 124);
+  --primary: oklch(0.275 0.026 124);
+  --primary-foreground: oklch(0.981 0.031 94.9);
+  --secondary: oklch(0.853 0.046 115.5); /* eucalyptus */
+  --secondary-foreground: oklch(0.275 0.026 124);
+  --muted: oklch(0.934 0.042 108.7); /* pistachio */
+  --muted-foreground: oklch(0.531 0.039 114.9);
+  --accent: oklch(0.906 0.032 116.6);
+  --accent-foreground: oklch(0.275 0.026 124);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.891 0.037 112.1);
+  --input: oklch(0.891 0.037 112.1);
+  --ring: oklch(0.757 0.089 56.8);
+  /* Brand accent - clay terracotta; ink text keeps it accessible. */
+  --brand: oklch(0.757 0.089 56.8); /* clay */
+  --brand-foreground: oklch(0.275 0.026 124);
+  --chart-1: oklch(0.853 0.046 115.5); /* eucalyptus */
+  --chart-2: oklch(0.757 0.089 56.8); /* clay */
+  --chart-3: oklch(0.762 0.053 115); /* deep eucalyptus */
+  --chart-4: oklch(0.95 0.042 79); /* peach */
+  --chart-5: oklch(0.531 0.039 114.9);
+  /* The design system is SQUARE: every radius-scale utility resolves to
+     0 (rounded-full circles/pills stay intentional shapes). */
+  --radius: 0rem;
+  --sidebar: oklch(0.972 0.032 100);
+  --sidebar-foreground: oklch(0.275 0.026 124);
+  --sidebar-primary: oklch(0.275 0.026 124);
+  --sidebar-primary-foreground: oklch(0.981 0.031 94.9);
+  --sidebar-accent: oklch(0.934 0.042 108.7);
+  --sidebar-accent-foreground: oklch(0.275 0.026 124);
+  --sidebar-border: oklch(0.891 0.037 112.1);
+  --sidebar-ring: oklch(0.757 0.089 56.8);
+}
+
+.dark {
+  /* Deep-olive night theme derived from the same palette. */
+  --background: oklch(0.241 0.017 122.7);
+  --foreground: oklch(0.955 0.028 100.3);
+  --card: oklch(0.277 0.022 122.8);
+  --card-foreground: oklch(0.955 0.028 100.3);
+  --popover: oklch(0.277 0.022 122.8);
+  --popover-foreground: oklch(0.955 0.028 100.3);
+  --primary: oklch(0.92 0.03 103);
+  --primary-foreground: oklch(0.241 0.017 122.7);
+  --secondary: oklch(0.315 0.028 122.1);
+  --secondary-foreground: oklch(0.955 0.028 100.3);
+  --muted: oklch(0.315 0.028 122.1);
+  --muted-foreground: oklch(0.784 0.039 113.9);
+  --accent: oklch(0.359 0.036 123.2);
+  --accent-foreground: oklch(0.955 0.028 100.3);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.794 0.076 57.1);
+  --brand: oklch(0.794 0.076 57.1); /* clay, lightened */
+  --brand-foreground: oklch(0.241 0.017 122.7);
+  --chart-1: oklch(0.853 0.046 115.5);
+  --chart-2: oklch(0.794 0.076 57.1);
+  --chart-3: oklch(0.762 0.053 115);
+  --chart-4: oklch(0.95 0.042 79);
+  --chart-5: oklch(0.784 0.039 113.9);
+  --sidebar: oklch(0.277 0.022 122.8);
+  --sidebar-foreground: oklch(0.955 0.028 100.3);
+  --sidebar-primary: oklch(0.794 0.076 57.1);
+  --sidebar-primary-foreground: oklch(0.241 0.017 122.7);
+  --sidebar-accent: oklch(0.315 0.028 122.1);
+  --sidebar-accent-foreground: oklch(0.955 0.028 100.3);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.6 0.05 115);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  /* Any enabled clickable control shows a pointer cursor. */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  label[for],
+  summary,
+  select:not(:disabled) {
+    @apply cursor-pointer;
+  }
+  /* Brand-tinted text selection. */
+  ::selection {
+    background-color: var(--brand);
+    color: var(--brand-foreground);
+  }
+}
+
+/* Respect users who prefer reduced motion: cut animations/transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Template interaction primitives (copied from the reference CSS) ─── */
+
+/* Sweep buttons (.theme-btn): two halves grow WIDTH from the outer edges
+   to the center with an opacity fade-in - 0.5s ease-out, so the fill
+   arrives softly. Unhover retreats the same way. Variants set the sweep's
+   background/text via custom properties. */
+.btn-sweep {
+  position: relative;
+  z-index: 3;
+  overflow: hidden;
+  transition: all 0.4s ease-out 0s;
+}
+.btn-sweep::before,
+.btn-sweep::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 100%;
+  background: var(--sweep-bg);
+  opacity: 0;
+  transition: all 0.5s ease-out 0s;
+  z-index: -1;
+}
+.btn-sweep::before {
+  top: 0;
+  left: 0;
+}
+.btn-sweep::after {
+  bottom: 0;
+  right: 0;
+}
+.btn-sweep:hover {
+  color: var(--sweep-fg);
+}
+.btn-sweep:hover::before,
+.btn-sweep:hover::after {
+  width: 50.5%; /* slight overlap so the halves meet without a seam */
+  opacity: 1;
+}
+
+/* Clay button that sweeps to PEACH with ink text (navbar, hero bar). */
+.btn-sweep-light {
+  --sweep-bg: #feecd0;
+  --sweep-fg: #252a1c;
+}
+/* Clay button that sweeps to the olive INK with ivory text (welcome CTA). */
+.btn-sweep-dark {
+  --sweep-bg: #252a1c;
+  --sweep-fg: #fff9e2;
+}
+/* Outlined clay button that sweeps to solid clay with ink text. */
+.btn-sweep-gold {
+  --sweep-bg: var(--brand);
+  --sweep-fg: #252a1c;
+}
+
+/* The play medallion (.video__play): a faint static ring, plus a ring that
+   paints ONLY its top border - which on a circle reads as a soft quarter
+   arc - rotating continuously. Everything turns gold on hover. */
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+.play-arc {
+  animation: rotation 2s infinite linear;
+}
+
+/* Social circles: the same tapered arc runs ONE full lap on hover, in
+   gold, then rests at the top. */
+@keyframes spin-once {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+.social-ring {
+  position: relative;
+  cursor: pointer;
+}
+.social-ring .social-arc {
+  opacity: 0;
+}
+.social-ring:hover .social-arc {
+  opacity: 1;
+  animation: spin-once 0.7s linear 1 forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-arc,
+  .social-ring:hover .social-arc {
+    animation: none !important;
+  }
+}

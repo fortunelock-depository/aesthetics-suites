@@ -1,0 +1,46 @@
+// src/config/constants.ts
+
+export const BCRYPT_SALT_ROUNDS = 12;
+
+// Canonical URLs, the sitemap, and OG URLs are all built from this origin, so
+// a production build without it would ship wrong metadata everywhere. Fail the
+// build instead of falling back to a preview/localhost domain.
+if (!process.env.NEXT_PUBLIC_BASE_URL && process.env.NODE_ENV === 'production') {
+  throw new Error(
+    'NEXT_PUBLIC_BASE_URL must be set in production (the public site origin, e.g. https://example.com).',
+  );
+}
+
+export const SITE = {
+  name: 'Aesthetics Suites',
+  /** The logo's tagline. */
+  tagline: 'Luxury Styled to Perfection',
+  /** Full home-page title (the layout template's `default`). */
+  title: 'Aesthetics Suites - Luxury Styled to Perfection',
+  description:
+    'Boutique hotel suites styled to perfection. Browse our rooms, check live availability, and book your stay online.',
+  url: (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000').replace(
+    /\/$/,
+    '',
+  ),
+  locale: 'en_GH',
+  /** Used by manifest.ts and the OG template. */
+  themeColor: '#252A1C',
+  backgroundColor: '#FFF9E2',
+  keywords: [
+    'Aesthetics Suites',
+    'hotel suites',
+    'luxury rooms',
+    'boutique hotel',
+    'book hotel online',
+    'accommodation Ghana',
+  ],
+} as const;
+
+export const CONTACT = {
+  phone: '+233000000000',
+  email: 'hello@aestheticssuites.com',
+  location: 'Accra, Ghana',
+  /** Map pin (placeholder: central Accra - adjust to the property). */
+  map: { lat: 5.6037, lng: -0.187 },
+} as const;
