@@ -1,0 +1,39 @@
+// src/app/contact/page.tsx
+import { SiteHeader } from '@/components/site/site-header';
+import { SiteFooter } from '@/components/site/site-footer';
+import { PageBanner } from '@/components/site/page-banner';
+import { ContactInfo } from '@/components/contact/contact-info';
+import { ContactForm } from '@/components/contact/contact-form';
+import { LocationMap } from '@/components/contact/location-map';
+import { unsplash } from '@/static-data/home';
+import { SITE } from '@/config/constants';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata = pageMetadata({
+  title: 'Contact Us',
+  description: `Reach ${SITE.name} - questions about stays, bookings, or the suites. Call, email, or send a message and we'll get back to you shortly.`,
+  path: '/contact',
+});
+
+export default function ContactPage() {
+  return (
+    <>
+      <SiteHeader />
+      <main className="flex-1">
+        <PageBanner
+          title="Contact Us"
+          image={unsplash('1618773928121-c32242e63f39', 2000)}
+        />
+
+        {/* Get In Touch + Send Message (template's two-column layout). */}
+        <section className="mx-auto grid w-full max-w-[1320px] gap-14 px-4 py-16 lg:grid-cols-[5fr_7fr] lg:gap-20 lg:px-3 lg:py-[120px]">
+          <ContactInfo />
+          <ContactForm />
+        </section>
+
+        <LocationMap />
+      </main>
+      <SiteFooter />
+    </>
+  );
+}
