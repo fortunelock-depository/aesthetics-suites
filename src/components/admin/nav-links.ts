@@ -5,7 +5,6 @@ import {
   CalendarCheck,
   Landmark,
   LayoutDashboard,
-  ReceiptText,
   Star,
   TicketPercent,
   Users,
@@ -38,7 +37,6 @@ export const adminLinks: AdminLink[] = [
   { href: '/admin/services', label: 'Services', icon: BellRing, roles: ADMINS },
   { href: '/admin/reviews', label: 'Reviews', icon: Star, roles: ADMINS },
   { href: '/admin/discounts', label: 'Discounts', icon: TicketPercent, roles: ADMINS },
-  { href: '/admin/tax-fees', label: 'Tax & Fees', icon: ReceiptText, roles: ADMINS },
   { href: '/admin/users', label: 'Users', icon: Users, roles: ['SUPER_ADMIN'] },
 ];
 

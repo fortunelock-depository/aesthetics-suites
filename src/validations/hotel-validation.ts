@@ -293,25 +293,6 @@ export const bookingActionSchema = z.object({
   refund: z.boolean().optional(),
 });
 
-export const taxFeeCreateSchema = z.object({
-  name: z.string().trim().min(2).max(100),
-  /** Basis points, e.g. 1500 = 15%. */
-  rateBps: z.number().int().min(1).max(10_000),
-  isActive: z.boolean().default(true),
-  sortOrder: z.number().int().default(0),
-});
-
-export const taxFeeUpdateSchema = z
-  .object({
-    name: z.string().trim().min(2).max(100).optional(),
-    rateBps: z.number().int().min(1).max(10_000).optional(),
-    isActive: z.boolean().optional(),
-    sortOrder: z.number().int().optional(),
-  })
-  .refine((data) => Object.keys(data).length > 0, {
-    message: 'Nothing to update',
-  });
-
 export const calendarQuerySchema = z.object({
   from: dateOnly,
   to: dateOnly,

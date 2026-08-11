@@ -162,7 +162,8 @@ export function SiteFooter() {
                 </Link>
               ))}
             </nav>
-            <ThemeToggle className="h-8 w-8 border border-border text-foreground hover:bg-muted" />
+            {/* Desktop-only here; phones/tablets use the navbar toggle. */}
+            <ThemeToggle className="hidden h-8 w-8 border border-border text-foreground hover:bg-muted lg:inline-flex" />
           </div>
         </div>
       </div>
