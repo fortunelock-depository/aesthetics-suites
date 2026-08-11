@@ -161,6 +161,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
         {/* Guest reviews - full-width at the bottom of the page. */}
         <RoomReviews
           slug={room.slug}
+          roomName={room.name}
           reviews={room.reviews}
           reviewsTotal={room.reviewsTotal}
           rating={room.rating}

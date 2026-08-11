@@ -3,6 +3,7 @@ import { MessageSquareText, Star } from 'lucide-react';
 import { SectionHeading } from '@/components/site/section-heading';
 import { Reveal } from '@/components/site/reveal';
 import { RoomReviewsList } from './room-reviews-list';
+import { WriteReviewButton } from './write-review-dialog';
 import { REVIEWS_PAGE_SIZE } from '@/lib/hotel/public-room-detail';
 import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 
@@ -14,11 +15,13 @@ import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
  */
 export function RoomReviews({
   slug,
+  roomName,
   reviews,
   reviewsTotal,
   rating,
 }: {
   slug: string;
+  roomName: string;
   reviews: IPublicRoomDetail['reviews'];
   reviewsTotal: number;
   rating: IPublicRoomDetail['rating'];
@@ -59,6 +62,11 @@ export function RoomReviews({
           pageSize={REVIEWS_PAGE_SIZE}
         />
       )}
+
+      {/* Stayed here? The dialog verifies via booking code. */}
+      <div className="mt-10 flex justify-center">
+        <WriteReviewButton slug={slug} roomName={roomName} />
+      </div>
     </section>
   );
 }

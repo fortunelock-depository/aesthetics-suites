@@ -44,3 +44,13 @@ export const CONTACT = {
   /** Map pin (placeholder: central Accra - adjust to the property). */
   map: { lat: 5.6037, lng: -0.187 },
 } as const;
+
+/**
+ * House check-in/check-out times. Stay dates are calendar dates in the
+ * DB; these render beside them ("20 Jul 2026 · from 2:00 pm") wherever a
+ * stay is displayed.
+ */
+export const STAY_TIMES = {
+  checkInFrom: '2:00 pm',
+  checkOutBy: '11:00 am',
+} as const;

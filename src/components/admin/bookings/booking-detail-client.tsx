@@ -28,6 +28,7 @@ import {
 } from '@/redux/bookings-api';
 import { extractApiError } from '@/lib/extract-api-error';
 import { formatDate, formatDateTime } from '@/lib/format-date';
+import { STAY_TIMES } from '@/config/constants';
 import { formatMoney } from '@/lib/format-money';
 import { PAYMENT_STATUS_TONE } from '@/lib/status-colors';
 import {
@@ -274,10 +275,10 @@ export function BookingDetailClient({ bookingId }: { bookingId: string }) {
               {booking.room?.name ?? 'Not assigned'}
             </DetailRow>
             <DetailRow label="Check-in">
-              {formatDate(booking.checkIn)}
+              {formatDate(booking.checkIn)} · from {STAY_TIMES.checkInFrom}
             </DetailRow>
             <DetailRow label="Check-out">
-              {formatDate(booking.checkOut)}
+              {formatDate(booking.checkOut)} · by {STAY_TIMES.checkOutBy}
             </DetailRow>
             <DetailRow label="Nights">{booking.nights}</DetailRow>
             <DetailRow label="Guests">

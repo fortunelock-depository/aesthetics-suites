@@ -1,12 +1,14 @@
 // src/redux/bookings-api.ts
 import { apiSlice } from './api-slice';
 import { toQueryString } from '@/utils/query-params';
+import type { IApiResponse } from '@/types/api';
 import type {
   IAvailabilityQueryParams,
   IAvailabilityResponse,
   IBookingResponse,
   IBookingsQueryParams,
   IBookingsResponse,
+  IGuestBookingResponse,
   IManualBookingBody,
   IPublicBookingBody,
   IPublicBookingResponse,
@@ -32,6 +34,46 @@ export const bookingsApi = apiSlice.injectEndpoints({
       IPublicBookingBody
     >({
       query: (body) => ({ url: 'bookings', method: 'POST', body }),
+    }),
+    /** Guest "track my booking": code + email is the identity. */
+    getGuestBooking: builder.query<
+      IGuestBookingResponse,
+      { code: string; email: string }
+    >({
+      query: ({ code, email }) =>
+        toQueryString(`bookings/${encodeURIComponent(code)}`, { email }),
+      keepUnusedDataFor: 0,
+    }),
+    /** Resume payment on a PENDING booking (reuses the live charge). */
+    payGuestBooking: builder.mutation<
+      IApiResponse<{
+        code: string;
+        authorizationUrl: string | null;
+        reference: string;
+      }>,
+      { code: string; email: string }
+    >({
+      query: ({ code, email }) => ({
+        url: `bookings/${encodeURIComponent(code)}/pay`,
+        method: 'POST',
+        body: { email },
+      }),
+    }),
+    /** Guest cancellation; the policy decides the refund. */
+    cancelGuestBooking: builder.mutation<
+      IApiResponse<{
+        code: string;
+        status: string;
+        refunded: boolean;
+        refundedAmount: number;
+      }>,
+      { code: string; email: string }
+    >({
+      query: ({ code, email }) => ({
+        url: `bookings/${encodeURIComponent(code)}/cancel`,
+        method: 'POST',
+        body: { email },
+      }),
     }),
     getBookings: builder.query<IBookingsResponse, IBookingsQueryParams>({
       query: (params) => toQueryString('admin/bookings', params),
@@ -85,6 +127,9 @@ export const bookingsApi = apiSlice.injectEndpoints({
 export const {
   useGetRoomAvailabilityQuery,
   useCreatePublicBookingMutation,
+  useLazyGetGuestBookingQuery,
+  usePayGuestBookingMutation,
+  useCancelGuestBookingMutation,
   useGetBookingsQuery,
   useGetBookingQuery,
   useCreateManualBookingMutation,

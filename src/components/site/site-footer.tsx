@@ -124,6 +124,12 @@ export function SiteFooter() {
           <div className="flex items-center gap-5">
             <nav aria-label="Legal" className="flex items-center gap-5">
               <Link
+                href="/bookings"
+                className="transition-colors hover:text-brand"
+              >
+                Manage Booking
+              </Link>
+              <Link
                 href={routes.privacy}
                 className="transition-colors hover:text-brand"
               >

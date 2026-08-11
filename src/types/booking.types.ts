@@ -181,7 +181,25 @@ export interface IPublicBookingResult {
   reference?: string;
 }
 
+/** GET /api/bookings/[code]?email= - the guest "track my booking" view. */
+export interface IGuestBooking {
+  code: string;
+  status: BookingStatusValue;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  adults: number;
+  children: number;
+  guestName: string;
+  totalAmount: number;
+  discountAmount: number;
+  currency: string;
+  holdExpiresAt: string | null;
+  roomType: { name: string; slug: string };
+}
+
 export type IBookingsResponse = IPaginatedResponse<IBookingRow[]>;
 export type IBookingResponse = IApiResponse<IBookingDetail>;
 export type IAvailabilityResponse = IApiResponse<IAvailabilityQuote>;
 export type IPublicBookingResponse = IApiResponse<IPublicBookingResult>;
+export type IGuestBookingResponse = IApiResponse<IGuestBooking>;
