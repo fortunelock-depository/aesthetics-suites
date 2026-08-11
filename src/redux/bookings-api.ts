@@ -2,14 +2,37 @@
 import { apiSlice } from './api-slice';
 import { toQueryString } from '@/utils/query-params';
 import type {
+  IAvailabilityQueryParams,
+  IAvailabilityResponse,
   IBookingResponse,
   IBookingsQueryParams,
   IBookingsResponse,
   IManualBookingBody,
+  IPublicBookingBody,
+  IPublicBookingResponse,
 } from '@/types/booking.types';
 
 export const bookingsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    /**
+     * Public availability + server-computed price quote. Never cached
+     * long: availability changes as others book.
+     */
+    getRoomAvailability: builder.query<
+      IAvailabilityResponse,
+      IAvailabilityQueryParams
+    >({
+      query: ({ slug, ...params }) =>
+        toQueryString(`rooms/${slug}/availability`, params),
+      keepUnusedDataFor: 30,
+    }),
+    /** Public checkout: holds a unit, returns the Paystack redirect URL. */
+    createPublicBooking: builder.mutation<
+      IPublicBookingResponse,
+      IPublicBookingBody
+    >({
+      query: (body) => ({ url: 'bookings', method: 'POST', body }),
+    }),
     getBookings: builder.query<IBookingsResponse, IBookingsQueryParams>({
       query: (params) => toQueryString('admin/bookings', params),
       providesTags: (result) =>
@@ -60,6 +83,8 @@ export const bookingsApi = apiSlice.injectEndpoints({
 });
 
 export const {
+  useGetRoomAvailabilityQuery,
+  useCreatePublicBookingMutation,
   useGetBookingsQuery,
   useGetBookingQuery,
   useCreateManualBookingMutation,

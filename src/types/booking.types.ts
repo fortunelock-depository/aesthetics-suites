@@ -132,5 +132,56 @@ export interface IManualBookingBody {
   totalOverride?: number;
 }
 
+/** GET /api/rooms/[slug]/availability - the server-computed quote. */
+export interface IAvailabilityQuote {
+  available: boolean;
+  availableUnits: number;
+  nights: number;
+  baseAmount: number;
+  occupancyAmount: number;
+  discountAmount: number;
+  taxLines: ITaxBreakdownLine[];
+  taxAmount: number;
+  totalAmount: number;
+  minNights: number;
+}
+
+export interface IAvailabilityQueryParams {
+  slug: string;
+  checkIn: string;
+  checkOut: string;
+  adults: number;
+  children: number;
+  discountCode?: string;
+}
+
+/** POST /api/bookings body (public checkout). */
+export interface IPublicBookingBody {
+  roomTypeSlug: string;
+  checkIn: string;
+  checkOut: string;
+  adults: number;
+  children: number;
+  guestName: string;
+  guestEmail: string;
+  guestPhone?: string;
+  specialRequests?: string;
+  discountCode?: string;
+  /** Honeypot - humans never see it. */
+  website?: string;
+}
+
+/** POST /api/bookings result: hold made, pay at the authorization URL. */
+export interface IPublicBookingResult {
+  code: string | null;
+  totalAmount?: number;
+  currency?: string;
+  holdExpiresAt?: string | null;
+  authorizationUrl: string | null;
+  reference?: string;
+}
+
 export type IBookingsResponse = IPaginatedResponse<IBookingRow[]>;
 export type IBookingResponse = IApiResponse<IBookingDetail>;
+export type IAvailabilityResponse = IApiResponse<IAvailabilityQuote>;
+export type IPublicBookingResponse = IApiResponse<IPublicBookingResult>;

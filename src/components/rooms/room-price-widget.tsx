@@ -6,8 +6,7 @@ import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 
 /**
  * The detail sidebar's "Your Price" widget (template): capacity rows, the
- * big price/Night line, and the gold BOOK NOW (to the contact page until
- * the booking flow lands).
+ * big price/Night line, and the gold BOOK NOW into the checkout flow.
  */
 export function RoomPriceWidget({ room }: { room: IPublicRoomDetail }) {
   const guests = room.capacityAdults + room.capacityChildren;
@@ -37,7 +36,7 @@ export function RoomPriceWidget({ room }: { room: IPublicRoomDetail }) {
         <span className="text-sm text-muted-foreground">/Night</span>
       </p>
 
-      <CtaLink href="/contact" className="mt-5">
+      <CtaLink href={`/rooms/${room.slug}/book`} className="mt-5">
         Book Now
       </CtaLink>
     </div>
