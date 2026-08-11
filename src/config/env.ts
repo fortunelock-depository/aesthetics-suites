@@ -41,12 +41,17 @@ export const ENV = {
   // point at a preview domain; localhost fallback is for development only.
   BASE_URL: optional('NEXT_PUBLIC_BASE_URL') ?? 'http://localhost:3000',
 
-  // Gmail SMTP - optional. When unset, the mail layer logs codes/links to the
-  // server console instead of sending email (fine for local development).
-  GMAIL_USER: optional('GMAIL_USER'),
-  GMAIL_PASSWORD: optional('GMAIL_PASSWORD'),
+  // SMTP - optional (agritrade pattern). When unset, the mail layer logs
+  // codes/links to the server console instead of sending email (fine for
+  // local development). Gmail works with host smtp.gmail.com + app password.
+  SMTP_HOST: optional('SMTP_HOST'),
+  SMTP_PORT: Number(optional('SMTP_PORT') ?? '587'),
+  SMTP_USER: optional('SMTP_USER'),
+  SMTP_PASSWORD: optional('SMTP_PASSWORD'),
+  /** 'true' for implicit TLS (port 465); STARTTLS on 587 leaves it 'false'. */
+  SMTP_SECURE: optional('SMTP_SECURE') ?? 'false',
   EMAIL_FROM_NAME: optional('EMAIL_FROM_NAME') ?? 'Aesthetics Suites',
-  /** From address override; defaults to GMAIL_USER. */
+  /** From address override; defaults to SMTP_USER. */
   MAIL_FROM_EMAIL: optional('MAIL_FROM_EMAIL'),
 
   // Shared secret for the housekeeping cron route (hold expiry + Airbnb
@@ -67,6 +72,12 @@ export const ENV = {
   // Paystack - room-booking payments. Optional so the app boots without
   // them; the payment service fails clearly at call time when unset.
   PAYSTACK_SECRET_KEY: optional('PAYSTACK_SECRET_KEY'),
+  /**
+   * Where Paystack redirects the guest after paying. Defaults to
+   * BASE_URL/payments/verify; set explicitly in production so a proxy or
+   * custom domain can never break the return leg.
+   */
+  PAYSTACK_CALLBACK_URL: optional('PAYSTACK_CALLBACK_URL'),
   PAYSTACK_PUBLIC_KEY: optional('NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY'),
 
   // Upstash Redis. Optional in development (in-memory limiter is correct for

@@ -5,7 +5,7 @@ import logger from '@/utils/logger';
 import { getTransporter } from './transporter';
 
 const from = () =>
-  `"${ENV.EMAIL_FROM_NAME}" <${ENV.MAIL_FROM_EMAIL ?? ENV.GMAIL_USER}>`;
+  `"${ENV.EMAIL_FROM_NAME}" <${ENV.MAIL_FROM_EMAIL ?? ENV.SMTP_USER}>`;
 
 /**
  * Sends an email, or - when SMTP isn't configured - logs it to the server
@@ -19,6 +19,10 @@ export async function deliver(opts: {
   replyTo?: string;
   devConsole: string;
 }): Promise<void> {
+  // Dev mail trap: route EVERY email to one inbox (sample sends, staging
+  // smoke tests) without touching real guest addresses.
+  const to = process.env.MAIL_FORCE_TO ?? opts.to;
+
   // Dev preview seam: render every email to disk instead of sending, so
   // templates can be reviewed in a browser (MAIL_PREVIEW_DIR=… script).
   if (process.env.MAIL_PREVIEW_DIR) {
@@ -47,7 +51,7 @@ export async function deliver(opts: {
   try {
     await transporter.sendMail({
       from: from(),
-      to: opts.to,
+      to,
       subject: opts.subject,
       html: opts.html,
       replyTo: opts.replyTo,

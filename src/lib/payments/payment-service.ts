@@ -91,7 +91,7 @@ export async function initializePayment(
       amount: payment.amount,
       currency,
       reference,
-      callbackUrl: `${ENV.BASE_URL}/payments/verify`,
+      callbackUrl: ENV.PAYSTACK_CALLBACK_URL ?? `${ENV.BASE_URL}/payments/verify`,
       metadata: { purpose: input.purpose, purposeId: input.purposeId ?? null },
     });
 

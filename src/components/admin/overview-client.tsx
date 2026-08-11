@@ -11,6 +11,11 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { LabeledSelect } from '@/components/forms/labeled-select';
 import { formatMoney, formatMoneyCompact } from '@/lib/format-money';
 import { formatDate } from '@/lib/format-date';
+import {
+  BookingSourcesChart,
+  BookingStatusChart,
+  RevenueTrendChart,
+} from '@/components/admin/overview-charts';
 import type { StatusTone } from '@/lib/status-colors';
 import type {
   DashboardPreset,
@@ -306,34 +311,19 @@ export function OverviewClient() {
         </SectionCard>
       </div>
 
-      {/* 12-month revenue series (numbers now; chart when the UI pass lands) */}
-      <SectionCard title="Revenue by month (12 months)">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[480px] text-sm">
-            <thead>
-              <tr className="text-left text-xs text-muted-foreground">
-                <th className="pb-2 font-medium">Month</th>
-                <th className="pb-2 text-right font-medium">Bookings</th>
-                <th className="pb-2 text-right font-medium">Revenue</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.revenueByMonth.map((row) => (
-                <tr key={row.month} className="border-t border-border">
-                  <td className="py-1.5">{row.month}</td>
-                  <td className="py-1.5 text-right">{row.bookings}</td>
-                  <td
-                    className="py-1.5 text-right font-medium"
-                    title={formatMoney(row.revenue)}
-                  >
-                    {formatMoneyCompact(row.revenue)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Charts: the 12-month trend, then the period breakdowns. */}
+      <SectionCard title="Revenue & bookings (12 months)">
+        <RevenueTrendChart data={stats.revenueByMonth} />
       </SectionCard>
+
+      <div className="grid gap-3 @3xl/main:grid-cols-2">
+        <SectionCard title="Bookings by status (period)">
+          <BookingStatusChart byStatus={stats.bookingsByStatus} />
+        </SectionCard>
+        <SectionCard title="Booking sources (period)">
+          <BookingSourcesChart sources={stats.sources} />
+        </SectionCard>
+      </div>
     </div>
   );
 }

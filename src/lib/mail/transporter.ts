@@ -6,26 +6,35 @@ import { ENV } from '@/config/env';
 let cachedTransporter: Transporter | null = null;
 
 export const isEmailConfigured = (): boolean =>
-  Boolean(ENV.GMAIL_USER && ENV.GMAIL_PASSWORD);
+  Boolean(ENV.SMTP_HOST && ENV.SMTP_USER && ENV.SMTP_PASSWORD);
 
 /**
- * Lazily builds (and caches) the Gmail SMTP transporter, or returns null when
- * credentials are not set. Callers fall back to console logging in that case
- * (see auth-emails) - handy for local development without email configured.
+ * Lazily builds (and caches) the SMTP transporter (agritrade pattern), or
+ * returns null when credentials are not set - callers fall back to console
+ * logging in that case, so local development works without email.
  */
 export const getTransporter = (): Transporter | null => {
   if (!isEmailConfigured()) return null;
   if (cachedTransporter) return cachedTransporter;
 
   cachedTransporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: ENV.SMTP_HOST,
+    port: ENV.SMTP_PORT,
+    secure: ENV.SMTP_SECURE === 'true',
     auth: {
-      user: ENV.GMAIL_USER,
-      pass: ENV.GMAIL_PASSWORD,
+      user: ENV.SMTP_USER,
+      pass: ENV.SMTP_PASSWORD,
     },
+    // Fail fast instead of hanging: with a single pooled connection, one
+    // stalled socket would otherwise block every queued message.
     pool: true,
-    maxConnections: 3,
+    maxConnections: 1,
     maxMessages: 50,
+    rateDelta: 1000,
+    rateLimit: 1,
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   });
 
   return cachedTransporter;
