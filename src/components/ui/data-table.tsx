@@ -53,7 +53,9 @@ export function useDataTable<TData>({
   pageSize,
   totalCount,
   getRowId,
-  enableRowSelection = true,
+  // Off by default: checkboxes that drive no bulk action are dead weight,
+  // especially on phones. Enable only alongside real bulk actions.
+  enableRowSelection = false,
 }: {
   columns: ColumnDef<TData>[];
   data: TData[];

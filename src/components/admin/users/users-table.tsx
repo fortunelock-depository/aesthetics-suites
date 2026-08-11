@@ -20,7 +20,6 @@ import { DataTable, useDataTable } from '@/components/ui/data-table';
 import { DateTimeCell, ROW_BADGE, RowCard } from '@/components/ui/table-bits';
 import { clearAllFiltersPatch } from '@/components/ui/table-empty-logic';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   DropdownMenu,
@@ -241,16 +240,7 @@ export function UsersTable() {
         renderRowCard={(row) => {
           const user = row.original;
           return (
-            <RowCard
-              leading={
-                <Checkbox
-                  checked={row.getIsSelected()}
-                  onCheckedChange={(value) => row.toggleSelected(!!value)}
-                  aria-label="Select row"
-                />
-              }
-              action={renderActions(user)}
-            >
+            <RowCard action={renderActions(user)}>
               <div className="flex items-center justify-between gap-2">
                 <StatusBadge tone={ROLE_TONE[user.role]} className={ROW_BADGE}>
                   {USER_ROLE_LABEL[user.role]}

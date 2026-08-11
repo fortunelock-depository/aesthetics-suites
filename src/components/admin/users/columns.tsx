@@ -4,7 +4,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { DateTimeCell } from '@/components/ui/table-bits';
 import type { StatusTone } from '@/lib/status-colors';
@@ -60,29 +59,6 @@ export function createUserColumns({
   renderActions: (user: IUserRow) => React.ReactNode;
 }): ColumnDef<IUserRow>[] {
   return [
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
-          onCheckedChange={(value) =>
-            table.toggleAllPageRowsSelected(!!value)
-          }
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableHiding: false,
-    },
     {
       accessorKey: 'fullname',
       header: 'Name',
