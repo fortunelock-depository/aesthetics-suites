@@ -1,0 +1,72 @@
+// src/app/services/[slug]/page.tsx
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { SiteHeader } from '@/components/site/site-header';
+import { SiteFooter } from '@/components/site/site-footer';
+import { PageBanner } from '@/components/site/page-banner';
+import { EditorialDetail } from '@/components/site/editorial-detail';
+import {
+  getPublicServices,
+  getPublicService,
+} from '@/lib/hotel/public-services';
+import { clampDescription } from '@/lib/seo';
+
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
+// Statically cached; service mutations revalidate these paths on demand.
+export const revalidate = 3600;
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const service = await getPublicService(slug);
+  if (!service) {
+    return {
+      title: 'Service not found',
+      robots: { index: false, follow: false },
+    };
+  }
+  return {
+    title: service.name,
+    description: clampDescription(service.summary, 155),
+  };
+}
+
+export default async function ServiceDetailPage({ params }: PageProps) {
+  const { slug } = await params;
+  const service = await getPublicService(slug);
+  if (!service) notFound();
+
+  const others = (await getPublicServices()).filter(
+    (other) => other.slug !== slug,
+  );
+
+  return (
+    <>
+      <SiteHeader />
+      <main className="flex-1">
+        <PageBanner
+          title={service.name}
+          image={service.photos[0]?.url ?? ''}
+          trail={[{ label: 'Services', href: '/services' }]}
+        />
+        <EditorialDetail
+          item={service}
+          scheduleLabel={
+            service.availability ? `Available ${service.availability}` : null
+          }
+          moreTitle="More guest services"
+          moreLinks={others.map((other) => ({
+            href: `/services/${other.slug}`,
+            eyebrow: other.eyebrow,
+            name: other.name,
+          }))}
+        />
+      </main>
+      <SiteFooter />
+    </>
+  );
+}
