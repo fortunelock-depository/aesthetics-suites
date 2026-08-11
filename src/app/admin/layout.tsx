@@ -23,7 +23,7 @@ export default async function AdminLayout({
   const { userId, role } = await requireSession();
   const user = await prisma.user.findFirst({
     where: { id: userId },
-    select: { fullname: true, email: true },
+    select: { fullname: true, email: true, profilePhoto: true },
   });
 
   return (
@@ -42,6 +42,7 @@ export default async function AdminLayout({
             fullname={user?.fullname ?? 'Account'}
             email={user?.email ?? ''}
             role={role}
+            photoUrl={user?.profilePhoto ?? null}
           />
         </header>
 

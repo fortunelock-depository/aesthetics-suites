@@ -6,7 +6,6 @@ import {
   Landmark,
   LayoutDashboard,
   ReceiptText,
-  ShieldCheck,
   Star,
   TicketPercent,
   Users,
@@ -41,7 +40,6 @@ export const adminLinks: AdminLink[] = [
   { href: '/admin/discounts', label: 'Discounts', icon: TicketPercent, roles: ADMINS },
   { href: '/admin/tax-fees', label: 'Tax & Fees', icon: ReceiptText, roles: ADMINS },
   { href: '/admin/users', label: 'Users', icon: Users, roles: ['SUPER_ADMIN'] },
-  { href: '/admin/security', label: 'Security', icon: ShieldCheck, roles: ALL },
 ];
 
 /** True when `pathname` is the active route for `href`. */

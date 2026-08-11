@@ -26,6 +26,10 @@ model User {
   password         String
   role             UserRole  @default(FRONT_DESK)
   twoFactorEnabled Boolean   @default(false)
+  /// Cloudinary-hosted avatar; the publicId is kept so replacing or
+  /// removing the photo can reclaim the old asset.
+  profilePhoto     String?
+  profilePhotoId   String?
   /// Session epoch: bumping it invalidates every outstanding session JWT
   /// (password change / "log out everywhere"). The current device gets a
   /// fresh cookie with the new value.

@@ -3,13 +3,13 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { changePassword, type ChangePasswordState } from '@/lib/account';
 
-function PasswordField({
+export function PasswordField({
   id,
   name,
   label,
@@ -57,9 +57,10 @@ function PasswordField({
 }
 
 /**
- * Authenticated password change (khadys/dms pattern): current password +
- * new + confirmation, all inline-validated; success signs every OTHER
- * device out (session-epoch bump) while this one stays in.
+ * Authenticated password change (khadys/dms pattern): a read-only row
+ * until "Change password" is clicked, then current + new + confirmation,
+ * all inline-validated; success signs every OTHER device out
+ * (session-epoch bump) while this one stays in.
  */
 export function ChangePasswordForm() {
   const [state, action, pending] = useActionState<
@@ -77,13 +78,14 @@ export function ChangePasswordForm() {
 
   return (
     <div className="border border-border bg-card p-4 sm:p-6">
-      <h3 className="font-semibold">Change password</h3>
+      <h3 className="font-semibold">Password</h3>
       <p className="mt-1 text-sm text-muted-foreground">
         Changing your password signs you out of every other device.
       </p>
 
       <ChangePasswordFields
-        // Remounts (and so clears) the fields after each success.
+        // Remounts after each success: fields clear AND the card returns
+        // to its read-only row, with no setState-in-effect.
         key={state.changedAt ?? 0}
         action={action}
         pending={pending}
@@ -102,43 +104,80 @@ function ChangePasswordFields({
   pending: boolean;
   state: ChangePasswordState;
 }) {
+  // A failed submit keeps the form open so the errors stay visible.
+  const [changing, setChanging] = useState(!!state.errors);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  return (
-      <form action={action} noValidate className="mt-5 max-w-md space-y-4">
-        <PasswordField
-          id="current-password"
-          name="currentPassword"
-          label="Current password"
-          autoComplete="current-password"
-          value={currentPassword}
-          onChange={setCurrentPassword}
-          errors={state.errors?.currentPassword}
-        />
-        <PasswordField
-          id="new-password"
-          name="newPassword"
-          label="New password"
-          autoComplete="new-password"
-          value={newPassword}
-          onChange={setNewPassword}
-          errors={state.errors?.newPassword}
-        />
-        <PasswordField
-          id="confirm-password"
-          name="confirmPassword"
-          label="Confirm new password"
-          autoComplete="new-password"
-          value={confirmPassword}
-          onChange={setConfirmPassword}
-          errors={state.errors?.confirmPassword}
-        />
+  if (!changing) {
+    return (
+      <div className="mt-5 flex flex-col gap-3 border border-border p-4 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between">
+        <span className="text-sm tracking-widest text-muted-foreground">
+          ••••••••••
+        </span>
+        <Button
+          variant="outline"
+          className="self-start min-[480px]:self-auto"
+          onClick={() => setChanging(true)}
+        >
+          <KeyRound />
+          Change password
+        </Button>
+      </div>
+    );
+  }
 
+  const handleCancel = () => {
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setChanging(false);
+  };
+
+  return (
+    <form action={action} noValidate className="mt-5 max-w-md space-y-4">
+      <PasswordField
+        id="current-password"
+        name="currentPassword"
+        label="Current password"
+        autoComplete="current-password"
+        value={currentPassword}
+        onChange={setCurrentPassword}
+        errors={state.errors?.currentPassword}
+      />
+      <PasswordField
+        id="new-password"
+        name="newPassword"
+        label="New password"
+        autoComplete="new-password"
+        value={newPassword}
+        onChange={setNewPassword}
+        errors={state.errors?.newPassword}
+      />
+      <PasswordField
+        id="confirm-password"
+        name="confirmPassword"
+        label="Confirm new password"
+        autoComplete="new-password"
+        value={confirmPassword}
+        onChange={setConfirmPassword}
+        errors={state.errors?.confirmPassword}
+      />
+
+      <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={pending}>
           {pending ? 'Changing…' : 'Change password'}
         </Button>
-      </form>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCancel}
+          disabled={pending}
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
   );
 }

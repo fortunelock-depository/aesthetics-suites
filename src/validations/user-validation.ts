@@ -47,6 +47,21 @@ export const updateUserDetailsSchema = z
 
 export const updateUserRoleSchema = z.object({ role: roleEnum });
 
+/**
+ * Admin password rescue: a super admin sets a user a new password when
+ * they are locked out. Confirmation is part of the contract so a typo
+ * can't lock the user out further.
+ */
+export const adminResetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
 export type UsersQuery = z.infer<typeof usersQuerySchema>;
 
 /** Self-service profile edit (role/email stay admin-managed). */

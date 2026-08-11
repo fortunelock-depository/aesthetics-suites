@@ -3,8 +3,9 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { LogOut, UserCog } from 'lucide-react';
+import { LogOut, Settings, UserCog } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,29 +17,25 @@ import {
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { logout } from '@/lib/auth';
 import { routes } from '@/lib/routes';
+import { initials } from '@/lib/initials';
 import { USER_ROLE_LABEL, type UserRoleValue } from '@/types/user.types';
 
-/** "Nana Yaa Asantewaa" -> "NA" (first + last initial). */
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  const first = parts[0]?.[0] ?? '';
-  const last = parts.length > 1 ? (parts[parts.length - 1][0] ?? '') : '';
-  return (first + last).toUpperCase() || '?';
-}
-
 /**
- * The console header's account dropdown (dms pattern): initials avatar
- * opening a menu with the signed-in identity, a Profile link, and a
- * confirmed sign-out. The theme toggle deliberately stays OUTSIDE it.
+ * The console header's account dropdown (dms pattern): avatar (photo, or
+ * initials) opening a menu with the signed-in identity, Profile and
+ * Settings links, and a confirmed sign-out. The theme toggle deliberately
+ * stays OUTSIDE it.
  */
 export function UserMenu({
   fullname,
   email,
   role,
+  photoUrl,
 }: {
   fullname: string;
   email: string;
   role: UserRoleValue;
+  photoUrl: string | null;
 }) {
   const router = useRouter();
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -59,9 +56,19 @@ export function UserMenu({
           <button
             type="button"
             aria-label="Account menu"
-            className="grid h-9 w-9 flex-none place-items-center rounded-full bg-brand font-heading text-sm font-bold text-brand-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="relative grid h-9 w-9 flex-none place-items-center overflow-hidden rounded-full bg-brand font-heading text-sm font-bold text-brand-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {initials(fullname)}
+            {photoUrl ? (
+              <Image
+                src={photoUrl}
+                alt={fullname}
+                fill
+                sizes="36px"
+                className="object-cover"
+              />
+            ) : (
+              initials(fullname)
+            )}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-56">
@@ -81,6 +88,12 @@ export function UserMenu({
             <Link href="/admin/profile">
               <UserCog />
               Profile
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/admin/settings">
+              <Settings />
+              Settings
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />

@@ -21,7 +21,15 @@ type FormOutput = z.output<typeof updateUserDetailsSchema>;
  * Name/email/phone edits. Role deliberately lives outside this form - it
  * changes what the account can do, so it gets its own confirmed control.
  */
-export function EditUserForm({ user }: { user: IUserRow }) {
+export function EditUserForm({
+  user,
+  onCancel,
+  onSaved,
+}: {
+  user: IUserRow;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
   const [updateUser, { isLoading }] = useUpdateUserMutation();
 
   const {
@@ -43,6 +51,7 @@ export function EditUserForm({ user }: { user: IUserRow }) {
     try {
       await updateUser({ id: user.id, body: data }).unwrap();
       toast.success('User updated');
+      onSaved();
     } catch (err) {
       const { message, fieldErrors } = extractApiError(err);
       if (fieldErrors) {
@@ -82,10 +91,20 @@ export function EditUserForm({ user }: { user: IUserRow }) {
         />
       </div>
 
-      <Button type="submit" disabled={isLoading}>
-        {isLoading && <Loader2 className="animate-spin" />}
-        {isLoading ? 'Saving…' : 'Save changes'}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading && <Loader2 className="animate-spin" />}
+          {isLoading ? 'Saving…' : 'Save changes'}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isLoading}
+        >
+          Cancel
+        </Button>
+      </div>
     </form>
   );
 }

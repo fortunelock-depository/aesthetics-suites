@@ -51,6 +51,27 @@ export const usersApi = apiSlice.injectEndpoints({
         { type: 'Users', id: 'LIST' },
       ],
     }),
+    adminResetPassword: builder.mutation<
+      IApiResponse<{ id: string }>,
+      { id: string; password: string; confirmPassword: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `users/${id}/password`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'User', id }],
+    }),
+    adminDisableTwoFactor: builder.mutation<
+      IApiResponse<{ id: string }>,
+      string
+    >({
+      query: (id) => ({ url: `users/${id}/2fa/disable`, method: 'POST' }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'User', id },
+        { type: 'Users', id: 'LIST' },
+      ],
+    }),
     createUser: builder.mutation<IUserResponse, ICreateUserBody>({
       query: (body) => ({ url: 'users', method: 'POST', body }),
       invalidatesTags: [{ type: 'Users', id: 'LIST' }, 'Overview'],
@@ -72,5 +93,7 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useUpdateUserRoleMutation,
+  useAdminResetPasswordMutation,
+  useAdminDisableTwoFactorMutation,
   useDeleteUserMutation,
 } = usersApi;

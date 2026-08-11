@@ -47,6 +47,89 @@ export async function updateProfile(
   return { success: true, message: 'Profile updated.' };
 }
 
+export type ProfilePhotoState = {
+  success: boolean;
+  message?: string;
+  error?: string;
+};
+
+/**
+ * Replaces the profile photo. The client downscales before staging
+ * (optimize-image), the server enforces size/type limits, and the OLD
+ * Cloudinary asset is reclaimed only after the new one is saved.
+ */
+export async function updateProfilePhoto(
+  formData: FormData,
+): Promise<ProfilePhotoState> {
+  const { userId } = await verifySession();
+
+  try {
+    const { fileToUploaded } = await import('@/lib/uploads');
+    const { uploadImage, deleteImage } = await import('@/lib/cloudinary');
+
+    const file = await fileToUploaded(formData.get('photo'), 'profile photo');
+    if (!file) return { success: false, error: 'Select an image first.' };
+
+    const previous = await prisma.user.findFirst({
+      where: { id: userId },
+      select: { profilePhoto: true, profilePhotoId: true },
+    });
+
+    const uploaded = await uploadImage(file);
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        profilePhoto: uploaded.secure_url,
+        profilePhotoId: uploaded.public_id,
+      },
+    });
+
+    // Best-effort cleanup - deleteImage logs and swallows failures.
+    if (previous?.profilePhotoId ?? previous?.profilePhoto) {
+      await deleteImage(previous.profilePhotoId ?? previous.profilePhoto!);
+    }
+
+    return { success: true, message: 'Profile photo updated.' };
+  } catch (err) {
+    return {
+      success: false,
+      error:
+        err instanceof Error ? err.message : 'Could not update the photo.',
+    };
+  }
+}
+
+/** Removes the stored photo and reclaims the Cloudinary asset. */
+export async function removeProfilePhoto(): Promise<ProfilePhotoState> {
+  const { userId } = await verifySession();
+
+  try {
+    const { deleteImage } = await import('@/lib/cloudinary');
+
+    const previous = await prisma.user.findFirst({
+      where: { id: userId },
+      select: { profilePhoto: true, profilePhotoId: true },
+    });
+    if (!previous?.profilePhoto && !previous?.profilePhotoId) {
+      return { success: false, error: 'No photo to remove.' };
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { profilePhoto: null, profilePhotoId: null },
+    });
+    await deleteImage(previous.profilePhotoId ?? previous.profilePhoto!);
+
+    return { success: true, message: 'Profile photo removed.' };
+  } catch (err) {
+    return {
+      success: false,
+      error:
+        err instanceof Error ? err.message : 'Could not remove the photo.',
+    };
+  }
+}
+
 export type ChangePasswordState = {
   success: boolean;
   /** Changes on every success - the form remounts on it to clear fields. */

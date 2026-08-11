@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useConfirm } from '@/hooks/use-confirm';
 import {
   requestTwoFactorSetup,
   confirmTwoFactorSetup,
@@ -22,8 +23,16 @@ export function SecuritySection({
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState<string | null>(null);
   const [busy, startTransition] = useTransition();
+  const { confirm, confirmDialog } = useConfirm();
 
-  const handleEnable = () =>
+  const handleEnable = async () => {
+    const ok = await confirm({
+      title: 'Enable two-factor authentication?',
+      description:
+        'Every sign-in will require a one-time code emailed to you. We start by sending a code to confirm this device.',
+      confirmText: 'Send code',
+    });
+    if (!ok) return;
     startTransition(async () => {
       const r = await requestTwoFactorSetup();
       if (r.success) {
@@ -33,6 +42,7 @@ export function SecuritySection({
         toast.error(r.error ?? 'Could not start setup.');
       }
     });
+  };
 
   const handleConfirm = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,7 +66,15 @@ export function SecuritySection({
     });
   };
 
-  const handleDisable = () =>
+  const handleDisable = async () => {
+    const ok = await confirm({
+      title: 'Disable two-factor authentication?',
+      description:
+        'Sign-ins go back to password only, which is easier to compromise.',
+      confirmText: 'Disable 2FA',
+      isDestructive: true,
+    });
+    if (!ok) return;
     startTransition(async () => {
       const r = await disableTwoFactor();
       if (r.success) {
@@ -67,6 +85,7 @@ export function SecuritySection({
         toast.error(r.error ?? 'Could not disable.');
       }
     });
+  };
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
@@ -152,6 +171,7 @@ export function SecuritySection({
           </div>
         </form>
       )}
+      {confirmDialog}
     </div>
   );
 }
