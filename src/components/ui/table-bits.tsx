@@ -11,6 +11,36 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { formatDate, formatTime } from '@/lib/format-date';
+
+/**
+ * The dms two-line date cell for data tables: date on top, time just
+ * below in muted text, right-aligned. Every date column uses this so
+ * tables always show the time.
+ */
+export function DateTimeCell({
+  value,
+  className,
+}: {
+  value: Date | string | number | null | undefined;
+  className?: string;
+}) {
+  if (!value) return <span className="text-muted-foreground">-</span>;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return <span className="text-muted-foreground">-</span>;
+  }
+  return (
+    <div className={cn('space-y-0.5 text-right text-sm', className)}>
+      <div className="whitespace-nowrap text-foreground">
+        {formatDate(date)}
+      </div>
+      <div className="whitespace-nowrap text-xs text-muted-foreground">
+        {formatTime(date)}
+      </div>
+    </div>
+  );
+}
 
 /**
  * The mobile half of a list page. Pair with `hidden md:block` on the table's

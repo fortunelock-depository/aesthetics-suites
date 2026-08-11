@@ -17,7 +17,7 @@ import {
   Users,
 } from 'lucide-react';
 import { DataTable, useDataTable } from '@/components/ui/data-table';
-import { ROW_BADGE, RowCard } from '@/components/ui/table-bits';
+import { DateTimeCell, ROW_BADGE, RowCard } from '@/components/ui/table-bits';
 import { clearAllFiltersPatch } from '@/components/ui/table-empty-logic';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -40,7 +40,6 @@ import type { TableFiltersSpec } from '@/hooks/table-query-state-logic';
 import { useConfirm } from '@/hooks/use-confirm';
 import { useGetUsersQuery, useDeleteUserMutation } from '@/redux/users-api';
 import { extractApiError } from '@/lib/extract-api-error';
-import { formatDate } from '@/lib/format-date';
 import { ErrorState } from '@/components/ui/error-state';
 import { createUserColumns, ROLE_TONE } from './columns';
 import {
@@ -253,9 +252,10 @@ export function UsersTable() {
                 <StatusBadge tone={ROLE_TONE[user.role]} className={ROW_BADGE}>
                   {USER_ROLE_LABEL[user.role]}
                 </StatusBadge>
-                <span className="flex-none text-[11px] text-muted-foreground">
-                  {formatDate(user.createdAt)}
-                </span>
+                <DateTimeCell
+                  value={user.createdAt}
+                  className="flex-none [&>div:first-child]:text-[11px] [&>div:last-child]:text-[10px]"
+                />
               </div>
               <div className="mt-1 min-w-0">
                 <Link

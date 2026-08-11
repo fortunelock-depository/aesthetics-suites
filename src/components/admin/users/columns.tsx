@@ -5,8 +5,8 @@ import Link from 'next/link';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { DateTimeCell } from '@/components/ui/table-bits';
 import type { StatusTone } from '@/lib/status-colors';
-import { formatDate } from '@/lib/format-date';
 import { USER_ROLE_LABEL, type IUserRow } from '@/types/user.types';
 
 /** Shared by the table, the mobile cards and the detail page. */
@@ -90,12 +90,8 @@ export function createUserColumns({
     },
     {
       accessorKey: 'createdAt',
-      header: 'Joined',
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap text-sm text-muted-foreground">
-          {formatDate(row.original.createdAt)}
-        </span>
-      ),
+      header: () => <span className="block text-right">Joined</span>,
+      cell: ({ row }) => <DateTimeCell value={row.original.createdAt} />,
     },
     {
       id: 'actions',

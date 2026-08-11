@@ -22,3 +22,13 @@ export const formatDate = (value: Date | string | number): string =>
 
 export const formatDateTime = (value: Date | string | number): string =>
   DATE_TIME.format(new Date(value));
+
+const TIME = new Intl.DateTimeFormat('en-GB', {
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
+});
+
+/** "7:35 am" - pairs with formatDate in two-line date cells. */
+export const formatTime = (value: Date | string | number): string =>
+  TIME.format(new Date(value));

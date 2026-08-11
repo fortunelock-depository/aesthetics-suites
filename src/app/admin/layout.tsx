@@ -46,8 +46,13 @@ export default async function AdminLayout({
           />
         </header>
 
-        <main className="@container/main flex-1 px-4 py-6 md:px-6 lg:px-8 lg:py-8">
-          {children}
+        <main className="flex-1 px-4 py-6 md:px-6 lg:px-8 lg:py-8">
+          {/* Capped and centered - admin content never grows unbounded on
+              wide screens. The container-query name rides on the capped box
+              so @-queries measure the actual content width. */}
+          <div className="@container/main mx-auto w-full max-w-7xl">
+            {children}
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
