@@ -56,6 +56,12 @@ export const ENV = {
     'Aesthetics Suites',
   /** From address override; defaults to SMTP_USER. */
   MAIL_FROM_EMAIL: optional('MAIL_FROM_EMAIL'),
+  /**
+   * Hosted logo shown in email headers. Defaults to the site's own
+   * /logo-mark.png, which inboxes can only fetch once deployed - a CDN
+   * URL (e.g. Cloudinary) works immediately.
+   */
+  EMAIL_LOGO_URL: optional('EMAIL_LOGO_URL'),
 
   // Shared secret for the housekeeping cron route (hold expiry + Airbnb
   // iCal sync). Required to call /api/cron/housekeeping.

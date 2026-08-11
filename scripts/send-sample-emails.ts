@@ -13,6 +13,7 @@ import {
 import {
   sendBookingConfirmedEmail,
   sendBookingCancelledEmail,
+  sendCompletePaymentEmail,
   sendPreArrivalEmail,
   sendReviewInviteEmail,
   sendBookingNotificationToAdmins,
@@ -54,6 +55,10 @@ async function main() {
     await sendPreArrivalEmail(b, roomType.name);
     await sendReviewInviteEmail(b, roomType.name, roomType.slug);
     await sendBookingNotificationToAdmins(b, roomType.name);
+    await sendCompletePaymentEmail(
+      { ...b, holdExpiresAt: new Date(Date.now() + 20 * 60 * 1000) },
+      roomType.name,
+    );
   } else {
     console.warn('Seed booking ASB-DEMO-1002 not found - run the seed.');
   }

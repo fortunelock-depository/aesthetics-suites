@@ -1,6 +1,7 @@
 // src/lib/mail/email-shell.ts
 import 'server-only';
 import { SITE } from '@/config/constants';
+import { ENV } from '@/config/env';
 
 export const BRAND = SITE.name;
 export const TAGLINE = SITE.tagline;
@@ -13,7 +14,7 @@ export const TAGLINE = SITE.tagline;
  * deployed on https - a localhost URL is unfetchable by inboxes, which is
  * fine in development.
  */
-const LOGO_URL = `${SITE.url}/logo-mark.png`;
+const LOGO_URL = ENV.EMAIL_LOGO_URL ?? `${SITE.url}/logo-mark.png`;
 
 export const escapeHtml = (s: string): string =>
   s

@@ -84,6 +84,46 @@ export async function sendBookingConfirmedEmail(
   });
 }
 
+const HOLD_TIME = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
+});
+
+/**
+ * Nudge for a held-but-unpaid booking: one click back into checkout via
+ * the manage-booking page (code + email prefilled).
+ */
+export async function sendCompletePaymentEmail(
+  booking: Booking,
+  roomTypeName: string,
+): Promise<void> {
+  const resumeUrl = `${SITE.url}/bookings?code=${encodeURIComponent(booking.code)}&email=${encodeURIComponent(booking.guestEmail)}`;
+  const holdLine = booking.holdExpiresAt
+    ? `Your room is held until <strong>${HOLD_TIME.format(booking.holdExpiresAt)}</strong> - after that the dates open up to other guests.`
+    : 'Your room is held for a short while - after that the dates open up to other guests.';
+
+  const html = shell(`
+    <h2 style="margin:0 0 16px;font-size:18px;">Complete your booking</h2>
+    <p style="margin:0 0 16px;">Hi ${escapeHtml(booking.guestName)},</p>
+    <p style="margin:0 0 16px;">You're one step away - the payment for your stay hasn't gone through yet. ${holdLine}</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 16px;">${detailRows(booking, roomTypeName)}</table>
+    <div style="text-align:center;margin:24px 0;">
+      <a href="${resumeUrl}" style="display:inline-block;background-color:#252A1C;color:#fff;padding:12px 28px;border-radius:6px;font-weight:bold;text-decoration:none;">Complete Payment</a>
+    </div>
+    <p style="margin:0;color:#6b7280;font-size:13px;">Already paid? Then you're all set - your confirmation follows shortly and you can ignore this.</p>
+  `);
+
+  await deliver({
+    to: booking.guestEmail,
+    subject: `Complete your booking (${booking.code}) - ${SITE.name}`,
+    html,
+    devConsole: `Complete-payment nudge: ${booking.code} -> ${resumeUrl}`,
+  });
+}
+
 /** Guest cancellation notice, with refund status when one was issued. */
 export async function sendBookingCancelledEmail(
   booking: Booking,

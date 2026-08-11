@@ -461,6 +461,8 @@ model Booking {
   /// Lifecycle-email send markers (set by the housekeeping cron).
   reminderSentAt     DateTime?
   reviewInviteSentAt DateTime?
+  /// Complete-your-payment nudge for a still-held PENDING booking.
+  paymentReminderSentAt DateTime?
 
   reviews Review[]
 

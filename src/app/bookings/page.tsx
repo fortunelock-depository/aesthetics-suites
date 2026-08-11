@@ -11,7 +11,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function ManageBookingPage() {
+export default async function ManageBookingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string; email?: string }>;
+}) {
+  // Prefill from the complete-payment email link; junk is just ignored.
+  const query = await searchParams;
   return (
     <>
       <PageBanner
@@ -24,7 +30,10 @@ export default function ManageBookingPage() {
           email address you booked with to see your stay, finish an
           unfinished payment, or cancel.
         </p>
-        <ManageBookingClient />
+        <ManageBookingClient
+          initialCode={(query.code ?? '').slice(0, 30)}
+          initialEmail={(query.email ?? '').slice(0, 255)}
+        />
       </div>
     </>
   );

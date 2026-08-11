@@ -66,14 +66,28 @@ const STATUS_COPY: Record<IGuestBooking['status'], string> = {
  * Guest self-service: look a booking up by code + email, see its status,
  * resume an unfinished payment, or cancel under the policy.
  */
-export function ManageBookingClient() {
-  const [code, setCode] = React.useState('');
-  const [email, setEmail] = React.useState('');
+export function ManageBookingClient({
+  initialCode = '',
+  initialEmail = '',
+}: {
+  /** Prefill from the complete-payment email's one-click link. */
+  initialCode?: string;
+  initialEmail?: string;
+} = {}) {
+  const [code, setCode] = React.useState(initialCode.toUpperCase());
+  const [email, setEmail] = React.useState(initialEmail);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = React.useState(false);
 
   const [lookup, { data, isFetching, isError, error, fulfilledTimeStamp }] =
     useLazyGetGuestBookingQuery();
+
+  // Arriving from the email link: both halves present -> look up at once.
+  React.useEffect(() => {
+    if (initialCode && initialEmail.includes('@')) {
+      lookup({ code: initialCode.toUpperCase().trim(), email: initialEmail.trim() });
+    }
+  }, [initialCode, initialEmail, lookup]);
   const [payBooking, { isLoading: isPaying }] = usePayGuestBookingMutation();
   const [cancelBooking, { isLoading: isCancelling }] =
     useCancelGuestBookingMutation();

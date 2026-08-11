@@ -25,6 +25,7 @@ import {
 } from '@/lib/payments/payment-service';
 import {
   sendBookingConfirmedEmail,
+  sendCompletePaymentEmail,
   sendBookingCancelledEmail,
   sendBookingNotificationToAdmins,
   sendPreArrivalEmail,
@@ -524,11 +525,44 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
  * markers are set BEFORE sending so a crash can skip an email but never
  * spam one).
  */
+const PAYMENT_REMINDER_AFTER_MINUTES = 10;
+
 export async function sendLifecycleEmails(): Promise<{
   reminders: number;
   reviewInvites: number;
+  paymentReminders: number;
 }> {
   const now = new Date();
+
+  // Complete-your-payment nudges: holds still alive but unpaid for a
+  // while (whatever the cron cadence, this fires while the hold lives).
+  const dueNudges = await prisma.booking.findMany({
+    where: {
+      status: BookingStatus.PENDING,
+      paymentReminderSentAt: null,
+      holdExpiresAt: { gt: now },
+      createdAt: {
+        lte: new Date(
+          now.getTime() - PAYMENT_REMINDER_AFTER_MINUTES * 60 * 1000,
+        ),
+      },
+    },
+    include: { roomType: { select: { name: true } } },
+  });
+  for (const booking of dueNudges) {
+    // Marker BEFORE send - a crash mid-loop must never double-nudge.
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { paymentReminderSentAt: now },
+    });
+    await sendCompletePaymentEmail(booking, booking.roomType.name).catch(
+      (error) =>
+        logger.error(
+          { error, code: booking.code },
+          'Complete-payment email failed',
+        ),
+    );
+  }
 
   // Pre-arrival reminders: CONFIRMED stays checking in within N days.
   const dueReminders = await prisma.booking.findMany({
@@ -577,7 +611,11 @@ export async function sendLifecycleEmails(): Promise<{
     );
   }
 
-  return { reminders: dueReminders.length, reviewInvites: dueInvites.length };
+  return {
+    reminders: dueReminders.length,
+    reviewInvites: dueInvites.length,
+    paymentReminders: dueNudges.length,
+  };
 }
 
 /** Housekeeping: flips lapsed unpaid holds to EXPIRED, freeing the unit. */
