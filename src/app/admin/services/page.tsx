@@ -1,26 +1,36 @@
 // src/app/admin/services/page.tsx
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import Link from 'next/link';
 import { BellRing } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/page-header';
-import { EmptyState } from '@/components/ui/empty-state';
+import { ServicesTable } from '@/components/admin/services/services-table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const metadata: Metadata = {
   title: 'Services',
 };
 
-/**
- * Placeholder while this console section's UI is built - the APIs behind
- * it are live (see src/app/api/admin/*).
- */
-export default function AdminServicesPage() {
+// Suspense is required: the table reads useSearchParams (URL-synced state).
+export default function ServicesPage() {
   return (
     <section className="space-y-6">
-      <PageHeader title="Services" description="The guest-service pages shown on the public site - copy, availability, photos." />
-      <EmptyState
-        icon={BellRing}
-        title="This section is on its way"
-        description="The management screens for services are being built. The underlying APIs are already live."
+      <PageHeader
+        title="Services"
+        description="The guest services pages - dining, transfers, spa treatments and more."
+        actions={
+          <Button asChild>
+            <Link href="/admin/services/create">
+              <BellRing />
+              Add service
+            </Link>
+          </Button>
+        }
       />
+      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+        <ServicesTable />
+      </Suspense>
     </section>
   );
 }
