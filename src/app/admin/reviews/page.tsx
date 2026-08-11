@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { PageHeader } from '@/components/admin/page-header';
 import { ReviewsTable } from '@/components/admin/reviews/reviews-table';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TablePageSkeleton } from '@/components/admin/skeletons';
 
 export const metadata: Metadata = {
   title: 'Reviews',
@@ -17,7 +17,7 @@ export default function ReviewsPage() {
         title="Reviews"
         description="Guest reviews await approval here before appearing under their room."
       />
-      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <Suspense fallback={<TablePageSkeleton columns={6} />}>
         <ReviewsTable />
       </Suspense>
     </section>

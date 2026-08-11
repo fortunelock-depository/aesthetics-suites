@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/admin/page-header';
 import { BackLink } from '@/components/admin/back-link';
-import { DetailPageSkeleton } from '@/components/admin/detail-skeletons';
+import { BandedDetailSkeleton } from '@/components/admin/detail-skeletons';
 import { ErrorState } from '@/components/ui/error-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
@@ -163,7 +163,7 @@ export function ServiceDetailClient({ serviceId }: { serviceId: string }) {
     useDeleteServiceMutation();
   const { confirm, confirmDialog } = useConfirm();
 
-  if (isLoading) return <DetailPageSkeleton />;
+  if (isLoading) return <BandedDetailSkeleton tabs={2} />;
 
   if (isError || !data) {
     return (

@@ -127,7 +127,6 @@ export function SkeletonRowCards({ rows = 8 }: { rows?: number }) {
           key={index}
           className="flex items-center gap-2 border-b border-border py-2.5 pl-2 pr-1.5 last:border-0"
         >
-          <Skeleton className="h-4 w-4 flex-none rounded-sm" />
           <div className="min-w-0 flex-1 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <Skeleton className="h-4 w-16 rounded-full" />

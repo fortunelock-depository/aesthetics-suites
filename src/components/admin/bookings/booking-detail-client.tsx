@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/admin/page-header';
 import { BackLink } from '@/components/admin/back-link';
-import { DetailPageSkeleton } from '@/components/admin/detail-skeletons';
+import { BookingDetailSkeleton } from '@/components/admin/detail-skeletons';
 import { DetailRow, SectionCard } from '@/components/admin/detail-bits';
 import { ErrorState } from '@/components/ui/error-state';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -183,7 +183,7 @@ export function BookingDetailClient({ bookingId }: { bookingId: string }) {
   const { confirm, confirmDialog } = useConfirm();
   const [cancelOpen, setCancelOpen] = React.useState(false);
 
-  if (isLoading) return <DetailPageSkeleton />;
+  if (isLoading) return <BookingDetailSkeleton />;
 
   if (isError || !data) {
     return (

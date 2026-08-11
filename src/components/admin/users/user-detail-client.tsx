@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Shield, Trash2, User } from 'lucide-react';
 import { PageHeader } from '@/components/admin/page-header';
 import { BackLink } from '@/components/admin/back-link';
-import { DetailPageSkeleton } from '@/components/admin/detail-skeletons';
+import { BandedDetailSkeleton } from '@/components/admin/detail-skeletons';
 import { SectionCard } from '@/components/admin/detail-bits';
 import { UserAvatarBand } from '@/components/admin/user-avatar-band';
 import { ErrorState } from '@/components/ui/error-state';
@@ -94,7 +94,7 @@ export function UserDetailClient({ userId }: { userId: string }) {
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const { confirm, confirmDialog } = useConfirm();
 
-  if (isLoading) return <DetailPageSkeleton />;
+  if (isLoading) return <BandedDetailSkeleton band="avatar" tabs={2} actions={1} />;
 
   if (isError || !data) {
     return (

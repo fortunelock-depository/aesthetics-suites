@@ -6,7 +6,7 @@ import { Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/page-header';
 import { FacilitiesTable } from '@/components/admin/facilities/facilities-table';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TablePageSkeleton } from '@/components/admin/skeletons';
 
 export const metadata: Metadata = {
   title: 'Facilities',
@@ -28,7 +28,7 @@ export default function FacilitiesPage() {
           </Button>
         }
       />
-      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <Suspense fallback={<TablePageSkeleton columns={5} />}>
         <FacilitiesTable />
       </Suspense>
     </section>

@@ -6,7 +6,7 @@ import { BellRing } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/page-header';
 import { ServicesTable } from '@/components/admin/services/services-table';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TablePageSkeleton } from '@/components/admin/skeletons';
 
 export const metadata: Metadata = {
   title: 'Services',
@@ -28,7 +28,7 @@ export default function ServicesPage() {
           </Button>
         }
       />
-      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <Suspense fallback={<TablePageSkeleton columns={5} />}>
         <ServicesTable />
       </Suspense>
     </section>

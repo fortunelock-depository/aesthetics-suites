@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { PageHeader } from '@/components/admin/page-header';
 import { UsersTable } from '@/components/admin/users/users-table';
 import { AddUserButton } from '@/components/admin/users/create-user-dialog';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TablePageSkeleton } from '@/components/admin/skeletons';
 
 export const metadata: Metadata = {
   title: 'Users',
@@ -19,7 +19,7 @@ export default function UsersPage() {
         description="Everyone who can sign in to the admin console."
         actions={<AddUserButton />}
       />
-      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <Suspense fallback={<TablePageSkeleton columns={5} />}>
         <UsersTable />
       </Suspense>
     </section>

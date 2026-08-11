@@ -18,7 +18,7 @@ interface DataTableSkeletonProps {
 export function DataTableSkeleton({
   columnCount = 5,
   rowCount = 10,
-  showCheckbox = true,
+  showCheckbox = false,
   showAvatar = false,
   showMainContent = true,
   showActionColumn = true,

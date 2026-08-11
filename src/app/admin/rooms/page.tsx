@@ -6,7 +6,7 @@ import { BedDouble } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/page-header';
 import { RoomTypesTable } from '@/components/admin/rooms/room-types-table';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TablePageSkeleton } from '@/components/admin/skeletons';
 
 export const metadata: Metadata = {
   title: 'Rooms',
@@ -28,7 +28,7 @@ export default function RoomsPage() {
           </Button>
         }
       />
-      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <Suspense fallback={<TablePageSkeleton columns={6} />}>
         <RoomTypesTable />
       </Suspense>
     </section>

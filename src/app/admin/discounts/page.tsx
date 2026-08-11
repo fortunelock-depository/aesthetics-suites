@@ -6,7 +6,7 @@ import {
   AddDiscountButton,
   DiscountsTable,
 } from '@/components/admin/discounts/discounts-table';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TablePageSkeleton } from '@/components/admin/skeletons';
 
 export const metadata: Metadata = {
   title: 'Discounts',
@@ -21,7 +21,7 @@ export default function DiscountsPage() {
         description="Promo codes guests type at checkout, and automatic discounts on eligible stays."
         actions={<AddDiscountButton />}
       />
-      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <Suspense fallback={<TablePageSkeleton columns={7} />}>
         <DiscountsTable />
       </Suspense>
     </section>
