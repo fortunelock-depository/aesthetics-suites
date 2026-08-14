@@ -52,17 +52,30 @@ jobs:
   # builds the new code (release-deploy convention: schema first, code
   # second). PROD_DATABASE_URL must be the DIRECT (non-pooled) connection
   # string - pgbouncer transaction pooling and DDL do not mix.
+  #
+  # When the secret is not configured the job succeeds as a no-op (every
+  # step skips) instead of failing the pipeline - secrets are invisible to
+  # job-level `if`, hence the env lift + per-step gating.
   migrate:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: checks
     runs-on: ubuntu-latest
+    env:
+      PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
     steps:
+      - name: Skip notice when PROD_DATABASE_URL is not configured
+        if: env.PROD_DATABASE_URL == ''
+        run: echo "::notice::PROD_DATABASE_URL secret not set - skipping migrate deploy"
       - uses: actions/checkout@v4
+        if: env.PROD_DATABASE_URL != ''
       - uses: actions/setup-node@v4
+        if: env.PROD_DATABASE_URL != ''
         with:
           node-version: 24
           cache: npm
       - run: npm ci
+        if: env.PROD_DATABASE_URL != ''
       - run: npx prisma migrate deploy
+        if: env.PROD_DATABASE_URL != ''
         env:
-          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          DATABASE_URL: ${{ env.PROD_DATABASE_URL }}
