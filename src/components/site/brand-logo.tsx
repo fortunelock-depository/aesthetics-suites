@@ -6,9 +6,11 @@ import { routes } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 /**
- * The brand lockup for site chrome: the "A" mark (dark variant, for light
- * surfaces) beside the wordmark - the template's icon-plus-name navbar
- * arrangement. `withTagline` adds the logo's tagline underneath (footer).
+ * The brand lockup for site chrome: the "A" mark beside the wordmark - the
+ * template's icon-plus-name navbar arrangement. The mark is theme-aware: the
+ * dark variant sits on light surfaces and swaps for the light variant in dark
+ * mode, where the dark mark would vanish into the background. `withTagline`
+ * adds the logo's tagline underneath (footer).
  */
 export function BrandLogo({
   withTagline = false,
@@ -27,7 +29,15 @@ export function BrandLogo({
         alt=""
         width={44}
         height={40}
-        className="h-10 w-auto flex-none"
+        className="h-10 w-auto flex-none dark:hidden"
+        priority
+      />
+      <Image
+        src="/logo-mark.png"
+        alt=""
+        width={44}
+        height={40}
+        className="hidden h-10 w-auto flex-none dark:block"
         priority
       />
       <span className="min-w-0">

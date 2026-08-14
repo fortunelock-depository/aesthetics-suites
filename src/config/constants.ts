@@ -38,11 +38,11 @@ export const SITE = {
 } as const;
 
 export const CONTACT = {
-  phone: '+233000000000',
-  email: 'hello@aestheticssuites.com',
-  location: 'Accra, Ghana',
-  /** Map pin (placeholder: central Accra - adjust to the property). */
-  map: { lat: 5.6037, lng: -0.187 },
+  phone: '+233597143103',
+  email: 'info@aestheticssuites.com',
+  location: 'Tamale, Ghana',
+  /** Map pin (central Tamale - adjust to the property). */
+  map: { lat: 9.4008, lng: -0.8393 },
 } as const;
 
 /**

@@ -49,7 +49,14 @@ export function AdminSidebar({ role }: { role: UserRoleValue }) {
             alt=""
             width={30}
             height={28}
-            className="h-7 w-auto flex-none"
+            className="h-7 w-auto flex-none dark:hidden"
+          />
+          <Image
+            src="/logo-mark.png"
+            alt=""
+            width={30}
+            height={28}
+            className="hidden h-7 w-auto flex-none dark:block"
           />
           <span className="min-w-0 truncate font-heading text-lg font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
             {SITE.name}
