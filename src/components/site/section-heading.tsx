@@ -21,7 +21,7 @@ export function SectionHeading({
 }: SectionHeadingProps) {
   return (
     <div className={cn(align === 'center' && 'text-center', className)}>
-      <p className="text-[15px] font-semibold text-brand capitalize">
+      <p className="text-[15px] font-semibold text-brand-text capitalize">
         {eyebrow}
       </p>
       <h2 className="mt-2.5 font-heading text-[32px] leading-[1.3] font-medium text-foreground [overflow-wrap:anywhere] lg:text-[45px] lg:leading-[60px]">

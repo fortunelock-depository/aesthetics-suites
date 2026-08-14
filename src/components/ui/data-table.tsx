@@ -251,8 +251,9 @@ export function DataTable<TData>({
         </div>
       </div>
 
-      {/* Pagination appears once the data outgrows the default page size. */}
-      {totalCount > 10 && (
+      {/* Pagination appears whenever more than one page exists - gating on
+          a fixed count hid reachable pages under small pageSize values. */}
+      {totalCount > pageSize && (
         <DataTablePagination
           table={table}
           totalCount={totalCount}

@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/api-auth';
 import { successResponse, handleApiError } from '@/utils/api-response';
 import { reviewModerateSchema } from '@/validations/hotel-validation';
 import { revalidatePublicRooms } from '@/utils/revalidate';
-import { NotFoundError } from '@/middlewares/error-handler';
+import { NotFoundError } from '@/lib/errors';
 
 /** Approve/reject a review; approval makes it live under the listing. */
 export async function PATCH(

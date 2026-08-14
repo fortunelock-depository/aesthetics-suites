@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useCreateServiceMutation } from '@/redux/services-api';
 import { extractApiError } from '@/lib/extract-api-error';
 import {
-  BLANK_FACILITY,
+  BLANK_SERVICE,
   ServiceFields,
   serviceFormSchema,
   toServiceBody,
@@ -25,7 +25,7 @@ export function CreateServiceForm() {
 
   const form = useForm<ServiceFormInput, unknown, ServiceFormOutput>({
     resolver: zodResolver(serviceFormSchema),
-    defaultValues: BLANK_FACILITY,
+    defaultValues: BLANK_SERVICE,
   });
 
   const onSubmit = async (data: ServiceFormOutput) => {

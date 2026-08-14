@@ -43,9 +43,13 @@ function FieldIcon({ icon: Icon }: { icon: LucideIcon }) {
   );
 }
 
-function FieldErrorText({ message }: { message?: string }) {
+function FieldErrorText({ message, id }: { message?: string; id?: string }) {
   if (!message) return null;
-  return <p className="mt-1.5 text-sm text-destructive">{message}</p>;
+  return (
+    <p id={id} role="alert" className="mt-1.5 text-sm text-destructive">
+      {message}
+    </p>
+  );
 }
 
 /**
@@ -116,11 +120,12 @@ export function ContactForm() {
               placeholder="Full Name"
               aria-label="Full name"
               aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? 'contact-name-error' : undefined}
               className={FIELD_BOX}
               {...register('name')}
             />
           </div>
-          <FieldErrorText message={errors.name?.message} />
+          <FieldErrorText id="contact-name-error" message={errors.name?.message} />
         </div>
 
         <div>
@@ -131,11 +136,12 @@ export function ContactForm() {
               placeholder="Email Address"
               aria-label="Email address"
               aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'contact-email-error' : undefined}
               className={FIELD_BOX}
               {...register('email')}
             />
           </div>
-          <FieldErrorText message={errors.email?.message} />
+          <FieldErrorText id="contact-email-error" message={errors.email?.message} />
         </div>
 
         <div>
@@ -146,11 +152,12 @@ export function ContactForm() {
               placeholder="Phone (optional)"
               aria-label="Phone"
               aria-invalid={!!errors.phone}
+              aria-describedby={errors.phone ? 'contact-phone-error' : undefined}
               className={FIELD_BOX}
               {...register('phone')}
             />
           </div>
-          <FieldErrorText message={errors.phone?.message} />
+          <FieldErrorText id="contact-phone-error" message={errors.phone?.message} />
         </div>
 
         <div>
@@ -161,11 +168,12 @@ export function ContactForm() {
               placeholder="Subject (optional)"
               aria-label="Subject"
               aria-invalid={!!errors.subject}
+              aria-describedby={errors.subject ? 'contact-subject-error' : undefined}
               className={FIELD_BOX}
               {...register('subject')}
             />
           </div>
-          <FieldErrorText message={errors.subject?.message} />
+          <FieldErrorText id="contact-subject-error" message={errors.subject?.message} />
         </div>
 
         <div className="sm:col-span-2">
@@ -179,11 +187,12 @@ export function ContactForm() {
               placeholder="Type your message…"
               aria-label="Message"
               aria-invalid={!!errors.message}
+              aria-describedby={errors.message ? 'contact-message-error' : undefined}
               className={cn(FIELD_BOX, 'resize-y pt-5')}
               {...register('message')}
             />
           </div>
-          <FieldErrorText message={errors.message?.message} />
+          <FieldErrorText id="contact-message-error" message={errors.message?.message} />
         </div>
 
         {/* Honeypot - hidden from humans, tempting to bots. */}

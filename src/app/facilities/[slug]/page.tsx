@@ -10,6 +10,8 @@ import {
   getPublicFacility,
 } from '@/lib/hotel/public-facilities';
 import { clampDescription } from '@/lib/seo';
+import { SITE } from '@/config/constants';
+import { JsonLd, breadcrumbJsonLd } from '@/lib/structured-data';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -32,6 +34,7 @@ export async function generateMetadata({
   return {
     title: facility.name,
     description: clampDescription(facility.summary, 155),
+    alternates: { canonical: `${SITE.url}/facilities/${slug}` },
   };
 }
 
@@ -46,6 +49,13 @@ export default async function FacilityDetailPage({ params }: PageProps) {
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Home', path: '/' },
+          { name: 'Facilities', path: '/facilities' },
+          { name: facility.name, path: `/facilities/${facility.slug}` },
+        ])}
+      />
       <SiteHeader />
       <main className="flex-1">
         <PageBanner

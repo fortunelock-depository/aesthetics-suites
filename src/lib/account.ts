@@ -23,6 +23,18 @@ import {
 import { BCRYPT_SALT_ROUNDS } from '@/config/constants';
 import { changePasswordSchema } from '@/validations/auth-validation';
 import { profileUpdateSchema } from '@/validations/user-validation';
+import { ratelimit } from '@/lib/rate-limit';
+
+/**
+ * Per-user throttle on actions that verify the account password. Without
+ * it, a stolen session cookie gets an unlimited online oracle to
+ * brute-force the current password (and from there, full takeover via
+ * email/password change).
+ */
+async function passwordVerifyAllowed(userId: string): Promise<boolean> {
+  const { success } = await ratelimit.limit(`pwverify:${userId}`);
+  return success;
+}
 
 export type ProfileState = {
   success: boolean;
@@ -84,6 +96,12 @@ export async function updateProfile(
         },
       };
     }
+    if (!(await passwordVerifyAllowed(userId))) {
+      return {
+        success: false,
+        errors: { _form: ['Too many attempts. Try again shortly.'] },
+      };
+    }
     if (!(await bcrypt.compare(parsed.data.currentPassword, user.password))) {
       return {
         success: false,
@@ -139,6 +157,24 @@ export type ConfirmEmailChangeResult = {
   success: boolean;
   message: string;
 };
+
+/**
+ * useActionState wrapper for the confirm-email page's explicit-click form.
+ * The token is consumed HERE (a POST), never on the page's GET render.
+ */
+export async function confirmEmailChangeAction(
+  _state: ConfirmEmailChangeResult | null,
+  formData: FormData,
+): Promise<ConfirmEmailChangeResult> {
+  const token = String(formData.get('token') ?? '');
+  if (!token) {
+    return {
+      success: false,
+      message: 'This confirmation link is missing its token.',
+    };
+  }
+  return confirmEmailChange(token);
+}
 
 /**
  * Applies a pending login-email change. Public - the token from the email
@@ -318,6 +354,13 @@ export async function changePassword(
     select: { id: true, email: true, fullname: true, password: true },
   });
   if (!user) return { success: false, errors: { _form: ['Account not found.'] } };
+
+  if (!(await passwordVerifyAllowed(userId))) {
+    return {
+      success: false,
+      errors: { _form: ['Too many attempts. Try again shortly.'] },
+    };
+  }
 
   if (!(await bcrypt.compare(parsed.data.currentPassword, user.password))) {
     return {

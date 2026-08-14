@@ -28,14 +28,21 @@ export function TextField({
   ...props
 }: TextFieldProps) {
   const fieldId = id ?? name;
+  const errorId = error ? `${fieldId}-error` : undefined;
   return (
     <div className="space-y-1.5">
       <Label htmlFor={fieldId}>{label}</Label>
-      <Input id={fieldId} name={name} aria-invalid={!!error} {...props} />
+      <Input
+        id={fieldId}
+        name={name}
+        aria-invalid={!!error}
+        aria-describedby={errorId}
+        {...props}
+      />
       {hint && !error && (
         <p className="text-xs text-muted-foreground">{hint}</p>
       )}
-      <FieldError message={error} />
+      <FieldError id={errorId} message={error} />
     </div>
   );
 }
@@ -56,14 +63,21 @@ export function TextAreaField({
   ...props
 }: TextAreaFieldProps) {
   const fieldId = id ?? name;
+  const errorId = error ? `${fieldId}-error` : undefined;
   return (
     <div className="space-y-1.5">
       <Label htmlFor={fieldId}>{label}</Label>
-      <Textarea id={fieldId} name={name} aria-invalid={!!error} {...props} />
+      <Textarea
+        id={fieldId}
+        name={name}
+        aria-invalid={!!error}
+        aria-describedby={errorId}
+        {...props}
+      />
       {hint && !error && (
         <p className="text-xs text-muted-foreground">{hint}</p>
       )}
-      <FieldError message={error} />
+      <FieldError id={errorId} message={error} />
     </div>
   );
 }

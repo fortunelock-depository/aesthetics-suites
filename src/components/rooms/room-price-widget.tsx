@@ -1,6 +1,6 @@
 // src/components/rooms/room-price-widget.tsx
 import { Ruler, Users } from 'lucide-react';
-import { CtaLink } from '@/components/site/cta-link';
+import { StayCtaLink } from '@/components/rooms/stay-link';
 import { formatMoney } from '@/lib/format-money';
 import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 
@@ -36,9 +36,9 @@ export function RoomPriceWidget({ room }: { room: IPublicRoomDetail }) {
         <span className="text-sm text-muted-foreground">/Night</span>
       </p>
 
-      <CtaLink href={`/rooms/${room.slug}/book`} className="mt-5">
+      <StayCtaLink href={`/rooms/${room.slug}/book`} className="mt-5">
         Book Now
-      </CtaLink>
+      </StayCtaLink>
     </div>
   );
 }

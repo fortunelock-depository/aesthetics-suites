@@ -1,5 +1,5 @@
 // src/components/home/room-card.tsx
-import Link from 'next/link';
+import { StayLink } from '@/components/rooms/stay-link';
 import { ArrowRight, BedDouble } from 'lucide-react';
 import { PhotoFrame } from '@/components/site/photo-frame';
 import { formatMoney } from '@/lib/format-money';
@@ -31,9 +31,9 @@ export function RoomCard({ room }: { room: IPublicRoomCard }) {
       />
 
       {/* Caption block: parked 57px low, slides up as one piece on hover. */}
-      <div className="absolute inset-x-0 bottom-0 p-[35px] transition-all duration-400 ease-in-out lg:-bottom-[57px] lg:group-hover:bottom-0">
+      <div className="absolute inset-x-0 bottom-0 p-[35px] transition-all duration-400 ease-in-out lg:-bottom-[57px] lg:group-hover:bottom-0 lg:group-focus-within:bottom-0">
         <p className="text-sm font-semibold text-white">
-          <span className="text-brand">
+          <span className="text-brand-text">
             {formatMoney(room.basePrice, room.currency)}
           </span>{' '}
           / Night
@@ -42,24 +42,24 @@ export function RoomCard({ room }: { room: IPublicRoomCard }) {
           className="mt-1 min-w-0 font-heading text-2xl font-medium line-clamp-2 [overflow-wrap:anywhere]"
           title={room.name}
         >
-          <Link
+          <StayLink
             href={`/rooms/${room.slug}`}
             className="text-white transition-colors hover:text-brand"
           >
             {room.name}
-          </Link>
+          </StayLink>
         </h3>
 
         {/* The simple-btn row: hairline divider + circled arrow + label. */}
-        <Link
+        <StayLink
           href={`/rooms/${room.slug}`}
-          className="mt-[15px] flex items-center gap-2.5 border-t border-white/50 pt-2.5 text-sm font-semibold tracking-[0.06em] text-neutral-300 uppercase transition-all duration-400 hover:text-brand lg:opacity-0 lg:group-hover:opacity-100"
+          className="mt-[15px] flex items-center gap-2.5 border-t border-white/50 pt-2.5 text-sm font-semibold tracking-[0.06em] text-neutral-300 uppercase transition-all duration-400 hover:text-brand lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100 lg:group-focus-within:opacity-100"
         >
           <span className="grid h-6 w-6 place-items-center rounded-full border border-current transition-colors">
             <ArrowRight className="h-3 w-3" />
           </span>
           Booking Now
-        </Link>
+        </StayLink>
       </div>
     </article>
   );

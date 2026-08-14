@@ -1,4 +1,4 @@
-// src/middlewares/error-handler.ts
+// src/lib/errors.ts
 //
 // Typed error classes thrown by services/guards and mapped to HTTP responses
 // by `handleApiError` (src/utils/api-response.ts).

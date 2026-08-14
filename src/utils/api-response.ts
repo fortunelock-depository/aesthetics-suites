@@ -1,7 +1,7 @@
 // src/utils/api-response.ts
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
-import { CustomError } from '@/middlewares/error-handler';
+import { CustomError, ErrorSeverity } from '@/lib/errors';
 import logger from '@/utils/logger';
 import type { IPagination } from '@/types/api';
 
@@ -61,9 +61,41 @@ export function handleApiError(err: unknown): NextResponse {
     }
   }
 
-  if (err instanceof CustomError) {
+  // The Booking_no_unit_overlap exclusion constraint (23P01) is the DB
+  // backstop against double-seating a unit; Prisma has no typed code for
+  // exclusion violations, so match the raw Postgres error.
+  if (
+    err instanceof Error &&
+    (err.message.includes('23P01') ||
+      err.message.includes('Booking_no_unit_overlap'))
+  ) {
     return NextResponse.json(
-      { status: 'error', message: err.message },
+      {
+        status: 'error',
+        message: 'This room is no longer available for those dates.',
+        code: 'ROOM_NO_LONGER_AVAILABLE',
+      },
+      { status: 409 },
+    );
+  }
+
+  if (err instanceof CustomError) {
+    // HIGH/CRITICAL typed errors are operational signals, not user slips -
+    // log them where the 4xx status would otherwise hide them.
+    if (
+      err.severity === ErrorSeverity.HIGH ||
+      err.severity === ErrorSeverity.CRITICAL
+    ) {
+      logger.error({ err, code: err.code }, 'High-severity API error');
+    }
+    return NextResponse.json(
+      {
+        status: 'error',
+        message: err.message,
+        // Machine-readable branch point for clients (e.g. the payment
+        // verify return page) - present only when the thrower assigned one.
+        ...(err.code ? { code: err.code } : {}),
+      },
       { status: err.status },
     );
   }

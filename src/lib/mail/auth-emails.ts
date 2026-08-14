@@ -19,7 +19,7 @@ export const sendTwoFactorCodeEmail = async (
   user: Recipient,
   code: string,
   purpose: 'login' | 'setup',
-): Promise<void> => {
+): Promise<boolean> => {
   const title =
     purpose === 'login' ? 'Your Login Code' : 'Confirm Two-Factor Setup';
   const line =
@@ -36,7 +36,7 @@ export const sendTwoFactorCodeEmail = async (
     <p style="margin:0;color:#6b7280;font-size:13px;">If you did not request this, you can safely ignore this email.</p>
   `);
 
-  await deliver({
+  return deliver({
     to: user.email,
     subject: `${title} - ${ENV.EMAIL_FROM_NAME}`,
     html,
@@ -47,7 +47,7 @@ export const sendTwoFactorCodeEmail = async (
 export const sendPasswordResetEmail = async (
   user: Recipient,
   resetUrl: string,
-): Promise<void> => {
+): Promise<boolean> => {
   const html = shell(`
     <h2 style="margin:0 0 16px;font-size:18px;">Reset Your Password</h2>
     <p style="margin:0 0 16px;">Hi ${user.fullname},</p>
@@ -61,7 +61,7 @@ export const sendPasswordResetEmail = async (
     <p style="margin:0;color:#6b7280;font-size:13px;">If you did not request this, you can safely ignore this email - your password will not change.</p>
   `);
 
-  await deliver({
+  return deliver({
     to: user.email,
     subject: `Reset your password - ${ENV.EMAIL_FROM_NAME}`,
     html,
@@ -77,7 +77,7 @@ export const sendEmailChangeConfirmEmail = async (
   user: Recipient,
   confirmUrl: string,
   newEmail: string,
-): Promise<void> => {
+): Promise<boolean> => {
   const html = shell(`
     <h2 style="margin:0 0 16px;font-size:18px;">Confirm Your New Email</h2>
     <p style="margin:0 0 16px;">Hi ${user.fullname},</p>
@@ -91,7 +91,7 @@ export const sendEmailChangeConfirmEmail = async (
     <p style="margin:0;color:#6b7280;font-size:13px;">If you did not request this, ignore this email - your address will not change.</p>
   `);
 
-  await deliver({
+  return deliver({
     to: user.email,
     subject: `Confirm your new email - ${ENV.EMAIL_FROM_NAME}`,
     html,
@@ -114,5 +114,23 @@ export const sendPasswordChangedEmail = async (
     subject: `Your password was changed - ${ENV.EMAIL_FROM_NAME}`,
     html,
     devConsole: 'Password-changed notice (no action needed).',
+  });
+};
+
+export const sendTwoFactorDisabledEmail = async (
+  user: Recipient,
+): Promise<void> => {
+  const html = shell(`
+    <h2 style="margin:0 0 16px;font-size:18px;">Two-Factor Authentication Disabled</h2>
+    <p style="margin:0 0 16px;">Hi ${user.fullname},</p>
+    <p style="margin:0 0 16px;">Two-factor authentication was just turned off for your admin account. Signing in now needs only your password.</p>
+    <p style="margin:0;color:#6b7280;font-size:13px;">If this was <strong>not</strong> you, change your password and contact an administrator immediately.</p>
+  `);
+
+  await deliver({
+    to: user.email,
+    subject: `Two-factor authentication disabled - ${ENV.EMAIL_FROM_NAME}`,
+    html,
+    devConsole: '2FA-disabled notice (no action needed).',
   });
 };

@@ -1,6 +1,8 @@
 // src/app/rooms/[slug]/book/page.tsx
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { SiteHeader } from '@/components/site/site-header';
+import { SiteFooter } from '@/components/site/site-footer';
 import { PageBanner } from '@/components/site/page-banner';
 import { BookingCheckout } from '@/components/rooms/booking-checkout';
 import { getPublicRoomDetail } from '@/lib/hotel/public-room-detail';
@@ -52,6 +54,8 @@ export default async function BookRoomPage({
 
   return (
     <>
+      <SiteHeader />
+      <main className="flex-1">
       <PageBanner
         title="Book Your Stay"
         image={
@@ -79,6 +83,8 @@ export default async function BookRoomPage({
           initialChildren={parseIntParam(query.children, 0, 0, 8)}
         />
       </div>
+      </main>
+      <SiteFooter />
     </>
   );
 }

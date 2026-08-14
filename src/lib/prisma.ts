@@ -208,6 +208,17 @@ const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
+/**
+ * The client handed to interactive `$transaction` callbacks (query
+ * extensions, incl. soft-delete scoping, still apply). Helpers that must be
+ * able to run inside a caller's transaction accept this type; the top-level
+ * client satisfies it too, so `db = prisma` works as a default.
+ */
+export type TransactionClient = Omit<
+  ExtendedPrismaClient,
+  '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+>;
+
 export default prisma;
 
 export * from '../../generated/prisma/client';

@@ -5,6 +5,8 @@ import {
   computeQuote,
   discountApplies,
   discountAmountFor,
+  nightlyPriceFor,
+  recomputeTaxForTotal,
   type IDiscountInput,
 } from './pricing';
 
@@ -150,5 +152,54 @@ describe('discountApplies', () => {
         { nights: 1, now },
       ),
     ).toBe(false);
+  });
+});
+
+describe('recomputeTaxForTotal (overridden walk-in totals)', () => {
+  const vatAndLevy = [
+    { name: 'VAT', rateBps: 1500 },
+    { name: 'Tourism levy', rateBps: 100 },
+  ];
+
+  it('backs the taxable base out of a tax-inclusive override', () => {
+    const { taxableAmount, taxAmount, taxLines } = recomputeTaxForTotal(
+      80_000,
+      vatAndLevy,
+    );
+    // Identity holds exactly: base + tax == the overridden total.
+    expect(taxableAmount + taxAmount).toBe(80_000);
+    // Lines always sum to taxAmount (VAT reports add these up).
+    expect(taxLines.reduce((s, l) => s + l.amount, 0)).toBe(taxAmount);
+    expect(taxableAmount).toBe(Math.round((80_000 * 10_000) / 11_600));
+  });
+
+  it('handles no active taxes and non-positive totals', () => {
+    expect(recomputeTaxForTotal(80_000, []).taxAmount).toBe(0);
+    expect(recomputeTaxForTotal(0, vatAndLevy).taxAmount).toBe(0);
+  });
+});
+
+describe('season-rate overlap ordering', () => {
+  it('first match wins, so callers pass latest-created first', () => {
+    const older = {
+      startDate: d('2026-12-20'),
+      endDate: d('2027-01-05'),
+      nightlyPrice: 80_000,
+      minNights: null,
+    };
+    const newer = {
+      startDate: d('2026-12-30'),
+      endDate: d('2027-01-02'),
+      nightlyPrice: 120_000,
+      minNights: null,
+    };
+    // createdAt-desc ordering puts `newer` first: its price wins inside
+    // its window, the older season covers the rest.
+    expect(nightlyPriceFor(d('2026-12-31'), 50_000, [newer, older])).toBe(
+      120_000,
+    );
+    expect(nightlyPriceFor(d('2026-12-22'), 50_000, [newer, older])).toBe(
+      80_000,
+    );
   });
 });

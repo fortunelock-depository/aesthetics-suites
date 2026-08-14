@@ -2,15 +2,22 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { toDateOnlyString } from '@/lib/hotel/dates';
 
 /**
  * The sidebar's Booking Now widget (template style: stacked bordered
- * fields + gold CHECK). Until the availability flow lands it hands off to
- * the list itself: submit scrolls to the top of the room list.
+ * fields + gold CHECK). With a `bookPath` (the room detail page passes its
+ * own /book route) submit goes straight to the checkout, dates prefilled;
+ * without one (the rooms list) it stamps the stay onto the URL and scrolls
+ * to the list, whose StayLinks carry the params onward.
  */
-export function SidebarBookingCard({ onDone }: { onDone?: () => void } = {}) {
+export function SidebarBookingCard({
+  bookPath,
+  onDone,
+}: { bookPath?: string; onDone?: () => void } = {}) {
+  const router = useRouter();
   const today = toDateOnlyString(new Date());
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
@@ -19,6 +26,16 @@ export function SidebarBookingCard({ onDone }: { onDone?: () => void } = {}) {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onDone?.();
+    const params = new URLSearchParams();
+    if (checkIn) params.set('checkIn', checkIn);
+    if (checkOut) params.set('checkOut', checkOut);
+    params.set('adults', guests);
+    const suffix = params.toString() ? `?${params.toString()}` : '';
+    if (bookPath) {
+      router.push(`${bookPath}${suffix}`);
+      return;
+    }
+    router.push(`/rooms${suffix}#room-list`, { scroll: false });
     document
       .getElementById('room-list')
       ?.scrollIntoView({ behavior: 'smooth', block: 'start' });

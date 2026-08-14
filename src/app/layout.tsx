@@ -35,7 +35,9 @@ export const metadata: Metadata = {
   authors: [{ name: SITE.name, url: SITE.url }],
   creator: SITE.name,
   publisher: SITE.name,
-  alternates: { canonical: SITE.url },
+  // No root-level canonical: Next metadata INHERITS it, which stamped
+  // every detail page as a duplicate of the homepage (deindex risk).
+  // pageMetadata()/generateMetadata set per-path canonicals instead.
   // OG/Twitter images come from the opengraph-image.tsx file conventions,
   // generated at build time from src/lib/og-image.tsx.
   openGraph: {

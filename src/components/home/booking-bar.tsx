@@ -2,16 +2,19 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { toDateOnlyString } from '@/lib/hotel/dates';
 
 /**
  * The hero's check-in / check-out / guests bar (the template's flat joined
- * cells, light). Until the booking flow page lands it hands off to the
- * rooms grid: submit scrolls to #rooms so the guest picks a suite next.
+ * cells, light). Submit hands the chosen stay to the rooms list as URL
+ * params; every room link there carries them onward (StayLink) so the
+ * checkout arrives prefilled - dates typed here are never typed again.
  * Cells stack full-width on phones; labels sit ABOVE values (never beside).
  */
 export function BookingBar() {
+  const router = useRouter();
   const today = toDateOnlyString(new Date());
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
@@ -19,9 +22,12 @@ export function BookingBar() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    document
-      .getElementById('rooms')
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const params = new URLSearchParams();
+    if (checkIn) params.set('checkIn', checkIn);
+    if (checkOut) params.set('checkOut', checkOut);
+    params.set('adults', guests);
+    const suffix = params.toString();
+    router.push(`/rooms${suffix ? `?${suffix}` : ''}#room-list`);
   };
 
   const cell =

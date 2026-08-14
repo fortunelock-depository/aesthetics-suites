@@ -12,7 +12,8 @@ import {
   roomCreateSchema,
   roomsQuerySchema,
 } from '@/validations/hotel-validation';
-import { NotFoundError } from '@/middlewares/error-handler';
+import { NotFoundError } from '@/lib/errors';
+import { revalidatePublicRooms } from '@/utils/revalidate';
 
 export async function GET(req: NextRequest) {
   try {
@@ -55,11 +56,13 @@ export async function POST(req: Request) {
 
     const roomType = await prisma.roomType.findFirst({
       where: { id: input.roomTypeId },
-      select: { id: true },
+      select: { id: true, slug: true },
     });
     if (!roomType) throw new NotFoundError('Room type not found');
 
     const room = await prisma.room.create({ data: input });
+    // Unit count and per-unit availability show on the public room pages.
+    revalidatePublicRooms(roomType.slug);
     return successResponse(room, 'Unit created', 201);
   } catch (err) {
     return handleApiError(err);

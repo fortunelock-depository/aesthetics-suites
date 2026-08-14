@@ -100,7 +100,6 @@ export const roomsApi = apiSlice.injectEndpoints({
       invalidatesTags: (_result, _error, { roomTypeId }) => [
         { type: 'RoomType', id: roomTypeId },
         { type: 'RoomTypes', id: 'LIST' },
-        'Rooms',
       ],
     }),
     updateRoomUnit: builder.mutation<
@@ -114,7 +113,6 @@ export const roomsApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { roomTypeId }) => [
         { type: 'RoomType', id: roomTypeId },
-        'Rooms',
       ],
     }),
     deleteRoomUnit: builder.mutation<
@@ -125,7 +123,6 @@ export const roomsApi = apiSlice.injectEndpoints({
       invalidatesTags: (_result, _error, { roomTypeId }) => [
         { type: 'RoomType', id: roomTypeId },
         { type: 'RoomTypes', id: 'LIST' },
-        'Rooms',
       ],
     }),
     syncRoomIcal: builder.mutation<
@@ -140,6 +137,20 @@ export const roomsApi = apiSlice.injectEndpoints({
         { type: 'RoomType', id: roomTypeId },
       ],
     }),
+    // The export URL is a capability; rotating the token is the only way
+    // to revoke a leaked calendar link.
+    rotateRoomIcalToken: builder.mutation<
+      IApiResponse<{ id: string; icalToken: string }>,
+      { id: string; roomTypeId: string }
+    >({
+      query: ({ id }) => ({
+        url: `admin/rooms/${id}/rotate-ical-token`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, { roomTypeId }) => [
+        { type: 'RoomType', id: roomTypeId },
+      ],
+    }),
 
     createSeasonRate: builder.mutation<
       ISeasonRateResponse,
@@ -148,7 +159,6 @@ export const roomsApi = apiSlice.injectEndpoints({
       query: (body) => ({ url: 'admin/season-rates', method: 'POST', body }),
       invalidatesTags: (_result, _error, { roomTypeId }) => [
         { type: 'RoomType', id: roomTypeId },
-        'SeasonRates',
       ],
     }),
     updateSeasonRate: builder.mutation<
@@ -162,7 +172,6 @@ export const roomsApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { roomTypeId }) => [
         { type: 'RoomType', id: roomTypeId },
-        'SeasonRates',
       ],
     }),
     deleteSeasonRate: builder.mutation<
@@ -175,7 +184,6 @@ export const roomsApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { roomTypeId }) => [
         { type: 'RoomType', id: roomTypeId },
-        'SeasonRates',
       ],
     }),
   }),
@@ -193,6 +201,7 @@ export const {
   useUpdateRoomUnitMutation,
   useDeleteRoomUnitMutation,
   useSyncRoomIcalMutation,
+  useRotateRoomIcalTokenMutation,
   useCreateSeasonRateMutation,
   useUpdateSeasonRateMutation,
   useDeleteSeasonRateMutation,

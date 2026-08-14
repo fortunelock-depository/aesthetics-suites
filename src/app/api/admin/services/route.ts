@@ -13,7 +13,7 @@ import {
   servicesQuerySchema,
 } from '@/validations/hotel-validation';
 import { generateSlug } from '@/utils/generate-slug';
-import { revalidatePublicFacilities } from '@/utils/revalidate';
+import { revalidatePublicServices } from '@/utils/revalidate';
 
 export async function GET(req: NextRequest) {
   try {
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       data: { ...input, slug: generateSlug(input.name) },
     });
 
-    revalidatePublicFacilities(service.slug);
+    revalidatePublicServices(service.slug);
     return successResponse(service, 'Service created', 201);
   } catch (err) {
     return handleApiError(err);

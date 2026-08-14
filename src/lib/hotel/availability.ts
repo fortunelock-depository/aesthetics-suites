@@ -6,7 +6,11 @@
 // overlapping the half-open range. This is what makes cross-platform
 // double-booking impossible once Airbnb calendars are synced.
 import 'server-only';
-import prisma, { BookingStatus, RoomStatus } from '@/lib/prisma';
+import prisma, {
+  BookingStatus,
+  RoomStatus,
+  type TransactionClient,
+} from '@/lib/prisma';
 
 /** Booking statuses that occupy a unit's calendar. */
 export const BLOCKING_STATUSES: BookingStatus[] = [
@@ -43,15 +47,19 @@ export interface IAvailabilityResult {
   unitId: string | null;
 }
 
-/** Free units of a room type for the range. */
+/**
+ * Free units of a room type for the range. Accepts a transaction client so
+ * booking creation can re-check availability under its advisory lock.
+ */
 export async function findAvailability(
   roomTypeId: string,
   checkIn: Date,
   checkOut: Date,
+  db: TransactionClient = prisma,
 ): Promise<IAvailabilityResult> {
   const { bookings, blocks } = overlapWhere(checkIn, checkOut);
 
-  const freeUnits = await prisma.room.findMany({
+  const freeUnits = await db.room.findMany({
     where: {
       roomTypeId,
       status: RoomStatus.ACTIVE,
@@ -72,9 +80,10 @@ export async function isUnitFree(
   roomId: string,
   checkIn: Date,
   checkOut: Date,
+  db: TransactionClient = prisma,
 ): Promise<boolean> {
   const { bookings, blocks } = overlapWhere(checkIn, checkOut);
-  const unit = await prisma.room.findFirst({
+  const unit = await db.room.findFirst({
     where: {
       id: roomId,
       status: RoomStatus.ACTIVE,

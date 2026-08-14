@@ -1,5 +1,6 @@
 // src/app/api/contact/route.ts
 import { headers } from 'next/headers';
+import { clientIp } from '@/utils/client-ip';
 import { contactSchema } from '@/validations/hotel-validation';
 import { sendContactEmails } from '@/lib/mail/contact-email';
 import { verifyTurnstile } from '@/lib/turnstile';
@@ -8,7 +9,7 @@ import { ratelimit } from '@/lib/rate-limit';
 import {
   BadRequestError,
   TooManyRequestsError,
-} from '@/middlewares/error-handler';
+} from '@/lib/errors';
 
 /**
  * Public contact form. Nothing is stored: the message is emailed to the
@@ -17,8 +18,7 @@ import {
 export async function POST(req: Request) {
   try {
     const headersList = await headers();
-    const ip =
-      headersList.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+    const ip = clientIp(headersList);
     const { success } = await ratelimit.limit(`contact:${ip}`);
     if (!success) throw new TooManyRequestsError();
 

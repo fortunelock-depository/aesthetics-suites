@@ -1,10 +1,11 @@
 // src/app/api/bookings/route.ts
 import { headers } from 'next/headers';
+import { clientIp } from '@/utils/client-ip';
 import { createWebsiteBooking } from '@/lib/hotel/booking-service';
 import { bookingCreateSchema } from '@/validations/hotel-validation';
 import { successResponse, handleApiError } from '@/utils/api-response';
 import { ratelimit } from '@/lib/rate-limit';
-import { TooManyRequestsError } from '@/middlewares/error-handler';
+import { TooManyRequestsError } from '@/lib/errors';
 
 /**
  * Public booking checkout: validates the stay, quotes server-side, holds a
@@ -13,8 +14,7 @@ import { TooManyRequestsError } from '@/middlewares/error-handler';
 export async function POST(req: Request) {
   try {
     const headersList = await headers();
-    const ip =
-      headersList.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+    const ip = clientIp(headersList);
     const { success } = await ratelimit.limit(`booking:${ip}`);
     if (!success) throw new TooManyRequestsError();
 

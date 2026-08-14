@@ -1,6 +1,7 @@
 // src/components/ui/data-table-pagination.tsx
 'use client';
 
+import * as React from 'react';
 import { Table } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,10 +38,16 @@ export function DataTablePagination<TData>({
   const startItem = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
   const endItem = Math.min(page * pageSize, totalCount);
 
+  // useId keeps the label/select pairing unique when two tables share a
+  // page (a hardcoded id would silently associate with the first one).
+  const pageSizeId = React.useId();
   return (
     <div className="flex items-center justify-between gap-2 border bg-background px-3 py-2.5 text-sm text-muted-foreground sm:px-4">
       <div className="flex flex-none items-center gap-2">
-        <label htmlFor="page-size" className="hidden whitespace-nowrap sm:inline">
+        <label
+          htmlFor={pageSizeId}
+          className="hidden whitespace-nowrap sm:inline"
+        >
           Rows
         </label>
         <Select
@@ -48,7 +55,7 @@ export function DataTablePagination<TData>({
           onValueChange={(value) => onPageSizeChange?.(Number(value))}
         >
           <SelectTrigger
-            id="page-size"
+            id={pageSizeId}
             aria-label="Rows per page"
             className="h-8 w-auto min-w-15"
           >

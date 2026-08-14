@@ -6,7 +6,7 @@ import { successResponse, handleApiError } from '@/utils/api-response';
 import { calendarQuerySchema } from '@/validations/hotel-validation';
 import { parseDateOnly } from '@/lib/hotel/dates';
 import { BLOCKING_STATUSES } from '@/lib/hotel/availability';
-import { BadRequestError, NotFoundError } from '@/middlewares/error-handler';
+import { BadRequestError, NotFoundError } from '@/lib/errors';
 
 const MAX_RANGE_DAYS = 92; // ~3 months per request keeps payloads sane.
 

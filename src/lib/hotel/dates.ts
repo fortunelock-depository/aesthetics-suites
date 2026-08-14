@@ -5,13 +5,32 @@
 // day is free to sell) - matching iCal DTSTART/DTEND semantics. Dates are
 // normalized to UTC midnight so timezones can never shift a night.
 
-/** Parses "YYYY-MM-DD" to a UTC-midnight Date. */
-export const parseDateOnly = (value: string): Date =>
-  new Date(`${value}T00:00:00.000Z`);
-
 /** Formats a Date back to "YYYY-MM-DD" (UTC). */
 export const toDateOnlyString = (date: Date): string =>
   date.toISOString().slice(0, 10);
+
+/**
+ * True when the string is a REAL calendar date. The regex alone is not
+ * enough: V8 rolls impossible dates over ("2026-02-31" parses to Mar 3),
+ * so a valid value must round-trip back to itself exactly.
+ */
+export const isValidDateOnly = (value: string): boolean => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && toDateOnlyString(date) === value;
+};
+
+/**
+ * Parses "YYYY-MM-DD" to a UTC-midnight Date. Throws on rollover/invalid
+ * input - API boundaries validate first (the `dateOnly` Zod schema), so a
+ * throw here means an unvalidated internal path, not a user error.
+ */
+export const parseDateOnly = (value: string): Date => {
+  if (!isValidDateOnly(value)) {
+    throw new RangeError(`Invalid calendar date: ${value}`);
+  }
+  return new Date(`${value}T00:00:00.000Z`);
+};
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 

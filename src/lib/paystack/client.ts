@@ -6,7 +6,7 @@
 // verify + webhook. All amounts are integer minor units (pesewas).
 import 'server-only';
 import { ENV } from '@/config/env';
-import { CustomError } from '@/middlewares/error-handler';
+import { CustomError } from '@/lib/errors';
 
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 const REQUEST_TIMEOUT_MS = 20_000;

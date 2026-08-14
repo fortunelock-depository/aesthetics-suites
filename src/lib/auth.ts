@@ -24,6 +24,7 @@ import {
   sendTwoFactorCodeEmail,
   sendPasswordResetEmail,
   sendPasswordChangedEmail,
+  sendTwoFactorDisabledEmail,
 } from '@/lib/mail/auth-emails';
 import { ENV } from '@/config/env';
 import { BCRYPT_SALT_ROUNDS } from '@/config/constants';
@@ -34,6 +35,7 @@ import {
 } from '@/validations/auth-validation';
 import type { IUser } from '@/types/user.types';
 import { ratelimit } from '@/lib/rate-limit';
+import { clientIp } from '@/utils/client-ip';
 
 type FormErrors = { email?: string[]; password?: string[]; _form?: string[] };
 
@@ -88,21 +90,35 @@ const userSelect = {
   updatedAt: true,
 } as const;
 
-/** Shared IP-based throttle for the auth actions. */
-async function checkRateLimit(): Promise<{
-  allowed: boolean;
-  retrySecs: number;
-}> {
-  const headersList = await headers();
-  const ip =
-    headersList.get('x-forwarded-for')?.split(',')[0].trim() ??
-    headersList.get('x-real-ip') ??
-    'unknown';
+/**
+ * Sacrificial compare target for unknown emails: without it, the missing
+ * ~250ms bcrypt compare makes "account exists" readable from login timing.
+ */
+const DUMMY_PASSWORD_HASH =
+  '$2b$12$oVzYbVerXrczeL2LeVm4s.wVyuwA/Gqb0ibqE1mnr.J0npZqZY1vO';
 
-  const { success, reset } = await ratelimit.limit(ip);
+/**
+ * Per-flow throttle for the auth actions. The prefix gives each flow its
+ * own bucket (login attempts must not eat the forgot-password budget), and
+ * an optional extra key adds an account-scoped bucket (e.g. per email) so
+ * a distributed attacker cannot spread one account's guesses across IPs.
+ */
+async function checkRateLimit(
+  prefix: string,
+  extraKey?: string,
+): Promise<{ allowed: boolean; retrySecs: number }> {
+  const ip = clientIp(await headers());
+
+  const results = await Promise.all([
+    ratelimit.limit(`${prefix}:${ip}`),
+    ...(extraKey ? [ratelimit.limit(`${prefix}:${extraKey}`)] : []),
+  ]);
+  const blocked = results.find((result) => !result.success);
   return {
-    allowed: success,
-    retrySecs: Math.max(Math.ceil((reset - Date.now()) / 1000), 1),
+    allowed: !blocked,
+    retrySecs: blocked
+      ? Math.max(Math.ceil((blocked.reset - Date.now()) / 1000), 1)
+      : 0,
   };
 }
 
@@ -127,7 +143,7 @@ export async function signin(
   _state: SigninState,
   formData: FormData,
 ): Promise<SigninState> {
-  const { allowed, retrySecs } = await checkRateLimit();
+  const { allowed, retrySecs } = await checkRateLimit('auth-login');
   if (!allowed) {
     return {
       success: false,
@@ -146,13 +162,32 @@ export async function signin(
   }
 
   const { email, password } = parsed.data;
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Account-scoped bucket: N rotating IPs still get one shared budget of
+  // guesses against a single staff account.
+  const perAccount = await checkRateLimit('auth-login-acct', normalizedEmail);
+  if (!perAccount.allowed) {
+    return {
+      success: false,
+      errors: {
+        _form: [
+          `Too many login attempts. Try again in ${perAccount.retrySecs}s.`,
+        ],
+      },
+    };
+  }
 
   // findFirst (not findUnique) so soft-deleted users are excluded by the extension.
   const user = await prisma.user.findFirst({
-    where: { email: email.toLowerCase().trim() },
+    where: { email: normalizedEmail },
   });
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
+  // Unknown email still pays the bcrypt cost (see DUMMY_PASSWORD_HASH).
+  const passwordOk = user
+    ? await bcrypt.compare(password, user.password)
+    : (await bcrypt.compare(password, DUMMY_PASSWORD_HASH), false);
+  if (!user || !passwordOk) {
     return { success: false, errors: { _form: ['Invalid email or password'] } };
   }
 
@@ -165,7 +200,17 @@ export async function signin(
       code,
       TWO_FACTOR_CODE_TTL_MINUTES,
     );
-    await sendTwoFactorCodeEmail(user, code, 'login');
+    const sent = await sendTwoFactorCodeEmail(user, code, 'login');
+    if (!sent) {
+      return {
+        success: false,
+        errors: {
+          _form: [
+            'We could not send your sign-in code right now. Please try again.',
+          ],
+        },
+      };
+    }
     await setTwoFactorPending(user.id);
     return {
       success: false,
@@ -190,7 +235,7 @@ export async function verifyTwoFactorLogin(
   _state: TwoFactorState,
   formData: FormData,
 ): Promise<TwoFactorState> {
-  const { allowed, retrySecs } = await checkRateLimit();
+  const { allowed, retrySecs } = await checkRateLimit('auth-2fa');
   if (!allowed) {
     return {
       success: false,
@@ -242,7 +287,7 @@ export async function verifyTwoFactorLogin(
 }
 
 export async function resendTwoFactorCode(): Promise<TwoFactorState> {
-  const { allowed, retrySecs } = await checkRateLimit();
+  const { allowed, retrySecs } = await checkRateLimit('auth-2fa-resend');
   if (!allowed) {
     return {
       success: false,
@@ -276,7 +321,13 @@ export async function resendTwoFactorCode(): Promise<TwoFactorState> {
     code,
     TWO_FACTOR_CODE_TTL_MINUTES,
   );
-  await sendTwoFactorCodeEmail(user, code, 'login');
+  const sent = await sendTwoFactorCodeEmail(user, code, 'login');
+  if (!sent) {
+    return {
+      success: false,
+      error: 'We could not send the code right now. Please try again.',
+    };
+  }
   return { success: false, resent: true };
 }
 
@@ -285,7 +336,7 @@ export async function forgotPassword(
   _state: ForgotPasswordState,
   formData: FormData,
 ): Promise<ForgotPasswordState> {
-  const { allowed, retrySecs } = await checkRateLimit();
+  const { allowed, retrySecs } = await checkRateLimit('auth-forgot');
   if (!allowed) {
     return {
       success: false,
@@ -316,7 +367,10 @@ export async function forgotPassword(
       token,
       PASSWORD_RESET_TTL_MINUTES,
     );
-    await sendPasswordResetEmail(
+    // Fire-and-forget: awaiting SMTP here makes response time an existence
+    // oracle (only real accounts pay the send latency). Failures surface
+    // through the mail layer's own logging.
+    void sendPasswordResetEmail(
       user,
       `${ENV.BASE_URL}/reset-password?token=${token}`,
     );
@@ -330,7 +384,7 @@ export async function resetPassword(
   _state: ResetPasswordState,
   formData: FormData,
 ): Promise<ResetPasswordState> {
-  const { allowed, retrySecs } = await checkRateLimit();
+  const { allowed, retrySecs } = await checkRateLimit('auth-reset');
   if (!allowed) {
     return {
       success: false,
@@ -399,7 +453,13 @@ export async function requestTwoFactorSetup(): Promise<TwoFactorSetupState> {
     code,
     TWO_FACTOR_CODE_TTL_MINUTES,
   );
-  await sendTwoFactorCodeEmail(user, code, 'setup');
+  const sent = await sendTwoFactorCodeEmail(user, code, 'setup');
+  if (!sent) {
+    return {
+      success: false,
+      error: 'We could not send the code right now. Please try again.',
+    };
+  }
   return {
     success: true,
     pending: true,
@@ -447,9 +507,35 @@ export async function confirmTwoFactorSetup(
   };
 }
 
-/** Disables 2FA for the signed-in user. */
-export async function disableTwoFactor(): Promise<TwoFactorSetupState> {
+/**
+ * Disables 2FA for the signed-in user. Requires the current password: a
+ * hijacked session alone must not be able to strip the second factor
+ * (enabling demands an emailed code, so disabling cannot be cheaper).
+ */
+export async function disableTwoFactor(
+  _state: TwoFactorSetupState,
+  formData: FormData,
+): Promise<TwoFactorSetupState> {
+  const { allowed, retrySecs } = await checkRateLimit('auth-2fa-disable');
+  if (!allowed) {
+    return {
+      success: false,
+      error: `Too many attempts. Try again in ${retrySecs}s.`,
+    };
+  }
+
   const { userId } = await verifySession();
+  const account = await prisma.user.findFirst({
+    where: { id: userId },
+    select: { id: true, fullname: true, email: true, password: true },
+  });
+  if (!account) return { success: false, error: 'Account not found.' };
+
+  const password = String(formData.get('password') ?? '');
+  if (!password || !(await bcrypt.compare(password, account.password))) {
+    return { success: false, error: 'Your current password is incorrect.' };
+  }
+
   await prisma.user.update({
     where: { id: userId },
     data: { twoFactorEnabled: false },
@@ -465,6 +551,8 @@ export async function disableTwoFactor(): Promise<TwoFactorSetupState> {
       },
     },
   });
+  // Notify the owner - if this was not them, they must find out now.
+  void sendTwoFactorDisabledEmail(account);
   return {
     success: true,
     enabled: false,

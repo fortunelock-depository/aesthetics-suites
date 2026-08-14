@@ -3,7 +3,7 @@ import 'server-only';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import { ENV } from '@/config/env';
 import logger from '@/utils/logger';
-import { CustomError } from '@/middlewares/error-handler';
+import { CustomError } from '@/lib/errors';
 import type {
   IUploadedFile,
   ICloudinaryUploadResult,

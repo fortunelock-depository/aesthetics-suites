@@ -129,11 +129,17 @@ export async function sendBookingCancelledEmail(
   booking: Booking,
   roomTypeName: string,
   refundedAmount: number,
+  refundPending = false,
 ): Promise<void> {
+  // Three honest states: refund issued, refund due but not yet executed
+  // (provider rejected the call - staff retry), or genuinely no refund.
+  // Never promise money that has not actually moved.
   const refundLine =
     refundedAmount > 0
       ? `<p style="margin:0 0 16px;">A refund of <strong>${formatMoney(refundedAmount, booking.currency)}</strong> has been issued to your original payment method. It typically arrives within a few business days.</p>`
-      : `<p style="margin:0 0 16px;">This cancellation falls outside the free-cancellation window, so no refund applies.</p>`;
+      : refundPending
+        ? `<p style="margin:0 0 16px;">A refund is due for this cancellation and is being handled by our team - we will follow up with you shortly.</p>`
+        : `<p style="margin:0 0 16px;">This cancellation falls outside the free-cancellation window, so no refund applies.</p>`;
 
   const html = shell(`
     <h2 style="margin:0 0 16px;font-size:18px;">Booking cancelled</h2>
@@ -219,5 +225,42 @@ export async function sendBookingNotificationToAdmins(
     html,
     replyTo: booking.guestEmail,
     devConsole: `New booking ${booking.code} by ${booking.guestEmail}`,
+  });
+}
+
+/**
+ * Staff incident alert: a payment settled against a booking that could not
+ * be confirmed (hold expired and the dates were resold, or the booking was
+ * cancelled while the charge was in flight). Money is involved either way:
+ * 'refunded' needs a sanity check, 'refund_failed' needs a manual refund
+ * NOW, 'no_payment' means the ledger looks inconsistent.
+ */
+export async function sendPaymentReconciliationAlert(
+  booking: Booking,
+  roomTypeName: string,
+  outcome: 'no_payment' | 'refund_failed' | 'refunded',
+): Promise<void> {
+  const recipients = await adminRecipients();
+  if (recipients.length === 0) return;
+
+  const outcomeLine =
+    outcome === 'refunded'
+      ? 'An automatic Paystack refund was issued. Please verify it in the dashboard.'
+      : outcome === 'refund_failed'
+        ? 'The automatic refund FAILED at Paystack - refund this guest manually, then retry from the booking page.'
+        : 'No settled payment row was found - check the payments ledger for this booking.';
+
+  const html = shell(`
+    <h2 style="margin:0 0 16px;font-size:18px;">Payment needs attention</h2>
+    <p style="margin:0 0 16px;">A payment settled for booking <strong>${escapeHtml(booking.code)}</strong> (${escapeHtml(roomTypeName)}), but the booking could not be confirmed - its hold had expired or it was cancelled.</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 16px;">${detailRows(booking, roomTypeName)}</table>
+    <p style="margin:0 0 16px;font-weight:600;">${outcomeLine}</p>
+  `);
+
+  await deliver({
+    to: recipients.join(', '),
+    subject: `ACTION NEEDED: payment on dead booking ${booking.code} - ${SITE.name}`,
+    html,
+    devConsole: `Payment reconciliation alert: ${booking.code} (${outcome})`,
   });
 }

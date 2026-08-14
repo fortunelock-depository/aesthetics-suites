@@ -1,24 +1,8 @@
 // src/hooks/use-mobile.ts
+//
+// Back-compat alias: the shadcn sidebar scaffold shipped this hook, but it
+// is byte-for-byte the same media-query subscription as use-breakpoint's
+// useIsBelowMd - one implementation, re-exported under the old name.
 'use client';
 
-import { useSyncExternalStore } from 'react';
-
-const MOBILE_BREAKPOINT = 768;
-const QUERY = `(max-width: ${MOBILE_BREAKPOINT - 1}px)`;
-
-/**
- * Below-md detection for the sidebar's sheet/inline switch. Hydration-safe:
- * the server snapshot is `false`, so the first client render always matches
- * SSR, then the real value applies (no setState-in-effect).
- */
-export function useIsMobile(): boolean {
-  return useSyncExternalStore(
-    (onChange) => {
-      const mql = window.matchMedia(QUERY);
-      mql.addEventListener('change', onChange);
-      return () => mql.removeEventListener('change', onChange);
-    },
-    () => window.matchMedia(QUERY).matches,
-    () => false,
-  );
-}
+export { useIsBelowMd as useIsMobile } from './use-breakpoint';

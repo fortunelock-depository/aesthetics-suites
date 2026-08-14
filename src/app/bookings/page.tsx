@@ -1,5 +1,7 @@
 // src/app/bookings/page.tsx
 import type { Metadata } from 'next';
+import { SiteHeader } from '@/components/site/site-header';
+import { SiteFooter } from '@/components/site/site-footer';
 import { PageBanner } from '@/components/site/page-banner';
 import { ManageBookingClient } from '@/components/rooms/manage-booking-client';
 import { unsplash } from '@/static-data/home';
@@ -20,6 +22,8 @@ export default async function ManageBookingPage({
   const query = await searchParams;
   return (
     <>
+      <SiteHeader />
+      <main className="flex-1">
       <PageBanner
         title="Manage Booking"
         image={unsplash('1618773928121-c32242e63f39', 2000)}
@@ -35,6 +39,8 @@ export default async function ManageBookingPage({
           initialEmail={(query.email ?? '').slice(0, 255)}
         />
       </div>
+      </main>
+      <SiteFooter />
     </>
   );
 }

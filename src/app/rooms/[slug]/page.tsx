@@ -15,6 +15,12 @@ import { getPublicRoomCards } from '@/lib/hotel/public-rooms';
 import { ROOM_DETAILS_CONTENT, unsplash } from '@/static-data/home';
 import { amenityIcon } from '@/lib/amenity-icons';
 import { clampDescription } from '@/lib/seo';
+import { SITE } from '@/config/constants';
+import {
+  JsonLd,
+  hotelRoomJsonLd,
+  breadcrumbJsonLd,
+} from '@/lib/structured-data';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -34,6 +40,7 @@ export async function generateMetadata({
   return {
     title: room.name,
     description: clampDescription(room.summary, 155),
+    alternates: { canonical: `${SITE.url}/rooms/${slug}` },
   };
 }
 
@@ -46,10 +53,18 @@ export default async function RoomDetailPage({ params }: PageProps) {
 
   return (
     <>
+      <JsonLd data={hotelRoomJsonLd(room)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Home', path: '/' },
+          { name: 'Rooms', path: '/rooms' },
+          { name: room.name, path: `/rooms/${room.slug}` },
+        ])}
+      />
       <SiteHeader />
       <main className="flex-1">
         <PageBanner
-          title="Room Details"
+          title={room.name}
           image={room.photos[0]?.url ?? unsplash('1618773928121-c32242e63f39', 2000)}
           trail={[{ label: 'Room List', href: '/rooms' }]}
         />
@@ -66,14 +81,19 @@ export default async function RoomDetailPage({ params }: PageProps) {
                 <RoomPriceWidget room={room} />
               </div>
             </div>
-            <RoomsSidebarWidgets rooms={allRooms} />
+            <RoomsSidebarWidgets
+              rooms={allRooms}
+              bookPath={`/rooms/${room.slug}/book`}
+            />
           </aside>
 
           {/* Content column. */}
           <article className="order-1 min-w-0 lg:order-2">
-            <h1 className="font-heading text-[28px] leading-[1.3] font-medium text-foreground [overflow-wrap:anywhere] lg:text-[35px]">
+            {/* h2: the banner's h1 already carries the room name - two
+                competing h1s made the generic one win in outlines. */}
+            <h2 className="font-heading text-[28px] leading-[1.3] font-medium text-foreground [overflow-wrap:anywhere] lg:text-[35px]">
               {room.name} - {room.summary}
-            </h1>
+            </h2>
             {room.description.map((paragraph) => (
               <p
                 key={paragraph.slice(0, 40)}

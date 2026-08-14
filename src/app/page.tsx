@@ -1,5 +1,6 @@
 // src/app/page.tsx
 import { SiteHeader } from '@/components/site/site-header';
+import { JsonLd, lodgingBusinessJsonLd } from '@/lib/structured-data';
 import { SiteFooter } from '@/components/site/site-footer';
 import { Hero } from '@/components/home/hero';
 import { WelcomeSection } from '@/components/home/welcome-section';
@@ -24,18 +25,18 @@ export const metadata = pageMetadata({
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  // Static demo cards fill the grid until real rooms are published (the
-  // same data the DEMO_SEED writes, so the switch-over is invisible).
-  const [dbRooms, facilities, services] = await Promise.all([
+  // The DB is the only source of truth - unpublished content simply
+  // renders honest empty sections.
+  const [rooms, facilities, services] = await Promise.all([
     getPublicRoomCards(),
     getPublicFacilities(),
     getPublicServices(),
   ]);
   // The DB is the only source of truth - unpublished means not shown.
-  const rooms = dbRooms;
 
   return (
     <>
+      <JsonLd data={lodgingBusinessJsonLd()} />
       <SiteHeader variant="overlay" />
       <main className="flex-1">
         <Hero />

@@ -10,7 +10,7 @@ import { successResponse, handleApiError } from '@/utils/api-response';
 import {
   BadRequestError,
   NotFoundError,
-} from '@/middlewares/error-handler';
+} from '@/lib/errors';
 import { updateUserRoleSchema } from '@/validations/user-validation';
 
 const userSelect = {

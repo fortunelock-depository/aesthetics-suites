@@ -10,6 +10,8 @@ import {
   getPublicService,
 } from '@/lib/hotel/public-services';
 import { clampDescription } from '@/lib/seo';
+import { SITE } from '@/config/constants';
+import { JsonLd, breadcrumbJsonLd } from '@/lib/structured-data';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -32,6 +34,7 @@ export async function generateMetadata({
   return {
     title: service.name,
     description: clampDescription(service.summary, 155),
+    alternates: { canonical: `${SITE.url}/services/${slug}` },
   };
 }
 
@@ -46,6 +49,13 @@ export default async function ServiceDetailPage({ params }: PageProps) {
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Home', path: '/' },
+          { name: 'Services', path: '/services' },
+          { name: service.name, path: `/services/${service.slug}` },
+        ])}
+      />
       <SiteHeader />
       <main className="flex-1">
         <PageBanner

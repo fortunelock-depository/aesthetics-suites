@@ -65,7 +65,7 @@ export function SiteHeader({
                     aria-current={active ? 'page' : undefined}
                     className={cn(
                       'text-base font-medium capitalize transition-colors hover:text-brand',
-                      active ? 'text-brand' : 'text-foreground',
+                      active ? 'text-brand-text' : 'text-foreground',
                     )}
                   >
                     {link.label}

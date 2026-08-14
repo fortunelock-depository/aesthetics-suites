@@ -26,9 +26,18 @@ const baseQueryWithReauth: BaseQueryFn<
 
   // Session expired / not signed in: bounce to login. The session cookie is
   // issued by this same app (server actions), so there is no refresh flow -
-  // an invalid session means signing in again.
+  // an invalid session means signing in again. Scoped to the authenticated
+  // endpoint prefixes so a future public endpoint 401 could never hurl an
+  // anonymous visitor at the admin login, and the current path rides along
+  // so signing back in lands where the session died.
   if (result.error?.status === 401 && typeof window !== 'undefined') {
-    window.location.href = '/login';
+    const url = typeof args === 'string' ? args : args.url;
+    if (url.startsWith('admin/') || url.startsWith('users/')) {
+      const next = encodeURIComponent(
+        window.location.pathname + window.location.search,
+      );
+      window.location.href = `/login?callbackUrl=${next}`;
+    }
   }
 
   return result;

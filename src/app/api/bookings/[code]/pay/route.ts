@@ -1,5 +1,6 @@
 // src/app/api/bookings/[code]/pay/route.ts
 import { headers } from 'next/headers';
+import { clientIp } from '@/utils/client-ip';
 import { z } from 'zod';
 import prisma, { BookingStatus } from '@/lib/prisma';
 import { initializePayment } from '@/lib/payments/payment-service';
@@ -9,7 +10,7 @@ import {
   ConflictError,
   NotFoundError,
   TooManyRequestsError,
-} from '@/middlewares/error-handler';
+} from '@/lib/errors';
 
 const paySchema = z.object({ email: z.email() });
 
@@ -24,8 +25,7 @@ export async function POST(
 ) {
   try {
     const headersList = await headers();
-    const ip =
-      headersList.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+    const ip = clientIp(headersList);
     const { success } = await ratelimit.limit(`booking-pay:${ip}`);
     if (!success) throw new TooManyRequestsError();
 

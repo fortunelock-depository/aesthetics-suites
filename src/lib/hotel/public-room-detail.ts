@@ -68,7 +68,14 @@ export async function getPublicRoomDetail(
 
     const [aggregate, reviews] = await Promise.all([
       prisma.review.aggregate({
-        where: { roomTypeId: roomType.id, status: ReviewStatus.APPROVED },
+        // aggregate is NOT covered by the soft-delete extension (it only
+        // scopes findMany/findFirst/count) - exclude deleted rows here so
+        // the average can never disagree with the visible list below.
+        where: {
+          roomTypeId: roomType.id,
+          status: ReviewStatus.APPROVED,
+          deletedAt: null,
+        },
         _avg: { rating: true },
         _count: { _all: true },
       }),

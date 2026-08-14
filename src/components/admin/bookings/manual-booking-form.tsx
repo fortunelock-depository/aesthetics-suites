@@ -62,7 +62,12 @@ const BLANK: FormInput = {
  * server quotes the price (seasons, occupancy, taxes) unless the total
  * is overridden here.
  */
-export function ManualBookingForm() {
+export function ManualBookingForm({
+  canOverrideTotal = true,
+}: {
+  /** Admin-only price override; the API rejects it for FRONT_DESK. */
+  canOverrideTotal?: boolean;
+}) {
   const router = useRouter();
   const [createBooking, { isLoading }] = useCreateManualBookingMutation();
   const { data: roomTypesData } = useGetRoomTypesQuery({
@@ -180,13 +185,15 @@ export function ManualBookingForm() {
             error={errors.guestPhone?.message}
             {...register('guestPhone')}
           />
-          <TextField
-            label="Total override (GHS, optional)"
-            inputMode="decimal"
-            hint="Leave empty to charge the computed price (seasons, taxes, extra guests)."
-            error={errors.totalOverride?.message}
-            {...register('totalOverride')}
-          />
+          {canOverrideTotal && (
+            <TextField
+              label="Total override (GHS, optional)"
+              inputMode="decimal"
+              hint="Leave empty to charge the computed price (seasons, taxes, extra guests)."
+              error={errors.totalOverride?.message}
+              {...register('totalOverride')}
+            />
+          )}
           <div className="sm:col-span-2">
             <TextAreaField
               label="Special requests (optional)"

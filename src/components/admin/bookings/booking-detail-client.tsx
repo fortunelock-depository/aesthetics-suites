@@ -25,6 +25,7 @@ import { useConfirm } from '@/hooks/use-confirm';
 import {
   useGetBookingQuery,
   useApplyBookingActionMutation,
+  useRefundBookingMutation,
 } from '@/redux/bookings-api';
 import { extractApiError } from '@/lib/extract-api-error';
 import { formatDate, formatDateTime } from '@/lib/format-date';
@@ -182,6 +183,8 @@ export function BookingDetailClient({ bookingId }: { bookingId: string }) {
     useApplyBookingActionMutation();
   const { confirm, confirmDialog } = useConfirm();
   const [cancelOpen, setCancelOpen] = React.useState(false);
+  const [refundBooking, { isLoading: isRefunding }] =
+    useRefundBookingMutation();
 
   if (isLoading) return <BookingDetailSkeleton />;
 
@@ -204,6 +207,25 @@ export function BookingDetailClient({ bookingId }: { bookingId: string }) {
   const taxLines = Array.isArray(booking.taxBreakdown)
     ? booking.taxBreakdown
     : [];
+
+  const handleRetryRefund = async () => {
+    const ok = await confirm({
+      title: 'Retry the refund?',
+      description:
+        'This re-drives the Paystack refund for the full settled amount.',
+      confirmText: 'Refund now',
+      isDestructive: true,
+    });
+    if (!ok) return;
+    try {
+      const res = await refundBooking({ id: booking.id }).unwrap();
+      toast.success(
+        `Refund executed (${formatMoney(res.data.refundedAmount, booking.currency)})`,
+      );
+    } catch (err) {
+      toast.error(extractApiError(err).message);
+    }
+  };
 
   const handleAction = async (
     action: Exclude<BookingActionValue, 'cancel'>,
@@ -349,6 +371,27 @@ export function BookingDetailClient({ bookingId }: { bookingId: string }) {
             </DetailRow>
           )}
         </div>
+        {booking.refundFailedAt && (
+          <div className="mt-4 rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm">
+            <p className="font-medium text-destructive" role="alert">
+              A refund is due but FAILED at Paystack
+              {' '}({formatDateTime(booking.refundFailedAt)}).
+            </p>
+            <p className="mt-1 text-muted-foreground">
+              The guest has not received their money. Retry below (admins),
+              or refund manually from the Paystack dashboard.
+            </p>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="mt-3"
+              disabled={isRefunding}
+              onClick={handleRetryRefund}
+            >
+              {isRefunding ? 'Refunding...' : 'Retry refund'}
+            </Button>
+          </div>
+        )}
       </SectionCard>
 
       <SectionCard

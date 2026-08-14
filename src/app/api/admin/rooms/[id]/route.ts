@@ -3,7 +3,8 @@ import prisma from '@/lib/prisma';
 import { requireAdmin } from '@/lib/api-auth';
 import { successResponse, handleApiError } from '@/utils/api-response';
 import { roomUpdateSchema } from '@/validations/hotel-validation';
-import { ConflictError, NotFoundError } from '@/middlewares/error-handler';
+import { ConflictError, NotFoundError } from '@/lib/errors';
+import { revalidatePublicRooms } from '@/utils/revalidate';
 
 export async function PATCH(
   req: Request,
@@ -16,11 +17,13 @@ export async function PATCH(
 
     const existing = await prisma.room.findFirst({
       where: { id },
-      select: { id: true },
+      select: { id: true, roomType: { select: { slug: true } } },
     });
     if (!existing) throw new NotFoundError('Unit not found');
 
     const room = await prisma.room.update({ where: { id }, data: input });
+    // Status flips (ACTIVE/MAINTENANCE) change the public unit count.
+    revalidatePublicRooms(existing.roomType.slug);
     return successResponse(room, 'Unit updated');
   } catch (err) {
     return handleApiError(err);
@@ -47,7 +50,12 @@ export async function DELETE(
       );
     }
 
+    const unit = await prisma.room.findFirst({
+      where: { id },
+      select: { roomType: { select: { slug: true } } },
+    });
     await prisma.room.delete({ where: { id } });
+    if (unit) revalidatePublicRooms(unit.roomType.slug);
     return successResponse({ id }, 'Unit deleted');
   } catch (err) {
     return handleApiError(err);

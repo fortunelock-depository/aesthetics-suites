@@ -5,7 +5,7 @@ import { successResponse, handleApiError } from '@/utils/api-response';
 import { facilityUpdateSchema } from '@/validations/hotel-validation';
 import { generateSlug } from '@/utils/generate-slug';
 import { revalidatePublicFacilities } from '@/utils/revalidate';
-import { NotFoundError } from '@/middlewares/error-handler';
+import { NotFoundError } from '@/lib/errors';
 
 export async function GET(
   _req: Request,

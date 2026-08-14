@@ -44,7 +44,7 @@ Sign in at `/login` with the seeded admin; you land on `/admin`.
 | OG image template (all `opengraph-image.tsx` files) | `src/lib/og-image.tsx` |
 | robots / sitemap / manifest / icon | `src/app/robots.ts`, `sitemap.ts`, `manifest.ts`, `icon.svg` |
 | Error pages (route, root, 404) | `src/app/error.tsx`, `global-error.tsx`, `not-found.tsx` |
-| API envelope + error mapping | `src/utils/api-response.ts`, `src/middlewares/error-handler.ts` |
+| API envelope + error mapping | `src/utils/api-response.ts`, `src/lib/errors.ts` |
 | Logging (structured in prod, redacted) | `src/utils/logger.ts` |
 | Rate limiting (Upstash / memory / fail-closed) | `src/lib/rate-limit.ts`, `rate-limiter.ts` |
 | RTK Query data layer | `src/redux/api-slice.ts` (+ `overview-api.ts` example) |
@@ -76,8 +76,12 @@ Sign in at `/login` with the seeded admin; you land on `/admin`.
   `apiSlice.injectEndpoints` in a `redux/<feature>-api.ts` file; register new
   cache tags in `src/types/api.ts`.
 - **API routes** follow the `{ status, message, data }` envelope from
-  `successResponse` / `handleApiError`; throw the typed errors from
-  `src/middlewares/error-handler.ts`.
+  `successResponse` / `handleApiError` (lists add
+  `pagination: { page, limit, totalItems, totalPages }`, errors are
+  `{ status: 'error', message, code? }`); throw the typed errors from
+  `src/lib/errors.ts`. This envelope is THIS repo's contract - it predates
+  the `{ message, data, meta }` dialect used by the split-repo apps and is
+  kept deliberately (one colocated repo, zero drift risk).
 - **Zod schemas** live in `src/validations/`; response types in `src/types/`.
 - **Per-page SEO** via `pageMetadata()` and a colocated `opengraph-image.tsx`
   that calls `brandOgImage()`.
@@ -89,3 +93,31 @@ Sign in at `/login` with the seeded admin; you land on `/admin`.
 - `npm run lint`
 - `npm run migrate` / `migrate:deploy` / `seed` / `generate`
 - `npm test` / `test:watch`
+
+
+## Deployment
+
+Target: Vercel (serverless) + Neon Postgres. The pieces that are NOT code:
+
+1. **Database**: set `DATABASE_URL` to the POOLED endpoint (Neon pooler /
+   pgbouncer) - every serverless instance opens its own pg pool, and direct
+   connections exhaust Postgres under load. Keep the DIRECT URL as the
+   GitHub Actions secret `PROD_DATABASE_URL` for migrations.
+2. **Migrations run before code**: the CI `migrate` job runs
+   `prisma migrate deploy` against the direct URL on every push to main,
+   BEFORE Vercel builds - new code never runs against an old schema.
+3. **Cron**: `vercel.json` schedules `/api/cron/housekeeping` every 15
+   minutes. Set `CRON_SECRET` in the Vercel env - Vercel Cron sends it as
+   the Bearer token automatically. Without it the route fails closed (and
+   logs fatally at boot): no hold expiry, no Airbnb sync, no lifecycle
+   emails.
+4. **Paystack**: set the dashboard webhook URL to
+   `https://<domain>/api/payments/paystack/webhook` and configure
+   `PAYSTACK_SECRET_KEY` (+ optional `PAYSTACK_CALLBACK_URL`).
+5. **Required in production**: `NEXT_PUBLIC_BASE_URL` (build fails without
+   it), `SESSION_SECRET`, `UPSTASH_REDIS_REST_URL`/`_TOKEN` (rate limiting
+   fails closed without them), `CRON_SECRET`, SMTP credentials, Cloudinary
+   keys, Turnstile keys.
+6. **Observability**: logs are structured JSON (pino). There is no error
+   tracker wired; point a Vercel log drain at the project (or add Sentry)
+   so `level >= error` pages someone - payment incidents land there.

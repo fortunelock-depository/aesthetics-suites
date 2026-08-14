@@ -18,7 +18,7 @@ import { routes } from '@/lib/routes';
  */
 export function SiteFooter() {
   const legalLinks = [
-    { href: '/bookings', label: 'Manage Booking' },
+    { href: routes.bookings, label: 'Manage Booking' },
     { href: routes.privacy, label: 'Privacy Policy' },
     { href: routes.terms, label: 'Terms of Service' },
   ];

@@ -15,9 +15,11 @@
     "migrate:deploy": "prisma migrate deploy",
     "migrate:deploy:local": "node --env-file .env ./node_modules/.bin/prisma migrate deploy",
     "seed": "prisma db seed",
-    "test": "vitest run",
+    "test": "vitest run && vitest run -c vitest.integration.config.ts",
     "test:watch": "vitest",
-    "email:samples": "NODE_OPTIONS=--conditions=react-server tsx --env-file .env scripts/send-sample-emails.ts"
+    "email:samples": "NODE_OPTIONS=--conditions=react-server tsx --env-file .env scripts/send-sample-emails.ts",
+    "test:unit": "vitest run",
+    "test:integration": "vitest run -c vitest.integration.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -57,7 +59,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
-    "@types/node": "^20",
+    "@types/node": "^24",
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",

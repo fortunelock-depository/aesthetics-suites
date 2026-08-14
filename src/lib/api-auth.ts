@@ -2,7 +2,7 @@
 import 'server-only';
 import { verifySession, type SessionInfo } from '@/lib/session';
 import { UserRole } from '@/lib/prisma';
-import { ForbiddenError } from '@/middlewares/error-handler';
+import { ForbiddenError } from '@/lib/errors';
 
 /**
  * RBAC guards for API routes / server actions. Throws UnauthorizedError with

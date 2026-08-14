@@ -21,5 +21,5 @@ export const siteNavLinks: SiteNavLink[] = [
   { href: '/contact', label: 'Contact' },
 ];
 
-/** The primary CTA target (the rooms catalogue until the booking flow lands). */
+/** The primary CTA target: the rooms catalogue, where booking starts. */
 export const BOOK_NOW_HREF = '/rooms';

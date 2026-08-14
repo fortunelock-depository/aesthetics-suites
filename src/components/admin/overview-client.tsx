@@ -158,6 +158,7 @@ export function OverviewClient() {
     { label: 'Arrivals due (not checked in)', value: attention.arrivalsDue },
     { label: 'Stale Airbnb calendars', value: attention.staleCalendars },
     { label: 'Failed payments (7 days)', value: attention.failedPayments7d },
+    { label: 'Refunds needing retry', value: attention.failedRefunds },
   ].filter((item) => item.value > 0);
 
   return (

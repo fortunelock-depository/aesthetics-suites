@@ -37,9 +37,12 @@ export const ENV = {
   SESSION_SECRET: requiredSecret('SESSION_SECRET'),
 
   // Public site origin - canonical URLs, sitemap, OG URLs, and absolute links
-  // in emails (password reset). Must be set in production so none of those
-  // point at a preview domain; localhost fallback is for development only.
-  BASE_URL: optional('NEXT_PUBLIC_BASE_URL') ?? 'http://localhost:3000',
+  // in emails (password reset). REQUIRED in production (a silent localhost
+  // fallback would break every emailed link and the Paystack return leg);
+  // the localhost fallback exists for development only.
+  BASE_URL: IS_PRODUCTION
+    ? required('NEXT_PUBLIC_BASE_URL')
+    : (optional('NEXT_PUBLIC_BASE_URL') ?? 'http://localhost:3000'),
 
   // SMTP - optional (agritrade pattern). When unset, the mail layer logs
   // codes/links to the server console instead of sending email (fine for
@@ -88,6 +91,13 @@ export const ENV = {
    */
   PAYSTACK_CALLBACK_URL: optional('PAYSTACK_CALLBACK_URL'),
   PAYSTACK_PUBLIC_KEY: optional('NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY'),
+
+  // Dev mail seams. MAIL_FORCE_TO reroutes EVERY outgoing email to one
+  // inbox (sample sends, staging smoke tests); MAIL_PREVIEW_DIR renders
+  // emails to disk instead of sending. Both are IGNORED in production -
+  // a copied .env must never silently swallow real guest email.
+  MAIL_FORCE_TO: IS_PRODUCTION ? undefined : optional('MAIL_FORCE_TO'),
+  MAIL_PREVIEW_DIR: IS_PRODUCTION ? undefined : optional('MAIL_PREVIEW_DIR'),
 
   // Upstash Redis. Optional in development (in-memory limiter is correct for
   // a single local process) but REQUIRED in production: on serverless each

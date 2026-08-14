@@ -47,6 +47,24 @@ function StarPicker({
   value: number;
   onChange: (rating: number) => void;
 }) {
+  // Real radiogroup semantics: roving tabindex (only the checked star is a
+  // tab stop) with arrow keys moving AND selecting, wrapping both ways -
+  // the ARIA radio pattern, not five independent toggle buttons.
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    let next: number | null = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      next = value >= 5 ? 1 : value + 1;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      next = value <= 1 ? 5 : value - 1;
+    }
+    if (next !== null) {
+      e.preventDefault();
+      onChange(next);
+      (e.currentTarget.parentElement?.children[next - 1] as
+        | HTMLElement
+        | undefined)?.focus();
+    }
+  };
   return (
     <div
       role="radiogroup"
@@ -60,7 +78,9 @@ function StarPicker({
           role="radio"
           aria-checked={value === step}
           aria-label={`${step} star${step === 1 ? '' : 's'}`}
+          tabIndex={step === value || (value === 0 && step === 1) ? 0 : -1}
           onClick={() => onChange(step)}
+          onKeyDown={handleKeyDown}
           className="p-0.5"
         >
           <Star

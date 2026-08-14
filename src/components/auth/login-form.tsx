@@ -64,9 +64,12 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           aria-invalid={!!state.errors?.email}
+          aria-describedby={state.errors?.email ? 'login-email-error' : undefined}
         />
         {state.errors?.email && (
-          <p className="text-xs text-destructive">{state.errors.email[0]}</p>
+          <p id="login-email-error" role="alert" className="text-xs text-destructive">
+            {state.errors.email[0]}
+          </p>
         )}
       </div>
 
@@ -82,12 +85,14 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             aria-invalid={!!state.errors?.password}
+            aria-describedby={
+              state.errors?.password ? 'login-password-error' : undefined
+            }
             className="pr-10"
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            tabIndex={-1}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
@@ -99,7 +104,9 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
           </button>
         </div>
         {state.errors?.password && (
-          <p className="text-xs text-destructive">{state.errors.password[0]}</p>
+          <p id="login-password-error" role="alert" className="text-xs text-destructive">
+            {state.errors.password[0]}
+          </p>
         )}
       </div>
 

@@ -56,7 +56,11 @@ export const serviceFormSchema = z.object({
 export type ServiceFormInput = z.input<typeof serviceFormSchema>;
 export type ServiceFormOutput = z.output<typeof serviceFormSchema>;
 
-export const BLANK_FACILITY: ServiceFormInput = {
+// (Named for THIS module - the facilities clone this file started from
+// exported BLANK_FACILITY here for a while, the first drift symptom of the
+// clone pair. The two modules remain near-identical clones by choice; a
+// parameterized editorial-entity module is the eventual dedupe.)
+export const BLANK_SERVICE: ServiceFormInput = {
   name: '',
   eyebrow: '',
   summary: '',

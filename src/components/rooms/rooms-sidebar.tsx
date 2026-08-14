@@ -29,10 +29,18 @@ export function SidebarWidget({
  * side-by-side buttons lifting each card up as a bottom drawer, so the
  * widgets never stretch the page.
  */
-export function RoomsSidebarWidgets({ rooms }: { rooms: IPublicRoomCard[] }) {
+export function RoomsSidebarWidgets({
+  rooms,
+  bookPath,
+}: {
+  rooms: IPublicRoomCard[];
+  /** Set on the room detail page: its own /book route, so the widget goes
+   * straight to checkout with the chosen dates. */
+  bookPath?: string;
+}) {
   return (
     <>
-      <MobileSidebarDrawers rooms={rooms} />
+      <MobileSidebarDrawers rooms={rooms} bookPath={bookPath} />
 
       <div className="hidden space-y-8 lg:block">
         <SidebarWidget title="Category">
@@ -40,7 +48,7 @@ export function RoomsSidebarWidgets({ rooms }: { rooms: IPublicRoomCard[] }) {
         </SidebarWidget>
 
         <SidebarWidget title="Booking Now">
-          <SidebarBookingCard />
+          <SidebarBookingCard bookPath={bookPath} />
         </SidebarWidget>
       </div>
     </>

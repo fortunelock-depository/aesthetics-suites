@@ -10,7 +10,7 @@ import { useVerifyPaymentMutation } from '@/redux/payments-api';
 import { extractApiError } from '@/lib/extract-api-error';
 import { routes } from '@/lib/routes';
 
-type State = 'verifying' | 'success' | 'failed';
+type State = 'verifying' | 'success' | 'refunded' | 'failed';
 
 /**
  * The Paystack return page body. Paystack appends BOTH `reference` and
@@ -33,6 +33,10 @@ export function PaymentVerifyClient({
   const [message, setMessage] = useState(
     reference ? '' : 'This link is missing its payment reference.',
   );
+  const [booking, setBooking] = useState<{
+    code: string;
+    guestEmail: string;
+  } | null>(null);
   const ran = useRef(false);
 
   const runVerify = useCallback(() => {
@@ -40,13 +44,26 @@ export function PaymentVerifyClient({
     verify({ reference })
       .unwrap()
       .then((res) => {
-        if (res.data.status === 'SUCCESS') {
-          setState('success');
-          onConfirmed?.();
-        } else {
+        const paidBooking = res.data.booking;
+        if (res.data.status !== 'SUCCESS') {
           setState('failed');
           setMessage("This payment hasn't been confirmed yet.");
+          return;
         }
+        // Paid, but the booking could not be honored (hold lapsed, room
+        // resold) and was auto-refunded - never show a false "confirmed".
+        if (paidBooking?.refunded) {
+          setState('refunded');
+          return;
+        }
+        if (paidBooking) {
+          setBooking({
+            code: paidBooking.code,
+            guestEmail: paidBooking.guestEmail,
+          });
+        }
+        setState('success');
+        onConfirmed?.();
       })
       .catch((err) => {
         setState('failed');
@@ -79,8 +96,36 @@ export function PaymentVerifyClient({
           <p className="mt-1 text-sm text-muted-foreground">
             Thank you - your payment went through successfully.
           </p>
-          <Button asChild className="mt-6">
-            <Link href={routes.home}>Back to home</Link>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {booking && (
+              <Button asChild>
+                <Link
+                  href={`${routes.bookings}?code=${encodeURIComponent(booking.code)}&email=${encodeURIComponent(booking.guestEmail)}`}
+                >
+                  View my booking
+                </Link>
+              </Button>
+            )}
+            <Button asChild variant={booking ? 'outline' : 'default'}>
+              <Link href={routes.home}>Back to home</Link>
+            </Button>
+          </div>
+        </>
+      )}
+
+      {state === 'refunded' && (
+        <>
+          <CircleX className="mx-auto h-10 w-10 text-destructive" />
+          <h1 className="mt-4 text-lg font-semibold">
+            Payment received - room no longer available
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your payment arrived after the reservation hold expired and the
+            room has since been taken. A refund has been initiated to your
+            payment method, and our team has been notified.
+          </p>
+          <Button asChild variant="outline" className="mt-6">
+            <Link href={routes.rooms}>Browse other rooms</Link>
           </Button>
         </>
       )}

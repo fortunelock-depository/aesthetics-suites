@@ -46,6 +46,10 @@ export default async function RoomsPage() {
             {/* Sidebar above the list on phones, sticky column on desktop. */}
             <RoomsSidebar rooms={rooms} />
 
+            {/* Stay params (?checkIn=...) from the hero bar ride the URL;
+                this page stays statically cached because the StayLinks in
+                each list item read them CLIENT-side and carry them to the
+                detail/checkout pages - no server-side filtering here. */}
             <div id="room-list" className="scroll-mt-28 space-y-[30px]">
               {rooms.map((room, index) => (
                 <Reveal key={room.id} delay={Math.min(index, 4) * 0.06}>

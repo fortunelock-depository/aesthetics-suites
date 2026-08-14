@@ -34,6 +34,7 @@ import {
   useUpdateRoomUnitMutation,
   useDeleteRoomUnitMutation,
   useSyncRoomIcalMutation,
+  useRotateRoomIcalTokenMutation,
 } from '@/redux/rooms-api';
 import { extractApiError } from '@/lib/extract-api-error';
 import { formatDateTime } from '@/lib/format-date';
@@ -239,6 +240,8 @@ export function RoomUnitsCard({ roomType }: { roomType: IRoomTypeDetail }) {
   );
   const [deleteUnit] = useDeleteRoomUnitMutation();
   const [syncIcal, { isLoading: isSyncing }] = useSyncRoomIcalMutation();
+  const [rotateIcalToken, { isLoading: isRotating }] =
+    useRotateRoomIcalTokenMutation();
   const { confirm, confirmDialog } = useConfirm();
 
   const openCreate = () => {
@@ -283,6 +286,24 @@ export function RoomUnitsCard({ roomType }: { roomType: IRoomTypeDetail }) {
       toast.success('iCal export link copied - paste it into Airbnb.');
     } catch {
       toast.error(`Could not copy. The link is: ${url}`);
+    }
+  };
+
+  // The export URL is a capability - once leaked (pasted somewhere public,
+  // shared cache) rotation is the only revocation.
+  const handleRotateToken = async (unit: IRoomUnitRow) => {
+    const ok = await confirm({
+      title: 'Reset the iCal export link?',
+      description: `The current link for ${unit.name} stops working immediately. Re-paste the new link anywhere the calendar is imported (e.g. Airbnb).`,
+      confirmText: 'Reset link',
+      isDestructive: true,
+    });
+    if (!ok) return;
+    try {
+      await rotateIcalToken({ id: unit.id, roomTypeId: roomType.id }).unwrap();
+      toast.success('iCal link reset - copy the new link and re-paste it.');
+    } catch (err) {
+      toast.error(extractApiError(err).message);
     }
   };
 
@@ -361,6 +382,13 @@ export function RoomUnitsCard({ roomType }: { roomType: IRoomTypeDetail }) {
                     <DropdownMenuItem onClick={() => copyExportLink(unit)}>
                       <Link2 />
                       Copy iCal export link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleRotateToken(unit)}
+                      disabled={isRotating}
+                    >
+                      <RefreshCw />
+                      Reset iCal export link
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       variant="destructive"

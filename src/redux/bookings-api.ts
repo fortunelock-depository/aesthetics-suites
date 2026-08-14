@@ -117,7 +117,21 @@ export const bookingsApi = apiSlice.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'Booking', id },
         { type: 'Bookings', id: 'LIST' },
-        'Payments',
+        'Overview',
+      ],
+    }),
+    /** Admin-only: retry a failed refund / refund a cancelled booking. */
+    refundBooking: builder.mutation<
+      IApiResponse<{ refundedAmount: number }>,
+      { id: string }
+    >({
+      query: ({ id }) => ({
+        url: `admin/bookings/${id}/refund`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Booking', id },
+        { type: 'Bookings', id: 'LIST' },
         'Overview',
       ],
     }),
@@ -134,4 +148,5 @@ export const {
   useGetBookingQuery,
   useCreateManualBookingMutation,
   useApplyBookingActionMutation,
+  useRefundBookingMutation,
 } = bookingsApi;

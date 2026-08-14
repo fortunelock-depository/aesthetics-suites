@@ -1,6 +1,6 @@
 // src/types/facility.types.ts
 import type { IApiResponse, IPaginatedResponse } from '@/types/api';
-import type { ManagedPhoto } from '@/components/admin/photos-manager';
+import type { ManagedPhoto } from './photo.types';
 
 /** Facility as returned by the admin API. */
 export interface IFacilityRow {

@@ -78,6 +78,9 @@ export interface IBookingRow {
   taxBreakdown: ITaxBreakdownLine[] | null;
   totalAmount: number;
   refundedAmount: number;
+  /** Set when a due refund was rejected by Paystack - retry from the
+   * booking page (admin). Cleared once a refund succeeds. */
+  refundFailedAt: string | null;
   currency: string;
   discountCode: string | null;
   specialRequests: string | null;

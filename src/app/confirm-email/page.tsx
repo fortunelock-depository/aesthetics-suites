@@ -1,9 +1,9 @@
 // src/app/confirm-email/page.tsx
 import type { Metadata } from 'next';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { XCircle } from 'lucide-react';
 import { AuthShell } from '@/components/auth/auth-shell';
+import { ConfirmEmailForm } from '@/components/auth/confirm-email-form';
 import { CtaLink } from '@/components/site/cta-link';
-import { confirmEmailChange } from '@/lib/account';
 import { routes } from '@/lib/routes';
 
 export const metadata: Metadata = {
@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 };
 
 // The token arrives by email, so the visitor may not be signed in - the
-// token itself is the credential (single-use, 24h, sha256-stored).
+// token itself is the credential (single-use, 24h, sha256-stored). It is
+// consumed by the form's POST, never by this GET render, so an email
+// scanner prefetching the link cannot burn it.
 export default async function ConfirmEmailPage({
   searchParams,
 }: {
@@ -20,32 +22,27 @@ export default async function ConfirmEmailPage({
 }) {
   const { token } = await searchParams;
 
-  const result = token
-    ? await confirmEmailChange(token)
-    : {
-        success: false,
-        message: 'This confirmation link is missing its token.',
-      };
-
   return (
     <AuthShell
       title="Email change"
-      subtitle={result.success ? 'All done' : 'Something went wrong'}
+      subtitle={token ? 'One more step' : 'Something went wrong'}
     >
-      <div className="space-y-5 text-center">
-        {result.success ? (
-          <CheckCircle2 className="mx-auto h-10 w-10 text-brand" aria-hidden />
-        ) : (
+      {token ? (
+        <ConfirmEmailForm token={token} />
+      ) : (
+        <div className="space-y-5 text-center">
           <XCircle
             className="mx-auto h-10 w-10 text-destructive"
             aria-hidden
           />
-        )}
-        <p className="text-sm text-muted-foreground">{result.message}</p>
-        <CtaLink href={routes.login} sweep="gold">
-          Go to sign in
-        </CtaLink>
-      </div>
+          <p className="text-sm text-muted-foreground">
+            This confirmation link is missing its token.
+          </p>
+          <CtaLink href={routes.login} sweep="gold">
+            Go to sign in
+          </CtaLink>
+        </div>
+      )}
     </AuthShell>
   );
 }

@@ -19,8 +19,10 @@ type DrawerKind = 'categories' | 'booking' | null;
  */
 export function MobileSidebarDrawers({
   rooms,
+  bookPath,
 }: {
   rooms: IPublicRoomCard[];
+  bookPath?: string;
 }) {
   const [open, setOpen] = useState<DrawerKind>(null);
 
@@ -73,7 +75,7 @@ export function MobileSidebarDrawers({
               {open === 'categories' ? (
                 <CategoryList rooms={rooms} onNavigate={() => setOpen(null)} />
               ) : (
-                <SidebarBookingCard onDone={() => setOpen(null)} />
+                <SidebarBookingCard bookPath={bookPath} onDone={() => setOpen(null)} />
               )}
             </div>
           </Dialog.Content>

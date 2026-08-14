@@ -4,8 +4,8 @@ import { requireAdmin } from '@/lib/api-auth';
 import { successResponse, handleApiError } from '@/utils/api-response';
 import { serviceUpdateSchema } from '@/validations/hotel-validation';
 import { generateSlug } from '@/utils/generate-slug';
-import { revalidatePublicFacilities } from '@/utils/revalidate';
-import { NotFoundError } from '@/middlewares/error-handler';
+import { revalidatePublicServices } from '@/utils/revalidate';
+import { NotFoundError } from '@/lib/errors';
 
 export async function GET(
   _req: Request,
@@ -50,9 +50,9 @@ export async function PATCH(
       },
     });
 
-    revalidatePublicFacilities(existing.slug);
+    revalidatePublicServices(existing.slug);
     if (service.slug !== existing.slug) {
-      revalidatePublicFacilities(service.slug);
+      revalidatePublicServices(service.slug);
     }
     return successResponse(service, 'Service updated');
   } catch (err) {
@@ -75,7 +75,7 @@ export async function DELETE(
     if (!existing) throw new NotFoundError('Service not found');
 
     await prisma.service.delete({ where: { id } });
-    revalidatePublicFacilities(existing.slug);
+    revalidatePublicServices(existing.slug);
     return successResponse({ id }, 'Service deleted');
   } catch (err) {
     return handleApiError(err);

@@ -1,5 +1,5 @@
 // src/components/rooms/room-list-item.tsx
-import Link from 'next/link';
+import { StayLink } from '@/components/rooms/stay-link';
 import { ArrowRight, BedDouble, Ruler, Star, Users } from 'lucide-react';
 import { PhotoFrame } from '@/components/site/photo-frame';
 import { formatMoney } from '@/lib/format-money';
@@ -36,12 +36,12 @@ export function RoomListItem({ room }: { room: IPublicRoomCard }) {
             className="min-w-0 font-heading text-2xl font-medium line-clamp-2 [overflow-wrap:anywhere]"
             title={room.name}
           >
-            <Link
+            <StayLink
               href={`/rooms/${room.slug}`}
               className="text-foreground transition-colors hover:text-brand"
             >
               {room.name}
-            </Link>
+            </StayLink>
           </h3>
           <p className="mt-2 max-w-[330px] text-[15px] leading-[26px] text-muted-foreground line-clamp-3">
             {room.summary}
@@ -68,7 +68,7 @@ export function RoomListItem({ room }: { room: IPublicRoomCard }) {
         {/* Meta column: price, rating, read-more (centered on desktop). */}
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:flex-none lg:flex-col lg:items-center lg:gap-3 lg:text-center">
           <p
-            className="font-heading text-sm font-semibold text-brand"
+            className="font-heading text-sm font-semibold text-brand-text"
             title={formatMoney(room.basePrice, room.currency)}
           >
             {formatMoney(room.basePrice, room.currency)}/Night
@@ -88,7 +88,7 @@ export function RoomListItem({ room }: { room: IPublicRoomCard }) {
               <span className="text-sm font-semibold text-foreground">New</span>
             )}
           </p>
-          <Link
+          <StayLink
             href={`/rooms/${room.slug}`}
             className="inline-flex items-center gap-2.5 text-sm font-semibold tracking-[0.06em] text-foreground uppercase transition-colors hover:text-brand"
           >
@@ -96,7 +96,7 @@ export function RoomListItem({ room }: { room: IPublicRoomCard }) {
               <ArrowRight className="h-3 w-3" />
             </span>
             Read More
-          </Link>
+          </StayLink>
         </div>
       </div>
     </article>

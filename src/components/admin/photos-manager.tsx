@@ -11,17 +11,16 @@ import { useConfirm } from '@/hooks/use-confirm';
 import { extractApiError } from '@/lib/extract-api-error';
 import { optimizeImage } from '@/lib/optimize-image';
 import { MAX_UPLOAD_BYTES } from '@/lib/uploads-shared';
+import type { ManagedPhoto } from '@/types/photo.types';
+
+// Re-exported for back-compat; the type's home is types/photo.types.ts.
+export type { ManagedPhoto };
 
 interface StagedPhoto {
   file: File;
   previewUrl: string;
 }
 
-export interface ManagedPhoto {
-  id: string;
-  url: string;
-  alt: string | null;
-}
 
 /**
  * The one gallery manager for every photo-bearing entity (rooms,

@@ -1,4 +1,5 @@
 // src/components/site/editorial-detail.tsx
+import Link from 'next/link';
 import { Clock, Sparkles } from 'lucide-react';
 import { PhotoFrame } from './photo-frame';
 import { CtaLink } from './cta-link';
@@ -117,7 +118,7 @@ export function EditorialDetail({
           <ul className="mt-4 grid gap-4 min-[480px]:grid-cols-2">
             {moreLinks.map((link) => (
               <li key={link.href}>
-                <a
+                <Link
                   href={link.href}
                   className="group block border border-border bg-card p-4 transition-colors hover:border-brand"
                 >
@@ -127,7 +128,7 @@ export function EditorialDetail({
                   <p className="mt-1 min-w-0 truncate font-heading text-base font-medium text-foreground group-hover:text-brand">
                     {link.name}
                   </p>
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

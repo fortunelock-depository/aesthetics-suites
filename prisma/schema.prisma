@@ -42,8 +42,10 @@ model User {
   /// Soft delete - non-null means the record is archived/hidden.
   deletedAt        DateTime?
 
-  securityTokens   UserSecurityToken[]
-  moderatedReviews Review[]            @relation("ReviewModeratedBy")
+  securityTokens    UserSecurityToken[]
+  moderatedReviews  Review[]            @relation("ReviewModeratedBy")
+  createdBookings   Booking[]           @relation("BookingCreatedBy")
+  cancelledBookings Booking[]           @relation("BookingCancelledBy")
 
   @@index([email])
   @@index([role])
@@ -438,8 +440,12 @@ model Booking {
   /// Itemized taxes/fees at booking time: [{ name, rateBps, amount }].
   taxBreakdown    Json?
   totalAmount     Int
-  /// Minor units refunded on cancellation (via Paystack refund).
+  /// Minor units refunded on cancellation (via Paystack refund). Written
+  /// only when Paystack actually accepted the refund call.
   refundedAmount  Int    @default(0)
+  /// Set when a due refund was claimed locally but REJECTED by Paystack -
+  /// the dashboard surfaces these for an admin retry. Cleared on success.
+  refundFailedAt  DateTime?
   currency        String @default("GHS") @db.VarChar(3)
 
   discount     Discount? @relation(fields: [discountId], references: [id], onDelete: SetNull)
@@ -463,6 +469,13 @@ model Booking {
   reviewInviteSentAt DateTime?
   /// Complete-your-payment nudge for a still-held PENDING booking.
   paymentReminderSentAt DateTime?
+
+  /// Actor stamps: which staff account created (manual bookings) or
+  /// cancelled this booking - money-affecting actions stay attributable.
+  createdBy     User?   @relation("BookingCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById   String?
+  cancelledBy   User?   @relation("BookingCancelledBy", fields: [cancelledById], references: [id], onDelete: SetNull)
+  cancelledById String?
 
   reviews Review[]
 

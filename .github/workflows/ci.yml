@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  # Build-time stand-ins only. Public pages fail soft on an unreachable DB
+  # (they render empty states), so `next build` needs no live Postgres.
+  DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+  SESSION_SECRET: ci-only-secret-0123456789abcdef0123456789abcdef
+  NEXT_PUBLIC_BASE_URL: http://localhost:3000
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      # Real Postgres for the integration suite (test/integration/**). The
+      # global setup creates the test database and runs `migrate deploy`
+      # against it, including CREATE EXTENSION btree_gist (in postgres:17's
+      # contrib set) for the Booking_no_unit_overlap constraint.
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run test:unit
+      - run: npm run test:integration
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aesthetics_test
+      - run: npm run build
+
+  # Applies pending migrations to the production database BEFORE Vercel
+  # builds the new code (release-deploy convention: schema first, code
+  # second). PROD_DATABASE_URL must be the DIRECT (non-pooled) connection
+  # string - pgbouncer transaction pooling and DDL do not mix.
+  migrate:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}

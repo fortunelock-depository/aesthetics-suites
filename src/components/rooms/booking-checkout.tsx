@@ -51,8 +51,12 @@ function Field({
   id: string;
   label: string;
   error?: string;
-  children: React.ReactNode;
+  children: React.ReactElement<{ 'aria-describedby'?: string }>;
 }) {
+  // The error is programmatically tied to the input: aria-describedby is
+  // injected onto the child so screen readers announce WHY it is invalid,
+  // and role="alert" announces the message the moment it appears.
+  const errorId = error ? `${id}-error` : undefined;
   return (
     <div>
       <label
@@ -61,8 +65,12 @@ function Field({
       >
         {label}
       </label>
-      {children}
-      {error && <p className="mt-1.5 text-sm text-destructive">{error}</p>}
+      {React.cloneElement(children, { 'aria-describedby': errorId })}
+      {error && (
+        <p id={errorId} role="alert" className="mt-1.5 text-sm text-destructive">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -121,8 +129,12 @@ export function BookingCheckout({
   const today = toDateOnlyString(new Date());
   const [checkIn, setCheckIn] = React.useState(initialCheckIn);
   const [checkOut, setCheckOut] = React.useState(initialCheckOut);
-  const [adults, setAdults] = React.useState(String(initialAdults));
-  const [children, setChildren] = React.useState(String(initialChildren));
+  const [adults, setAdults] = React.useState(
+    String(Math.min(Math.max(initialAdults, 1), room.capacityAdults)),
+  );
+  const [children, setChildren] = React.useState(
+    String(Math.min(Math.max(initialChildren, 0), room.capacityChildren)),
+  );
   const [discountInput, setDiscountInput] = React.useState('');
   const [discountCode, setDiscountCode] = React.useState<string>();
   const [stayError, setStayError] = React.useState<string | null>(null);
@@ -220,7 +232,16 @@ export function BookingCheckout({
   };
 
   const cover = room.photos[0];
-  const guestOptions = Array.from({ length: 8 }, (_, i) => i + 1);
+  // Options end at the room's actual capacity - offering 8 adults on a
+  // 2-adult room just walks the guest into a failed quote.
+  const adultOptions = Array.from(
+    { length: Math.max(room.capacityAdults, 1) },
+    (_, i) => i + 1,
+  );
+  const childOptions = Array.from(
+    { length: room.capacityChildren + 1 },
+    (_, i) => i,
+  );
 
   return (
     <form
@@ -241,7 +262,12 @@ export function BookingCheckout({
                 type="date"
                 min={today}
                 value={checkIn}
-                onChange={(e) => setCheckIn(e.target.value)}
+                onChange={(e) => {
+                  setCheckIn(e.target.value);
+                  // A stale "pick your dates" complaint must not outlive
+                  // its fix; the fresh quote speaks next.
+                  setStayError(null);
+                }}
                 className={FIELD}
               />
             </Field>
@@ -251,7 +277,10 @@ export function BookingCheckout({
                 type="date"
                 min={checkIn || today}
                 value={checkOut}
-                onChange={(e) => setCheckOut(e.target.value)}
+                onChange={(e) => {
+                  setCheckOut(e.target.value);
+                  setStayError(null);
+                }}
                 className={FIELD}
               />
             </Field>
@@ -262,7 +291,7 @@ export function BookingCheckout({
                 onChange={(e) => setAdults(e.target.value)}
                 className={FIELD}
               >
-                {guestOptions.map((n) => (
+                {adultOptions.map((n) => (
                   <option key={n} value={n}>
                     {n}
                   </option>
@@ -276,7 +305,7 @@ export function BookingCheckout({
                 onChange={(e) => setChildren(e.target.value)}
                 className={FIELD}
               >
-                {[0, ...guestOptions].map((n) => (
+                {childOptions.map((n) => (
                   <option key={n} value={n}>
                     {n}
                   </option>
@@ -484,7 +513,7 @@ export function BookingCheckout({
                     strong
                   />
                   {quote.availableUnits <= 2 && (
-                    <p className="py-2 text-xs text-brand">
+                    <p className="py-2 text-xs text-brand-text">
                       Only {quote.availableUnits} unit
                       {quote.availableUnits === 1 ? '' : 's'} left for these
                       dates.

@@ -7,6 +7,7 @@
 // the top line, name/content below, compact icons in small action buttons.
 'use client';
 
+import * as React from 'react';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -82,12 +83,29 @@ export function RowCard({
   className?: string;
   children: ReactNode;
 }) {
+  // Keyboard access: with onOpen the row is the phone replacement for the
+  // desktop row's View link, so it must be reachable and activatable
+  // without a pointer (role button + Enter/Space). The guard keeps inner
+  // interactive elements (checkbox, actions menu) on their own handlers.
+  const handleKeyDown = onOpen
+    ? (e: React.KeyboardEvent<HTMLLIElement>) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+      }
+    : undefined;
   return (
     <li
       onClick={onOpen}
+      onKeyDown={handleKeyDown}
+      role={onOpen ? 'button' : undefined}
+      tabIndex={onOpen ? 0 : undefined}
       className={cn(
         'flex items-center gap-2 border-b border-border py-2.5 transition-colors last:border-0',
-        onOpen && 'cursor-pointer active:bg-muted/50',
+        onOpen &&
+          'cursor-pointer active:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring',
         leading ? 'pl-2' : 'pl-3',
         action ? 'pr-1.5' : 'pr-3',
         className,

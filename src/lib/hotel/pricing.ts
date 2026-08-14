@@ -2,8 +2,10 @@
 //
 // Pure pricing math - no Prisma, fully unit-testable. All amounts are
 // integer minor units (pesewas). The nightly price for a date is the season
-// rate covering it (latest-created wins on overlap), else the base price;
-// discounts apply to the summed base amount.
+// rate covering it, else the base price; on overlapping seasons the FIRST
+// match in array order wins, so callers must pass rates ordered
+// createdAt-descending (latest-created wins) - the booking service does.
+// Discounts apply to the summed base amount.
 
 import { eachNight, nightsBetween, rangesOverlap } from './dates';
 
@@ -52,6 +54,41 @@ export interface IQuote {
   /** The strictest minimum stay across base + covering seasons. */
   minNights: number;
 }
+
+/**
+ * Re-derives the tax portion of an OVERRIDDEN total (negotiated walk-in
+ * price) so the frozen taxBreakdown matches the money actually collected:
+ * the override is tax-inclusive, the taxable base is backed out of it, and
+ * rounding drift lands on the last line so the lines always sum to
+ * taxAmount exactly (VAT reporting adds these lines up).
+ */
+export const recomputeTaxForTotal = (
+  totalAmount: number,
+  taxFees: ITaxFeeInput[],
+): { taxableAmount: number; taxAmount: number; taxLines: ITaxLine[] } => {
+  const totalBps = taxFees.reduce((sum, fee) => sum + fee.rateBps, 0);
+  if (totalBps === 0 || totalAmount <= 0) {
+    return {
+      taxableAmount: Math.max(totalAmount, 0),
+      taxAmount: 0,
+      taxLines: taxFees.map((fee) => ({ ...fee, amount: 0 })),
+    };
+  }
+  const taxableAmount = Math.round(
+    (totalAmount * 10_000) / (10_000 + totalBps),
+  );
+  const taxAmount = totalAmount - taxableAmount;
+  const taxLines: ITaxLine[] = taxFees.map((fee) => ({
+    ...fee,
+    amount: Math.round((taxableAmount * fee.rateBps) / 10_000),
+  }));
+  const drift =
+    taxAmount - taxLines.reduce((sum, line) => sum + line.amount, 0);
+  if (taxLines.length > 0) {
+    taxLines[taxLines.length - 1].amount += drift;
+  }
+  return { taxableAmount, taxAmount, taxLines };
+};
 
 /** The nightly price for one date. */
 export const nightlyPriceFor = (

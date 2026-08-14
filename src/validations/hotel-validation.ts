@@ -4,10 +4,14 @@
 // (frontend-conventions: one contract, two enforcers).
 import { z } from 'zod';
 import { optionalPhoneField } from '@/validations/phone-validation';
+import { isValidDateOnly, parseDateOnly } from '@/lib/hotel/dates';
 
 export const dateOnly = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD');
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
+  // The regex admits impossible dates ("2026-02-31" would silently roll
+  // over to Mar 3 downstream); only real calendar dates pass.
+  .refine(isValidDateOnly, 'Not a real calendar date');
 
 const pagination = {
   page: z.coerce.number().int().min(1).default(1),
@@ -223,13 +227,52 @@ const stayFields = {
   children: z.number().int().min(0).max(20).default(0),
 };
 
-export const availabilityQuerySchema = z.object({
-  checkIn: dateOnly,
-  checkOut: dateOnly,
-  adults: z.coerce.number().int().min(1).max(20).default(1),
-  children: z.coerce.number().int().min(0).max(20).default(0),
-  discountCode: z.string().trim().max(50).optional(),
-});
+/** Longest bookable stay - beyond this, talk to the hotel directly. */
+export const MAX_STAY_NIGHTS = 90;
+/** How far ahead a stay may begin: bots must not hold units decades out. */
+export const MAX_BOOKING_HORIZON_MONTHS = 24;
+
+// Zod v4 runs object-level refinements even when a field check already
+// failed (issues accumulate), so these checks CAN see a string `dateOnly`
+// rejected - they must pass such input through (returning true) and let the
+// field's own issue surface, instead of letting parseDateOnly throw a
+// RangeError out of .parse() as a 500.
+const stayNights = {
+  check: (data: { checkIn: string; checkOut: string }) =>
+    !isValidDateOnly(data.checkIn) ||
+    !isValidDateOnly(data.checkOut) ||
+    (parseDateOnly(data.checkOut).getTime() -
+      parseDateOnly(data.checkIn).getTime()) /
+      86_400_000 <=
+      MAX_STAY_NIGHTS,
+  opts: {
+    message: `Stays are limited to ${MAX_STAY_NIGHTS} nights - contact us for longer stays`,
+    path: ['checkOut'],
+  },
+};
+const stayHorizon = {
+  check: (data: { checkIn: string }) => {
+    if (!isValidDateOnly(data.checkIn)) return true; // dateOnly's issue wins
+    const horizon = new Date();
+    horizon.setUTCMonth(horizon.getUTCMonth() + MAX_BOOKING_HORIZON_MONTHS);
+    return parseDateOnly(data.checkIn) <= horizon;
+  },
+  opts: {
+    message: `Bookings open up to ${MAX_BOOKING_HORIZON_MONTHS} months ahead`,
+    path: ['checkIn'],
+  },
+};
+
+export const availabilityQuerySchema = z
+  .object({
+    checkIn: dateOnly,
+    checkOut: dateOnly,
+    adults: z.coerce.number().int().min(1).max(20).default(1),
+    children: z.coerce.number().int().min(0).max(20).default(0),
+    discountCode: z.string().trim().max(50).optional(),
+  })
+  .refine(stayNights.check, stayNights.opts)
+  .refine(stayHorizon.check, stayHorizon.opts);
 
 export const bookingCreateSchema = z
   .object({
@@ -247,7 +290,9 @@ export const bookingCreateSchema = z
   .refine((data) => data.checkOut > data.checkIn, {
     message: 'checkOut must be after checkIn',
     path: ['checkOut'],
-  });
+  })
+  .refine(stayNights.check, stayNights.opts)
+  .refine(stayHorizon.check, stayHorizon.opts);
 
 export const manualBookingSchema = z
   .object({
@@ -264,7 +309,9 @@ export const manualBookingSchema = z
   .refine((data) => data.checkOut > data.checkIn, {
     message: 'checkOut must be after checkIn',
     path: ['checkOut'],
-  });
+  })
+  .refine(stayNights.check, stayNights.opts)
+  .refine(stayHorizon.check, stayHorizon.opts);
 
 export const bookingsQuerySchema = z.object({
   ...pagination,

@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { ENV } from '@/config/env';
 import type { UserRole } from '@/lib/prisma';
-import { UnauthorizedError } from '@/middlewares/error-handler';
+import { UnauthorizedError } from '@/lib/errors';
 
 // NOTE: prisma is imported LAZILY inside the verify helpers, never at the
 // top level - proxy.ts pulls `decrypt` from this module and must not drag

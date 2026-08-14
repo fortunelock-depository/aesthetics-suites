@@ -5,7 +5,7 @@ import { successResponse, handleApiError } from '@/utils/api-response';
 import { roomTypeUpdateSchema } from '@/validations/hotel-validation';
 import { generateSlug } from '@/utils/generate-slug';
 import { revalidatePublicRooms } from '@/utils/revalidate';
-import { ConflictError, NotFoundError } from '@/middlewares/error-handler';
+import { ConflictError, NotFoundError } from '@/lib/errors';
 
 export async function GET(
   _req: Request,

@@ -17,7 +17,7 @@ import { BLOCKING_STATUSES } from './availability';
 import { parseDateOnly, toDateOnlyString } from './dates';
 import { SITE } from '@/config/constants';
 import logger from '@/utils/logger';
-import { BadRequestError, NotFoundError } from '@/middlewares/error-handler';
+import { BadRequestError, NotFoundError } from '@/lib/errors';
 
 const PRODID = `-//${SITE.name}//Room Calendar//EN`;
 
@@ -121,17 +121,25 @@ export function parseIcs(text: string): ParsedIcsEvent[] {
   return events;
 }
 
-/** The events for a unit's export feed: blocking bookings + manual blocks. */
+/** The events for a unit's export feed: blocking bookings + manual blocks.
+ * Floored to the last year: consumers only need current/future busy dates,
+ * and an unbounded feed grows forever. */
 export async function roomFeedEvents(roomId: string): Promise<IcsEventInput[]> {
+  const floor = new Date();
+  floor.setUTCFullYear(floor.getUTCFullYear() - 1);
   const [bookings, blocks] = await Promise.all([
     prisma.booking.findMany({
-      where: { roomId, status: { in: BLOCKING_STATUSES } },
+      where: {
+        roomId,
+        status: { in: BLOCKING_STATUSES },
+        checkOut: { gte: floor },
+      },
       select: { id: true, checkIn: true, checkOut: true },
     }),
     prisma.calendarBlock.findMany({
       // Airbnb-imported blocks are NOT exported back (Airbnb already has
       // them); echoing them creates feedback loops.
-      where: { roomId, source: BlockSource.MANUAL },
+      where: { roomId, source: BlockSource.MANUAL, endDate: { gte: floor } },
       select: { id: true, startDate: true, endDate: true },
     }),
   ]);
@@ -180,7 +188,20 @@ export async function syncRoomFromAirbnb(roomId: string): Promise<{
     );
   }
 
-  const events = parseIcs(await response.text());
+  // A 200 that is not actually a calendar (rotated/expired export URL
+  // redirecting to an HTML page, truncated body) would parse to zero
+  // events and the prune below would then DELETE every imported block -
+  // reopening dates a real Airbnb guest holds. Fail the sync instead;
+  // existing blocks stay and icalLastSyncedAt goes stale, which is what
+  // the dashboard's stale-calendars alert watches.
+  const body = await response.text();
+  if (!body.includes('BEGIN:VCALENDAR')) {
+    throw new BadRequestError(
+      'Airbnb returned something that is not a calendar - keeping existing blocks. Check the calendar URL.',
+    );
+  }
+
+  const events = parseIcs(body);
   const seenUids: string[] = [];
 
   for (const event of events) {
@@ -203,13 +224,21 @@ export async function syncRoomFromAirbnb(roomId: string): Promise<{
     });
   }
 
-  const removed = await prisma.calendarBlock.deleteMany({
-    where: {
-      roomId,
-      source: BlockSource.AIRBNB,
-      externalUid: { notIn: seenUids },
-    },
-  });
+  // Prune blocks that vanished from the feed - but never on an EMPTY
+  // parse: a legitimately empty Airbnb calendar and a broken response are
+  // indistinguishable here, and wrongly deleting blocks means selling
+  // dates an Airbnb guest holds. An actually-freed date still clears on
+  // the next sync that parses at least one event.
+  const removed =
+    events.length > 0
+      ? await prisma.calendarBlock.deleteMany({
+          where: {
+            roomId,
+            source: BlockSource.AIRBNB,
+            externalUid: { notIn: seenUids },
+          },
+        })
+      : { count: 0 };
 
   await prisma.room.update({
     where: { id: roomId },
@@ -233,16 +262,18 @@ export async function syncAllAirbnbCalendars(): Promise<{
     select: { id: true },
   });
 
-  let synced = 0;
-  let failed = 0;
-  for (const room of rooms) {
-    try {
-      await syncRoomFromAirbnb(room.id);
-      synced++;
-    } catch (error) {
-      failed++;
-      logger.error({ error, roomId: room.id }, 'Airbnb calendar sync failed');
-    }
-  }
-  return { synced, failed };
+  // Concurrent: each sync isolates its own failure, and serializing N
+  // 20-second external fetches would burn the cron's whole time budget.
+  const results = await Promise.allSettled(
+    rooms.map(async (room) => {
+      try {
+        await syncRoomFromAirbnb(room.id);
+      } catch (error) {
+        logger.error({ error, roomId: room.id }, 'Airbnb calendar sync failed');
+        throw error;
+      }
+    }),
+  );
+  const synced = results.filter((r) => r.status === 'fulfilled').length;
+  return { synced, failed: results.length - synced };
 }

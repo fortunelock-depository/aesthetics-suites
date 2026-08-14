@@ -3,7 +3,9 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { successResponse, handleApiError } from '@/utils/api-response';
-import { NotFoundError } from '@/middlewares/error-handler';
+import { ratelimit } from '@/lib/rate-limit';
+import { clientIp } from '@/utils/client-ip';
+import { NotFoundError, TooManyRequestsError } from '@/lib/errors';
 
 const lookupSchema = z.object({ email: z.email() });
 
@@ -16,6 +18,14 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> },
 ) {
   try {
+    // Same throttle as its cancel/pay siblings: booking codes carry only 3
+    // random bytes, so an unlimited lookup would let a known guest email
+    // grind codes for someone's stay dates.
+    const { success } = await ratelimit.limit(
+      `booking-lookup:${clientIp(req.headers)}`,
+    );
+    if (!success) throw new TooManyRequestsError();
+
     const { code } = await params;
     const { email } = lookupSchema.parse(
       Object.fromEntries(req.nextUrl.searchParams),

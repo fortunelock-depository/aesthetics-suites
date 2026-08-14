@@ -1,10 +1,11 @@
 // src/app/api/bookings/[code]/cancel/route.ts
 import { headers } from 'next/headers';
+import { clientIp } from '@/utils/client-ip';
 import { z } from 'zod';
 import { cancelBookingAsGuest } from '@/lib/hotel/booking-service';
 import { successResponse, handleApiError } from '@/utils/api-response';
 import { ratelimit } from '@/lib/rate-limit';
-import { TooManyRequestsError } from '@/middlewares/error-handler';
+import { TooManyRequestsError } from '@/lib/errors';
 
 const cancelSchema = z.object({ email: z.email() });
 
@@ -19,8 +20,7 @@ export async function POST(
 ) {
   try {
     const headersList = await headers();
-    const ip =
-      headersList.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+    const ip = clientIp(headersList);
     const { success } = await ratelimit.limit(`cancel:${ip}`);
     if (!success) throw new TooManyRequestsError();
 
@@ -38,7 +38,9 @@ export async function POST(
       },
       result.refunded
         ? 'Booking cancelled - your refund is on its way.'
-        : 'Booking cancelled. No refund applies outside the free-cancellation window.',
+        : result.refundFailed
+          ? 'Booking cancelled - your refund is being handled by our team and we will follow up shortly.'
+          : 'Booking cancelled. No refund applies outside the free-cancellation window.',
     );
   } catch (err) {
     return handleApiError(err);

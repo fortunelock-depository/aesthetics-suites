@@ -1,6 +1,7 @@
 // src/app/api/rooms/[slug]/reviews/route.ts
 import type { NextRequest } from 'next/server';
 import { headers } from 'next/headers';
+import { clientIp } from '@/utils/client-ip';
 import prisma, { BookingStatus, ReviewStatus } from '@/lib/prisma';
 import {
   paginatedResponse,
@@ -15,7 +16,7 @@ import { ratelimit } from '@/lib/rate-limit';
 import {
   NotFoundError,
   TooManyRequestsError,
-} from '@/middlewares/error-handler';
+} from '@/lib/errors';
 
 async function publishedRoomType(slug: string) {
   const roomType = await prisma.roomType.findFirst({
@@ -87,8 +88,7 @@ export async function POST(
 ) {
   try {
     const headersList = await headers();
-    const ip =
-      headersList.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+    const ip = clientIp(headersList);
     const { success } = await ratelimit.limit(`review:${ip}`);
     if (!success) throw new TooManyRequestsError();
 

@@ -12,7 +12,7 @@ import { successResponse, handleApiError } from '@/utils/api-response';
 import {
   BadRequestError,
   NotFoundError,
-} from '@/middlewares/error-handler';
+} from '@/lib/errors';
 import { revokeAllUserSecurityTokens } from '@/utils/user-security-tokens';
 import { sendPasswordChangedEmail } from '@/lib/mail/auth-emails';
 import { BCRYPT_SALT_ROUNDS } from '@/config/constants';

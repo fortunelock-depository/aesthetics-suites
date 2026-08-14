@@ -56,7 +56,8 @@ export function CtaLink({
   );
 
   if (!href) {
-    return <span className={cn(classes, 'cursor-pointer select-none')}>{content}</span>;
+    // No pointer cursor: a placeholder span must not pretend to be a link.
+    return <span className={cn(classes, 'select-none')}>{content}</span>;
   }
 
   return (

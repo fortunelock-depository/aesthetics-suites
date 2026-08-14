@@ -1,22 +1,31 @@
 // src/components/home/video-banner.tsx
+import Image from 'next/image';
 import { Reveal } from '@/components/site/reveal';
 import { PlayCircle } from '@/components/site/play-circle';
 import { VIDEO_BANNER } from '@/static-data/home';
 
 /**
  * The template's parallax band below the rooms grid, measured: 510px tall,
- * `background-attachment: fixed` (the image holds still while the page
- * scrolls past), cover/center, white display heading left + circular
- * play-style CTA right. Fixed attachment is unreliable on mobile Safari,
- * so phones fall back to a normal scrolling background.
+ * white display heading left + circular play-style CTA right. The photo is
+ * a next/image fill behind the scrim (responsive sizes + AVIF, unlike the
+ * raw CSS background it replaced); the fixed-attachment parallax was
+ * dropped with it - it was already disabled on phones (mobile Safari) and
+ * a still cover image reads the same at this height.
  */
 export function VideoBanner() {
   return (
     <section
       aria-label="Book online"
-      className="relative h-[420px] bg-cover bg-center bg-scroll md:h-[510px] md:bg-fixed"
-      style={{ backgroundImage: `url(${VIDEO_BANNER.image.src})` }}
+      className="relative h-[420px] overflow-hidden md:h-[510px]"
     >
+      <Image
+        src={VIDEO_BANNER.image.src}
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover"
+        aria-hidden
+      />
       {/* Scrim for text legibility over the photo. */}
       <div aria-hidden className="absolute inset-0 bg-black/45" />
 

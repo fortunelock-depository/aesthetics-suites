@@ -28,7 +28,7 @@ function ReviewCard({ review }: { review: IPublicReviewItem }) {
       <p className="mt-4 border-t border-dashed border-border pt-3.5 text-sm font-semibold text-foreground [overflow-wrap:anywhere]">
         {review.guestName}
         {review.verifiedStay && (
-          <span className="ml-2 inline-flex items-center gap-1 align-middle text-xs font-normal text-brand">
+          <span className="ml-2 inline-flex items-center gap-1 align-middle text-xs font-normal text-brand-text">
             <BadgeCheck className="h-3.5 w-3.5" />
             Verified stay
           </span>

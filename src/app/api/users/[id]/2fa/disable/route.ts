@@ -9,7 +9,7 @@ import { successResponse, handleApiError } from '@/utils/api-response';
 import {
   BadRequestError,
   NotFoundError,
-} from '@/middlewares/error-handler';
+} from '@/lib/errors';
 import { revokeAllUserSecurityTokens } from '@/utils/user-security-tokens';
 
 export async function POST(

@@ -26,23 +26,26 @@ import {
   type BookingStatusValue,
 } from '@/types/booking.types';
 
-// Fixed hexes (SVG fills can't follow theme tokens reliably across both
-// modes) drawn from the brand palette; each reads on light AND dark.
+// Chart colors resolve through the theme's --chart-* tokens (SVG fills
+// follow CSS variables fine - grid/tick already did), so the palette has
+// ONE definition in globals.css and adapts with the theme. Statuses map
+// onto the token roles; the two alarm colors (cancelled/no-show) come
+// from the destructive scale for consistent semantics.
 const COLORS = {
-  revenue: '#DCA278', // clay
-  bookings: '#8F9A6E', // deep eucalyptus
+  revenue: 'var(--chart-2)', // clay
+  bookings: 'var(--chart-3)', // deep eucalyptus
   grid: 'var(--border)',
   tick: 'var(--muted-foreground)',
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  CONFIRMED: '#8F9A6E',
-  CHECKED_IN: '#DCA278',
-  CHECKED_OUT: '#A8ADA0',
-  PENDING: '#D9B13B',
-  CANCELLED: '#C4634F',
-  NO_SHOW: '#9A5B44',
-  EXPIRED: '#6B7280',
+  CONFIRMED: 'var(--chart-3)',
+  CHECKED_IN: 'var(--chart-2)',
+  CHECKED_OUT: 'var(--chart-1)',
+  PENDING: 'var(--chart-4)',
+  CANCELLED: 'var(--destructive)',
+  NO_SHOW: 'var(--chart-5)',
+  EXPIRED: 'var(--muted-foreground)',
 };
 
 /** "2026-08" -> "Aug" (Jan gets the year for orientation). */
@@ -182,7 +185,7 @@ export function BookingStatusChart({
       label:
         BOOKING_STATUS_LABEL[status as BookingStatusValue] ?? status,
       count,
-      color: STATUS_COLORS[status] ?? '#6B7280',
+      color: STATUS_COLORS[status] ?? 'var(--muted-foreground)',
     }));
   const total = slices.reduce((sum, slice) => sum + slice.count, 0);
 

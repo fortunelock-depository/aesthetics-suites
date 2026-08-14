@@ -5,7 +5,7 @@
 // Cloudinary would reject non-images eventually, but by then the bytes have
 // already been buffered into memory - so limits are enforced up front.
 import 'server-only';
-import { ValidationError } from '@/middlewares/error-handler';
+import { ValidationError } from '@/lib/errors';
 import type { IUploadedFile } from '@/types/cloudinary.types';
 import { MAX_UPLOAD_BYTES } from '@/lib/uploads-shared';
 

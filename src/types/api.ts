@@ -10,17 +10,14 @@ export const apiSliceTags = [
   'User',
   'RoomTypes',
   'RoomType',
-  'Rooms',
   'Bookings',
   'Booking',
-  'SeasonRates',
   'Discounts',
   'Reviews',
   'Facilities',
   'Facility',
   'Services',
   'Service',
-  'Payments',
 ] as const;
 
 export type ApiTag = (typeof apiSliceTags)[number];

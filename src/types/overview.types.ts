@@ -53,6 +53,8 @@ export interface IDashboardStats {
     arrivalsDue: number;
     staleCalendars: number;
     failedPayments7d: number;
+    /** Bookings whose due refund was rejected by Paystack (retry needed). */
+    failedRefunds: number;
   };
   recentBookings: {
     id: string;

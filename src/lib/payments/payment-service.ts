@@ -27,7 +27,7 @@ import logger from '@/utils/logger';
 import {
   BadRequestError,
   NotFoundError,
-} from '@/middlewares/error-handler';
+} from '@/lib/errors';
 
 /** A still-usable PENDING checkout link is reused within this window. */
 const REUSABLE_PENDING_PAYMENT_MS = 2 * 60 * 60 * 1000;
@@ -194,18 +194,26 @@ export async function confirmPayment(reference: string): Promise<Payment> {
   return prisma.payment.findFirstOrThrow({ where: { id: payment.id } });
 }
 
+export interface IReversalResult {
+  payment: Payment;
+  /** True only when Paystack actually accepted the refund call - callers
+   * must not tell the guest money is coming unless this is true. */
+  refunded: boolean;
+}
+
 /**
  * Reverses a settled payment (cancellation refund). The SUCCESS -> REVERSED
  * claim happens FIRST so a crash after the flip can never re-credit; the
  * Paystack refund call follows outside any transaction (it's an external
- * API). A refund-call failure after the flip is logged loudly for manual
- * follow-up - the money-state is conservative (marked reversed, guest not
- * yet paid out) rather than dangerous.
+ * API). A refund-call failure after the flip is reported to the caller
+ * (refunded: false) so it can flag the booking for retry - the money-state
+ * is conservative (marked reversed, guest not yet paid out) rather than
+ * dangerous, but never silent.
  */
 export async function reversePayment(
   paymentId: string,
   amount?: number,
-): Promise<Payment | null> {
+): Promise<IReversalResult | null> {
   const payment = await prisma.payment.findUnique({ where: { id: paymentId } });
   if (!payment) throw new NotFoundError('Payment not found');
 
@@ -215,8 +223,10 @@ export async function reversePayment(
   });
   if (claim.count === 0) return null; // already reversed / never settled
 
+  let refunded = false;
   try {
     await refundPaystackTransaction(payment.reference, amount);
+    refunded = true;
     logger.info(
       { reference: payment.reference, amount: amount ?? payment.amount },
       'Refund accepted by Paystack',
@@ -224,11 +234,14 @@ export async function reversePayment(
   } catch (error) {
     logger.error(
       { error, reference: payment.reference },
-      'Payment marked REVERSED but the Paystack refund call FAILED - refund manually from the Paystack dashboard',
+      'Payment marked REVERSED but the Paystack refund call FAILED - flagged for retry',
     );
   }
 
-  return prisma.payment.findFirstOrThrow({ where: { id: payment.id } });
+  const fresh = await prisma.payment.findFirstOrThrow({
+    where: { id: payment.id },
+  });
+  return { payment: fresh, refunded };
 }
 
 /** The settled payment backing a purpose row (e.g. a booking), if any. */

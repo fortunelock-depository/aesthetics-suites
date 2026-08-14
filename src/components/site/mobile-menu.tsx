@@ -1,7 +1,7 @@
 // src/components/site/mobile-menu.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -16,9 +16,34 @@ import { siteNavLinks, isActiveSiteLink, BOOK_NOW_HREF } from './nav-links';
 export function MobileMenu() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Standard disclosure dismissal: Escape closes, and so does a tap on the
+  // page below the panel (pointerdown outside the component's subtree).
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    const onPointerDown = (e: PointerEvent) => {
+      if (
+        rootRef.current &&
+        e.target instanceof Node &&
+        !rootRef.current.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, [open]);
 
   return (
-    <div className="lg:hidden">
+    <div ref={rootRef} className="lg:hidden">
       <button
         type="button"
         aria-label={open ? 'Close menu' : 'Open menu'}

@@ -55,3 +55,13 @@ export const ratelimit: Limiter =
     : selection.kind === 'memory'
       ? createInMemoryLimiter()
       : createFailClosedLimiter();
+
+// CRON_SECRET is what makes the housekeeping route callable at all - the
+// route fails closed without it, which is safe but SILENT: no hold sweeps,
+// no Airbnb sync, no lifecycle email ever runs, and the only symptom is
+// 401s in a log nobody reads. Same loud-at-boot treatment as the limiter.
+if (ENV.IS_PRODUCTION && !ENV.CRON_SECRET) {
+  logger.fatal(
+    'CRON_SECRET is unset in production: the housekeeping cron will reject every run (no hold expiry, no Airbnb calendar sync, no lifecycle emails)',
+  );
+}

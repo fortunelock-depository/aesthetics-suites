@@ -161,6 +161,7 @@ export async function getDashboardStats(
     overdueArrivals,
     staleCalendars,
     failedPayments7d,
+    failedRefunds,
     recentBookings,
     upcomingArrivals,
   ] = await Promise.all([
@@ -263,6 +264,8 @@ export async function getDashboardStats(
         updatedAt: { gte: new Date(now.getTime() - 7 * MS_PER_DAY) },
       },
     }),
+    // Refunds the provider rejected - flagged until an admin retries.
+    prisma.booking.count({ where: { refundFailedAt: { not: null } } }),
     prisma.booking.findMany({
       orderBy: { createdAt: 'desc' },
       take: RECENT_BOOKINGS_LIMIT,
@@ -417,6 +420,7 @@ export async function getDashboardStats(
       arrivalsDue: overdueArrivals,
       staleCalendars,
       failedPayments7d,
+      failedRefunds,
     },
     recentBookings,
     upcomingArrivals,

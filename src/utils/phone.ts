@@ -9,7 +9,7 @@ import {
   parsePhoneNumberWithError,
   type CountryCode,
 } from 'libphonenumber-js';
-import { ValidationError } from '@/middlewares/error-handler';
+import { ValidationError } from '@/lib/errors';
 
 export interface PhoneFormats {
   /** Canonical stored form, e.g. "+233241234567". */

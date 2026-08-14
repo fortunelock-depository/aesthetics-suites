@@ -20,6 +20,9 @@ export function SecuritySection({
 }) {
   const [enabled, setEnabled] = useState(initialEnabled);
   const [setupPending, setSetupPending] = useState(false);
+  const [disablePending, setDisablePending] = useState(false);
+  const [disablePassword, setDisablePassword] = useState('');
+  const [disableError, setDisableError] = useState<string | null>(null);
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState<string | null>(null);
   const [busy, startTransition] = useTransition();
@@ -70,19 +73,35 @@ export function SecuritySection({
     const ok = await confirm({
       title: 'Disable two-factor authentication?',
       description:
-        'Sign-ins go back to password only, which is easier to compromise.',
-      confirmText: 'Disable 2FA',
+        'Sign-ins go back to password only, which is easier to compromise. Your current password is required to confirm.',
+      confirmText: 'Continue',
       isDestructive: true,
     });
     if (!ok) return;
+    setDisablePending(true);
+  };
+
+  // Password-gated: a hijacked session alone must not strip the second
+  // factor (see disableTwoFactor server-side).
+  const handleDisableSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!disablePassword) {
+      setDisableError('Enter your current password.');
+      return;
+    }
+    setDisableError(null);
     startTransition(async () => {
-      const r = await disableTwoFactor();
+      const formData = new FormData();
+      formData.set('password', disablePassword);
+      const r = await disableTwoFactor({ success: false }, formData);
       if (r.success) {
         setEnabled(false);
         setSetupPending(false);
+        setDisablePending(false);
+        setDisablePassword('');
         toast.success(r.message ?? 'Two-factor authentication disabled.');
       } else {
-        toast.error(r.error ?? 'Could not disable.');
+        setDisableError(r.error ?? 'Could not disable.');
       }
     });
   };
@@ -110,6 +129,7 @@ export function SecuritySection({
           </p>
         </div>
         {!setupPending &&
+          !disablePending &&
           (enabled ? (
             <Button
               variant="outline"
@@ -130,6 +150,56 @@ export function SecuritySection({
             </Button>
           ))}
       </div>
+
+      {disablePending && (
+        <form
+          onSubmit={handleDisableSubmit}
+          noValidate
+          className="mt-5 max-w-xs space-y-3"
+        >
+          <div className="space-y-1.5">
+            <Label htmlFor="disable-password">Current password</Label>
+            <Input
+              id="disable-password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              aria-invalid={!!disableError}
+              aria-describedby={disableError ? 'disable-password-error' : undefined}
+              value={disablePassword}
+              onChange={(e) => {
+                setDisablePassword(e.target.value);
+                if (disableError) setDisableError(null);
+              }}
+            />
+            {disableError && (
+              <p
+                id="disable-password-error"
+                role="alert"
+                className="text-xs text-destructive"
+              >
+                {disableError}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" variant="destructive" disabled={busy}>
+              {busy ? 'Disabling...' : 'Disable 2FA'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setDisablePending(false);
+                setDisablePassword('');
+                setDisableError(null);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      )}
 
       {setupPending && (
         <form
