@@ -24,7 +24,7 @@ export default async function ServicesPage() {
     <>
       <SiteHeader />
       <main className="flex-1">
-        <PageBanner title="Services" image={'/images/services-bg.png'} />
+        <PageBanner title="Services" image={'/images/services-bg.webp'} />
         <div className="pt-16 lg:pt-[120px]">
           {services.length === 0 ? (
             <div className="mx-auto w-full max-w-[1320px] px-4 pb-16 lg:px-3 lg:pb-[120px]">

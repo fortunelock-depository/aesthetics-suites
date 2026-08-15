@@ -1,10 +1,9 @@
 // src/components/home/hero.tsx
-import { PhotoFrame } from '@/components/site/photo-frame';
 import { Reveal } from '@/components/site/reveal';
 import { HERO } from '@/static-data/home';
-import { BedDouble } from 'lucide-react';
 import { PlayCircle } from '@/components/site/play-circle';
 import { BookingBar } from './booking-bar';
+import { HeroSlideshow } from './hero-slideshow';
 
 /**
  * The landing hero: the reference template's composition (full-bleed
@@ -14,16 +13,10 @@ import { BookingBar } from './booking-bar';
 export function Hero() {
   return (
     <section aria-label="Welcome" className="relative">
-      {/* Backdrop: photo slot with a light scrim so the headline stays dark-on-light. */}
+      {/* Backdrop: cross-dissolving stills with a light scrim over them so
+          the headline stays dark-on-light through every frame. */}
       <div className="absolute inset-0 -z-10">
-        <PhotoFrame
-          src={HERO.image}
-          alt=""
-          icon={BedDouble}
-          className="h-full w-full"
-          sizes="100vw"
-          priority
-        />
+        <HeroSlideshow />
         <div
           aria-hidden
           className="absolute inset-0 bg-[linear-gradient(90deg,var(--background)_15%,color-mix(in_oklch,var(--background),transparent_35%)_55%,color-mix(in_oklch,var(--background),transparent_70%)_100%)]"

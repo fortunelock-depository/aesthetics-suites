@@ -27,7 +27,7 @@ export default async function RoomsPage() {
     <>
       <SiteHeader />
       <main className="flex-1">
-        <PageBanner title="Room List" image={'/images/room-hero-bg.jpg'} />
+        <PageBanner title="Room List" image={'/images/room-hero-bg.webp'} />
 
         {rooms.length === 0 ? (
           <section className="mx-auto w-full max-w-[1320px] px-4 py-16 lg:px-3 lg:py-[120px]">

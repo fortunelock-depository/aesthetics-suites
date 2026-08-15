@@ -36,6 +36,11 @@ const nextConfig: NextConfig = {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
   images: {
+    // AVIF first, WebP as the fallback: AVIF is meaningfully smaller again
+    // than WebP on photography, and Next serves whichever the browser
+    // accepts. The stored sources are already WebP, so a browser that
+    // supports neither still gets those.
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         // Uploaded images (Cloudinary). Scoped to the image-delivery path

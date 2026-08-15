@@ -14,6 +14,13 @@ import {
   Wifi,
   type LucideIcon,
 } from 'lucide-react';
+// Static imports (not string paths) so next/image can generate a blur
+// placeholder at build time and knows the intrinsic size - the hero is the
+// LCP element, and blurring up from a tone beats popping in from blank.
+import heroOne from '../../public/images/hero-bg-1.webp';
+import heroTwo from '../../public/images/hero-bg-2.webp';
+import heroThree from '../../public/images/hero-bg-3.webp';
+import heroFour from '../../public/images/hero-bg-4.webp';
 
 /** Free Unsplash placeholder (hot-linkable) until real photos replace it. */
 export const unsplash = (id: string, width = 1600): string =>
@@ -25,17 +32,22 @@ export const HERO = {
   titleLine2: 'Meets Comfort',
   blurb:
     'Boutique suites designed for rest and quiet luxury - book your stay directly and settle in.',
-  image: unsplash('1618773928121-c32242e63f39', 2000),
+  /**
+   * Backdrop stills, cross-dissolved by HeroSlideshow. Order is the display
+   * order. The CSS timeline in globals.css is written for exactly four -
+   * adding or removing one means retiming those keyframes.
+   */
+  images: [heroOne, heroTwo, heroThree, heroFour],
 } as const;
 
 /** The Welcome section's overlapping photo pair. */
 export const WELCOME_PHOTOS = {
   main: {
-    src: '/images/cta-bg-1.jpg',
+    src: '/images/cta-bg-1.webp',
     alt: 'A calm, sunlit suite bedroom',
   },
   inset: {
-    src: '/images/cta-bg-2.jpg',
+    src: '/images/cta-bg-2.webp',
     alt: 'Fresh towels and amenities laid out on a bed',
   },
 } as const;
@@ -371,7 +383,7 @@ export const VIDEO_BANNER = {
   title: 'Book your suite online in minutes.',
   blurb: 'Live availability, instant confirmation, secure payment.',
   image: {
-    src: '/images/background-image-scroll.jpg',
+    src: '/images/background-image-scroll.webp',
     alt: 'The resort exterior and pool at dusk',
   },
 } as const;

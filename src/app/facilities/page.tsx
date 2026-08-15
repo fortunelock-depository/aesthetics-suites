@@ -24,7 +24,7 @@ export default async function FacilitiesPage() {
     <>
       <SiteHeader />
       <main className="flex-1">
-        <PageBanner title="Facilities" image={'/images/facilities-bg.png'} />
+        <PageBanner title="Facilities" image={'/images/facilities-bg.webp'} />
         <div className="pt-16 lg:pt-[120px]">
           {facilities.length === 0 ? (
             <div className="mx-auto w-full max-w-[1320px] px-4 pb-16 lg:px-3 lg:pb-[120px]">

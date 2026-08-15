@@ -276,3 +276,119 @@
     animation: none !important;
   }
 }
+
+/* ── Hero slideshow ───────────────────────────────────────────────────
+   Four stills cross-dissolving under a slow Ken Burns drift.
+
+   Timeline: each still holds 7s and dissolves over 2s, so a new one takes
+   over every 9s and the loop is 4 x 9 = 36s. Every percentage below is of
+   that 36s: 2s = 5.5556%, 9s = 25%, 11s = 30.5556%. A slide's delay is
+   (index x 9s) - 2s; the -2s starts the first one already faded in, so the
+   page never opens on a blank stage, and it lines each slide's fade-in up
+   with the previous slide's fade-out.
+
+   The dissolve and the drift are separate animations on separate elements
+   on purpose. Driving both from one keyframe set restarts the transform at
+   each handover, which reads as a visible jump; kept apart, the drift runs
+   through the dissolve uninterrupted.
+
+   No will-change: the compositor already handles transform and opacity, and
+   permanently promoting four full-screen layers costs a phone more memory
+   than it saves in paint. */
+.kk-hero-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.kk-hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: kk-hero-fade 36s ease-in-out infinite both;
+  animation-delay: calc(var(--kk-hero-i) * 9s - 2s);
+}
+
+.kk-hero-drift {
+  position: absolute;
+  inset: 0;
+  transform-origin: center;
+  animation: kk-hero-drift-a 36s linear infinite both;
+  animation-delay: calc(var(--kk-hero-i) * 9s - 2s);
+}
+
+/* Alternate the direction so the loop never settles into a pulse. */
+.kk-hero-slide:nth-child(even) .kk-hero-drift {
+  animation-name: kk-hero-drift-b;
+}
+
+@keyframes kk-hero-fade {
+  0% {
+    opacity: 0;
+  }
+  5.5556% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 1;
+  }
+  30.5556% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The drift travels only while the slide is visible (0 to 30.5556%) and
+   returns to its start by 65%, long after the slide has faded out - so the
+   reset is never seen. Scale never drops below 1.04, which keeps the few
+   percent of translate from exposing an edge. */
+@keyframes kk-hero-drift-a {
+  0% {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  30.5556% {
+    transform: scale(1.1) translate3d(-1.2%, -0.8%, 0);
+  }
+  65% {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes kk-hero-drift-b {
+  0% {
+    transform: scale(1.1) translate3d(1.2%, 0.8%, 0);
+  }
+  30.5556% {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  65% {
+    transform: scale(1.1) translate3d(1.2%, 0.8%, 0);
+  }
+  100% {
+    transform: scale(1.1) translate3d(1.2%, 0.8%, 0);
+  }
+}
+
+/* The blanket reduced-motion rule near the top of this file collapses every
+   animation to 0.001ms and one iteration. For a crossfade that is worse than
+   useless: each slide would land on its final keyframe (opacity 0) and the
+   hero would render blank. Stop the slideshow outright and hold the first
+   still instead. */
+@media (prefers-reduced-motion: reduce) {
+  .kk-hero-slide,
+  .kk-hero-drift {
+    animation: none !important;
+    transform: none !important;
+  }
+  .kk-hero-slide {
+    opacity: 0 !important;
+  }
+  .kk-hero-slide:first-child {
+    opacity: 1 !important;
+  }
+}
