@@ -4,7 +4,15 @@ import { SignJWT, jwtVerify, JWTPayload } from 'jose';
 import { cookies } from 'next/headers';
 import { ENV } from '@/config/env';
 
-const encodedKey = new TextEncoder().encode(ENV.SESSION_SECRET);
+/**
+ * Domain-separated from the session key (see lib/session.ts). Signing both
+ * token types with the raw secret let this cookie be renamed to `session`
+ * and accepted as a full login, which is precisely the bypass 2FA exists to
+ * prevent. A distinct key means a pending token cannot even verify there.
+ */
+const encodedKey = new TextEncoder().encode(
+  `${ENV.SESSION_SECRET}::two_factor_pending`,
+);
 
 const PENDING_COOKIE = 'two_factor_pending';
 const PENDING_PURPOSE = 'two_factor_pending';

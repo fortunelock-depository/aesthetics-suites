@@ -12,7 +12,23 @@ import { UnauthorizedError } from '@/lib/errors';
 // top level - proxy.ts pulls `decrypt` from this module and must not drag
 // the database driver into the middleware bundle.
 
-const encodedKey = new TextEncoder().encode(ENV.SESSION_SECRET);
+/**
+ * Domain-separated signing key. The 2FA-pending cookie is signed by the same
+ * secret in two-factor-session.ts, so signing both with the raw secret made
+ * the two token types interchangeable: a pending token renamed to `session`
+ * verified here, and (carrying no `sv`) satisfied an epoch check against any
+ * account still at sessionVersion 0 - a full 2FA bypass for anyone holding
+ * the password. Distinct keys make that confusion impossible to express,
+ * rather than merely checked for. The purpose claim below is the second,
+ * independent layer.
+ *
+ * Changing the key invalidates sessions issued before this deploy; users
+ * simply sign in again.
+ */
+const encodedKey = new TextEncoder().encode(`${ENV.SESSION_SECRET}::session`);
+
+/** Marks a token as a full session, so no other token type can pose as one. */
+const SESSION_PURPOSE = 'session';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 const SESSION_DURATION = '7d';
@@ -23,6 +39,7 @@ export interface SessionPayload extends JWTPayload {
   /** Session epoch - must match User.sessionVersion (see schema). */
   sv: number;
   expiresAt: Date;
+  purpose?: string;
 }
 
 export interface SessionInfo {
@@ -34,7 +51,7 @@ export interface SessionInfo {
 }
 
 export async function encrypt(payload: SessionPayload): Promise<string> {
-  return new SignJWT(payload)
+  return new SignJWT({ ...payload, purpose: SESSION_PURPOSE })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(SESSION_DURATION)
@@ -50,6 +67,10 @@ export async function decrypt(
     const { payload } = await jwtVerify(session, encodedKey, {
       algorithms: ['HS256'],
     });
+    // Belt and braces alongside the separate signing key: only a token
+    // minted by encrypt() claims this purpose, so nothing else can be
+    // mistaken for a session even if the keys ever converge again.
+    if ((payload as SessionPayload).purpose !== SESSION_PURPOSE) return null;
     return payload as SessionPayload;
   } catch {
     // An invalid/expired token is an expected state (stale cookie), not an
@@ -95,7 +116,11 @@ export async function deleteSession(): Promise<void> {
 const resolveSession = cache(async (): Promise<SessionInfo | null> => {
   const cookie = (await cookies()).get('session')?.value;
   const session = await decrypt(cookie);
-  if (!session?.userId) return null;
+  // `sv` is required, never defaulted: a token without an epoch must not be
+  // able to match an account that happens to sit at the default 0 (which is
+  // every account that has never changed its password, seeded admin
+  // included). Absent epoch means "not a session we issued".
+  if (!session?.userId || typeof session.sv !== 'number') return null;
 
   const { default: prisma, UserRole } = await import('@/lib/prisma');
   const user = await prisma.user.findFirst({
@@ -103,7 +128,7 @@ const resolveSession = cache(async (): Promise<SessionInfo | null> => {
     select: { sessionVersion: true, role: true },
   });
   // Deleted user or a stale epoch (logged out everywhere) -> not signed in.
-  if (!user || user.sessionVersion !== (session.sv ?? 0)) return null;
+  if (!user || user.sessionVersion !== session.sv) return null;
 
   return {
     isAuth: true,
