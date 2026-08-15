@@ -117,15 +117,9 @@ Target: Vercel (serverless) + Neon Postgres. The pieces that are NOT code:
    whereas syncing at the decision point closes it to seconds. A failed
    fetch never blocks a booking; the existing blocks plus the locked
    availability re-check still protect correctness.
-4. **Scheduled housekeeping** (`/api/cron/housekeeping`) is the batch safety
-   net: expiring lapsed holds, syncing units nobody browsed, and sending due
-   lifecycle emails. Two things call it, both sending
-   `Authorization: Bearer <CRON_SECRET>`:
-   - **External pinger (primary)**: point cron-job.org at
-     `https://<domain>/api/cron/housekeeping`, method GET (POST also works),
-     with a custom header `Authorization: Bearer <CRON_SECRET>`. **Use an
-     hourly interval.** The response is a JSON summary of what the run did,
-     visible in cron-job.org's execution log.
+4. **Scheduled housekeeping** - see the endpoint reference below. Two things
+   call it, both sending `Authorization: Bearer <CRON_SECRET>`:
+   - **External pinger (primary)**: cron-job.org, **hourly**.
    - **Vercel backstop**: `vercel.json` runs the same route daily at 03:00
      UTC (daily is the Hobby plan's cron limit), so the sweeps still happen
      if the external pinger dies or its account lapses.
@@ -162,3 +156,75 @@ Target: Vercel (serverless) + Neon Postgres. The pieces that are NOT code:
 7. **Observability**: logs are structured JSON (pino). There is no error
    tracker wired; point a Vercel log drain at the project (or add Sentry)
    so `level >= error` pages someone - payment incidents land there.
+
+### Cron endpoint reference
+
+Everything a scheduler needs, in one place.
+
+| | |
+| --- | --- |
+| **URL** | `https://<your-domain>/api/cron/housekeeping` |
+| **Method** | `GET` (or `POST` - both are handled, so any pinger works) |
+| **Header** | `Authorization: Bearer <CRON_SECRET>` |
+| **Interval** | **Hourly** (see the billing note above before changing it) |
+| **Auth failure** | `401` - the secret is compared in constant time |
+| **Timeout** | The route declares `maxDuration = 60`, the Hobby ceiling |
+
+Configure it in cron-job.org under the job's *Advanced* settings, where
+custom request headers live. Vercel Cron sends the same header
+automatically whenever `CRON_SECRET` is set in the project env, so the
+backstop needs no extra configuration.
+
+Test it by hand:
+
+```bash
+curl -i https://<your-domain>/api/cron/housekeeping \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
+
+**What one run does**, in order. Stranded payments are reconciled *first*,
+deliberately: a booking whose payment landed but whose fulfilment died is
+still PENDING, and expiring holds before repairing it would hand its unit
+away from a guest who has already paid.
+
+1. `strandedPayments` - repairs bookings that were paid but never confirmed
+2. `expiredHolds` - releases lapsed unpaid holds
+3. `ical` - syncs Airbnb calendars for units nobody browsed
+4. `lifecycle` - sends due pre-arrival reminders and review invites
+
+**Response** - always the standard envelope, with one section per sweep:
+
+```jsonc
+{
+  "status": "success",
+  "message": "Success",
+  "data": {
+    "skipped": false,
+    "ok": true,              // false if ANY section failed
+    "strandedPayments": 0,
+    "expiredHolds": 2,
+    "ical": { "synced": 3, "failed": 0 },
+    "lifecycle": { "reminders": 1, "reviewInvites": 0, "paymentReminders": 0 }
+  }
+}
+```
+
+A sweep that threw reports `null` in its own field while the rest still
+carry their counts, so a partial failure is visible without guessing.
+
+When a run is already in flight (the pinger double-fired, or the Vercel
+backstop landed on top of it), a Postgres advisory lock makes the second
+call a no-op:
+
+```jsonc
+{ "status": "success", "message": "Success",
+  "data": { "skipped": true, "reason": "already-running" } }
+```
+
+**Status codes are chosen so a scheduler behaves sensibly**: `200` for both
+a real run and a skipped one, and `200` even when an individual sweep fails
+(its section reports `ok: false` while the others still count) - because a
+non-2xx makes a pinger retry work that already succeeded. Only `401`
+(wrong or missing secret) and `500` (nothing ran at all) are errors. Watch
+the `ok` flag rather than the status code to spot a partial failure, and
+cron-job.org's execution log shows the whole body.
