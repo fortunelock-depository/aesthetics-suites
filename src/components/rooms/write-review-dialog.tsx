@@ -281,7 +281,7 @@ export function WriteReviewButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="btn-sweep btn-sweep-gold inline-flex items-center gap-2.5 border border-brand bg-transparent px-[43px] py-4 font-heading text-base font-bold text-brand uppercase"
+        className="btn-sweep btn-sweep-gold inline-flex items-center gap-2.5 border border-brand bg-transparent px-[43px] py-4 font-heading text-base font-bold text-brand-text uppercase"
       >
         <PenLine className="h-4 w-4" />
         Write a Review

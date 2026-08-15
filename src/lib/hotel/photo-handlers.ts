@@ -18,8 +18,14 @@ import { NotFoundError, ValidationError } from '@/lib/errors';
 const MAX_PHOTOS_PER_REQUEST = 12;
 
 export interface PhotoHandlerConfig {
-  /** "Room type" / "Facility" / "Service" - error copy. */
+  /** "Room type" / "Facility" / "Service" - not-found copy. */
   entityLabel: string;
+  /**
+   * What one upload is called in validation copy ("room photo"), which is
+   * not always the entity label lowercased - "room type photo" reads wrong
+   * to a guest-facing admin.
+   */
+  photoLabel: string;
   /** Cloudinary folder for uploads. */
   folder: string;
   /** Loads the parent row (null when absent); slug feeds revalidation. */
@@ -72,23 +78,33 @@ export function makePhotoHandlers(config: PhotoHandlerConfig) {
       const alt = form.get('alt');
       let sortOrder = ((await config.lastSortOrder(parent.id)) ?? -1) + 1;
 
+      // Uploads land in Cloudinary before their row exists, so a failure
+      // part-way through a batch would strand the assets uploaded so far.
+      // Track them and clean up on the way out.
+      const uploadedPublicIds: string[] = [];
       const created = [];
-      for (const file of files) {
-        const uploaded = await fileToUploaded(
-          file,
-          `${config.entityLabel.toLowerCase()} photo`,
+      try {
+        for (const file of files) {
+          const uploaded = await fileToUploaded(file, config.photoLabel);
+          if (!uploaded) continue;
+          const result = await uploadImage(uploaded, { folder: config.folder });
+          uploadedPublicIds.push(result.public_id);
+          created.push(
+            await config.createPhoto({
+              parentId: parent.id,
+              url: result.secure_url,
+              publicId: result.public_id,
+              alt: typeof alt === 'string' && alt ? alt : undefined,
+              sortOrder: sortOrder++,
+            }),
+          );
+        }
+      } catch (err) {
+        // Best effort: never let cleanup mask what actually went wrong.
+        await Promise.allSettled(
+          uploadedPublicIds.map((publicId) => deleteImage(publicId)),
         );
-        if (!uploaded) continue;
-        const result = await uploadImage(uploaded, { folder: config.folder });
-        created.push(
-          await config.createPhoto({
-            parentId: parent.id,
-            url: result.secure_url,
-            publicId: result.public_id,
-            alt: typeof alt === 'string' && alt ? alt : undefined,
-            sortOrder: sortOrder++,
-          }),
-        );
+        throw err;
       }
 
       config.revalidate(parent.slug);

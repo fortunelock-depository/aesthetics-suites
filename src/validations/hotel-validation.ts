@@ -304,6 +304,12 @@ export const manualBookingSchema = z
     /** Normalized to E.164 ("+233...") by the field itself. */
     guestPhone: optionalPhoneField,
     specialRequests: z.string().trim().max(1000).optional(),
+    /**
+     * Negotiated total in minor units. A discount off the quote only - the
+     * service rejects anything above it, because the stored breakdown
+     * carries the difference as `discountAmount` and cannot represent a
+     * surcharge. Admin-only (the route gates FRONT_DESK out).
+     */
     totalOverride: z.number().int().min(0).optional(),
   })
   .refine((data) => data.checkOut > data.checkIn, {

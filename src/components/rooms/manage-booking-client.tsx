@@ -29,6 +29,7 @@ import {
   BOOKING_STATUS_TONE,
   type IGuestBooking,
 } from '@/types/booking.types';
+import { bookRoom } from '@/lib/routes';
 
 const FIELD =
   'w-full min-w-0 border border-border bg-card px-4 py-3.5 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand';
@@ -293,8 +294,8 @@ export function ManageBookingClient({
 
           {booking.status === 'EXPIRED' && (
             <a
-              href={`/rooms/${booking.roomType.slug}/book`}
-              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline"
+              href={bookRoom(booking.roomType.slug)}
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-text hover:underline"
             >
               Book this room again
               <ArrowRight className="h-4 w-4" />

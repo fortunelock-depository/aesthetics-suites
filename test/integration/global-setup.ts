@@ -19,6 +19,30 @@ function dbNameOf(url: string): string {
   return new URL(url).pathname.replace(/^\//, '');
 }
 
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
+
+/**
+ * Refuses to run against anything that is not obviously a throwaway
+ * database. Every test TRUNCATEs every table, and TEST_DATABASE_URL lives
+ * in the same untracked .env as the real dev connection string - one paste
+ * error away from wiping development data. A remote host is only accepted
+ * when the database name itself says "test" (CI service containers are
+ * local, so this rejects nothing legitimate).
+ */
+function assertDisposable(url: string): void {
+  const parsed = new URL(url);
+  const dbName = dbNameOf(url);
+  const isLocal = LOCAL_HOSTS.has(parsed.hostname);
+  if (isLocal || dbName.endsWith('_test')) return;
+
+  throw new Error(
+    `Refusing to run the integration suite against "${dbName}" on ` +
+      `"${parsed.hostname}": every test truncates every table. Point ` +
+      'TEST_DATABASE_URL at a local Postgres, or name the database with a ' +
+      '"_test" suffix if it really is disposable.',
+  );
+}
+
 export async function setup(): Promise<void> {
   if (!testDbUrl) {
     throw new Error(
@@ -27,6 +51,8 @@ export async function setup(): Promise<void> {
         'it is created and migrated automatically.',
     );
   }
+
+  assertDisposable(testDbUrl);
 
   const dbName = dbNameOf(testDbUrl);
   const maintenanceUrl = new URL(testDbUrl);

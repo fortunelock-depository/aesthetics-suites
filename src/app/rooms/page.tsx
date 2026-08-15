@@ -7,7 +7,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { RoomListItem } from '@/components/rooms/room-list-item';
 import { RoomsSidebar } from '@/components/rooms/rooms-sidebar';
 import { getPublicRoomCards } from '@/lib/hotel/public-rooms';
-import { unsplash } from '@/static-data/home';
 import { SITE } from '@/config/constants';
 import { pageMetadata } from '@/lib/seo';
 
@@ -28,10 +27,7 @@ export default async function RoomsPage() {
     <>
       <SiteHeader />
       <main className="flex-1">
-        <PageBanner
-          title="Room List"
-          image={unsplash('1582719478250-c89cae4dc85b', 2000)}
-        />
+        <PageBanner title="Room List" image={'/images/room-hero-bg.jpg'} />
 
         {rooms.length === 0 ? (
           <section className="mx-auto w-full max-w-[1320px] px-4 py-16 lg:px-3 lg:py-[120px]">

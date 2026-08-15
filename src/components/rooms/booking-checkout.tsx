@@ -39,6 +39,9 @@ const guestSchema = z.object({
 type GuestInput = z.input<typeof guestSchema>;
 type GuestOutput = z.output<typeof guestSchema>;
 
+/** Stay-level errors ("pick your dates", "not available") announce here. */
+const STAY_ERROR_ID = 'book-stay-error';
+
 const FIELD =
   'w-full min-w-0 border border-border bg-card px-4 py-3.5 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand aria-[invalid=true]:border-destructive';
 
@@ -260,6 +263,8 @@ export function BookingCheckout({
               <input
                 id="book-check-in"
                 type="date"
+                aria-describedby={stayError ? STAY_ERROR_ID : undefined}
+                aria-invalid={stayError ? true : undefined}
                 min={today}
                 value={checkIn}
                 onChange={(e) => {
@@ -275,6 +280,8 @@ export function BookingCheckout({
               <input
                 id="book-check-out"
                 type="date"
+                aria-describedby={stayError ? STAY_ERROR_ID : undefined}
+                aria-invalid={stayError ? true : undefined}
                 min={checkIn || today}
                 value={checkOut}
                 onChange={(e) => {
@@ -334,13 +341,19 @@ export function BookingCheckout({
             <button
               type="button"
               onClick={applyDiscount}
-              className="flex-none border border-brand px-5 font-heading text-sm font-bold text-brand uppercase transition-colors hover:bg-brand hover:text-brand-foreground"
+              className="flex-none border border-brand px-5 font-heading text-sm font-bold text-brand-text uppercase transition-colors hover:bg-brand hover:text-brand-foreground"
             >
               Apply
             </button>
           </div>
           {stayError && (
-            <p className="mt-2 text-sm text-destructive">{stayError}</p>
+            <p
+              id={STAY_ERROR_ID}
+              role="alert"
+              className="mt-2 text-sm text-destructive"
+            >
+              {stayError}
+            </p>
           )}
         </section>
 
@@ -453,7 +466,16 @@ export function BookingCheckout({
                 : 'Pick your dates'}
             </p>
 
-            <div className="mt-4 border-t border-border">
+            {/* Live region: this panel swaps between loading, unavailable,
+                quote-failed and priced as the dates change, and the submit
+                button silently flips to disabled with it. Without an
+                announcement a screen-reader guest can watch a room become
+                unavailable and hear nothing. */}
+            <div
+              className="mt-4 border-t border-border"
+              aria-live="polite"
+              aria-busy={isQuoting || undefined}
+            >
               {!datesValid ? (
                 <p className="py-4 text-sm text-muted-foreground">
                   Your price appears here once you choose check-in and

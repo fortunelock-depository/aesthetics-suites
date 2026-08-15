@@ -34,7 +34,7 @@ function ensureConfigured(): void {
 }
 
 /** Extracts the Cloudinary public_id (incl. folder) from a delivery URL. */
-export function extractPublicIdFromUrl(url: string): string | null {
+function extractPublicIdFromUrl(url: string): string | null {
   try {
     const parts = new URL(url).pathname.split('/');
     const deliveryIndex = parts.findIndex(

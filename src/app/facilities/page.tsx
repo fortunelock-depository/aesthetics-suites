@@ -5,7 +5,6 @@ import { PageBanner } from '@/components/site/page-banner';
 import { EmptyState } from '@/components/ui/empty-state';
 import { FacilitiesSection } from '@/components/home/facilities-section';
 import { getPublicFacilities } from '@/lib/hotel/public-facilities';
-import { unsplash } from '@/static-data/home';
 import { SITE } from '@/config/constants';
 import { pageMetadata } from '@/lib/seo';
 
@@ -25,15 +24,12 @@ export default async function FacilitiesPage() {
     <>
       <SiteHeader />
       <main className="flex-1">
-        <PageBanner
-          title="Facilities"
-          image={unsplash('1566073771259-6a8506099945', 2000)}
-        />
+        <PageBanner title="Facilities" image={'/images/facilities-bg.png'} />
         <div className="pt-16 lg:pt-[120px]">
           {facilities.length === 0 ? (
             <div className="mx-auto w-full max-w-[1320px] px-4 pb-16 lg:px-3 lg:pb-[120px]">
               <EmptyState
-              variant="site"
+                variant="site"
                 title="Nothing here just yet"
                 description="Our facilities are being refreshed - please check back soon."
               />

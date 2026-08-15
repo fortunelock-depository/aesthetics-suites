@@ -6,6 +6,7 @@ import { deliver, adminRecipients } from './deliver';
 import { formatMoney } from '@/lib/format-money';
 import { toDateOnlyString } from '@/lib/hotel/dates';
 import { SITE } from '@/config/constants';
+import { roomDetail } from '@/lib/routes';
 
 const detailRows = (booking: Booking, roomTypeName: string): string => {
   const rows: [string, string][] = [
@@ -185,7 +186,7 @@ export async function sendReviewInviteEmail(
   roomTypeName: string,
   roomTypeSlug: string,
 ): Promise<void> {
-  const reviewUrl = `${SITE.url}/rooms/${roomTypeSlug}?review=1&code=${booking.code}`;
+  const reviewUrl = `${SITE.url}${roomDetail(roomTypeSlug)}?review=1&code=${booking.code}`;
 
   const html = shell(`
     <h2 style="margin:0 0 16px;font-size:18px;">How was your stay?</h2>

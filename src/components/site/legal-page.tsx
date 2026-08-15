@@ -30,7 +30,7 @@ export function LegalPage({
       <SiteHeader />
       <main className="flex-1">
         <article className="mx-auto w-full max-w-[820px] px-4 py-14 lg:py-20">
-          <p className="text-[15px] font-semibold text-brand capitalize">
+          <p className="text-[15px] font-semibold text-brand-text capitalize">
             Legal
           </p>
           <h1 className="mt-2.5 font-heading text-[32px] leading-[1.25] font-medium text-foreground lg:text-[45px]">

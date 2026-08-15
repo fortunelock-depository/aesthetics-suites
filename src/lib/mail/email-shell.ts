@@ -4,7 +4,7 @@ import { SITE } from '@/config/constants';
 import { ENV } from '@/config/env';
 
 export const BRAND = SITE.name;
-export const TAGLINE = SITE.tagline;
+const TAGLINE = SITE.tagline;
 
 /**
  * The agritrade logo approach: a HOSTED image, never a cid attachment (cid

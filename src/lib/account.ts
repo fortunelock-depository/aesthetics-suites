@@ -181,7 +181,7 @@ export async function confirmEmailChangeAction(
  * sent to the previous address IS the credential. Bumps the session epoch,
  * so every device must sign in again with the new email.
  */
-export async function confirmEmailChange(
+async function confirmEmailChange(
   token: string,
 ): Promise<ConfirmEmailChangeResult> {
   const invalid = {

@@ -6,6 +6,14 @@
 // the banner trails. Rendered from Server Components, so the markup ships
 // in the static HTML crawlers read.
 import { SITE, CONTACT } from '@/config/constants';
+import { roomDetail } from '@/lib/routes';
+
+/** ISO date one year out - see the Offer's priceValidUntil. */
+function priceValidUntil(): string {
+  const d = new Date();
+  d.setUTCFullYear(d.getUTCFullYear() + 1);
+  return d.toISOString().slice(0, 10);
+}
 
 /** Serializes a schema.org object into a JSON-LD script tag. */
 export function JsonLd({ data }: { data: Record<string, unknown> }) {
@@ -60,7 +68,7 @@ export function hotelRoomJsonLd(room: {
     '@type': 'HotelRoom',
     name: room.name,
     description: room.summary,
-    url: `${SITE.url}/rooms/${room.slug}`,
+    url: `${SITE.url}${roomDetail(room.slug)}`,
     ...(room.photos.length > 0
       ? { image: room.photos.map((photo) => photo.url) }
       : {}),
@@ -76,7 +84,11 @@ export function hotelRoomJsonLd(room: {
       price: (room.basePrice / 100).toFixed(2),
       priceCurrency: room.currency,
       availability: 'https://schema.org/InStock',
-      url: `${SITE.url}/rooms/${room.slug}`,
+      url: `${SITE.url}${roomDetail(room.slug)}`,
+      // Google warns on an Offer without this. The rate card is open-ended,
+      // so it is quoted a year out and refreshed on every rebuild rather
+      // than implying a promotion that expires.
+      priceValidUntil: priceValidUntil(),
     },
     ...(room.rating && room.rating.count > 0
       ? {

@@ -20,7 +20,3 @@ export const PAYMENT_STATUS_TONE: Record<string, StatusTone> = {
   FAILED: 'danger',
   REVERSED: 'neutral',
 };
-
-/** Generic yes/no flags rendered as badges (e.g. "Admin"). */
-export const boolTone = (value: boolean): StatusTone =>
-  value ? 'info' : 'neutral';

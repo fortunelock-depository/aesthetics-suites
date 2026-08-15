@@ -1,30 +1,30 @@
 // src/lib/rate-limit.ts
 import 'server-only';
 import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
 import { ENV } from '@/config/env';
+import { getRedis, hasRedis } from '@/lib/redis';
 import logger from '@/utils/logger';
 import {
+  createAllowAllLimiter,
   createFailClosedLimiter,
   createInMemoryLimiter,
   selectLimiter,
+  BROWSE_RATE_LIMIT,
   RATE_LIMIT,
   type Limiter,
 } from '@/lib/rate-limiter';
+import '@/config/startup-checks';
 
 export type { Limiter, LimitResult } from '@/lib/rate-limiter';
 
-function createUpstashLimiter(): Limiter {
-  const redis = new Redis({
-    url: ENV.UPSTASH_REDIS_REST_URL!,
-    token: ENV.UPSTASH_REDIS_REST_TOKEN!,
-  });
+function createUpstashLimiter(max: number, prefix: string): Limiter {
+  const redis = getRedis()!;
 
   const rl = new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(RATE_LIMIT, '60s'),
+    limiter: Ratelimit.slidingWindow(max, '60s'),
     analytics: true,
-    prefix: 'aesthetics-suites:auth',
+    prefix: `aesthetics-suites:${prefix}`,
   });
 
   return {
@@ -37,9 +37,7 @@ function createUpstashLimiter(): Limiter {
 
 const selection = selectLimiter({
   isProduction: ENV.IS_PRODUCTION,
-  hasUpstash:
-    Boolean(ENV.UPSTASH_REDIS_REST_URL) &&
-    Boolean(ENV.UPSTASH_REDIS_REST_TOKEN),
+  hasUpstash: hasRedis(),
 });
 
 if (selection.kind === 'fail-closed') {
@@ -51,17 +49,19 @@ if (selection.kind === 'fail-closed') {
 
 export const ratelimit: Limiter =
   selection.kind === 'upstash'
-    ? createUpstashLimiter()
+    ? createUpstashLimiter(RATE_LIMIT, 'auth')
     : selection.kind === 'memory'
       ? createInMemoryLimiter()
       : createFailClosedLimiter();
 
-// CRON_SECRET is what makes the housekeeping route callable at all - the
-// route fails closed without it, which is safe but SILENT: no hold sweeps,
-// no Airbnb sync, no lifecycle email ever runs, and the only symptom is
-// 401s in a log nobody reads. Same loud-at-boot treatment as the limiter.
-if (ENV.IS_PRODUCTION && !ENV.CRON_SECRET) {
-  logger.fatal(
-    'CRON_SECRET is unset in production: the housekeeping cron will reject every run (no hold expiry, no Airbnb calendar sync, no lifecycle emails)',
-  );
-}
+/**
+ * Throttle for public browse endpoints. Same store, looser budget, and it
+ * degrades to allow-all rather than fail-closed - see createAllowAllLimiter
+ * for why a misconfigured cache must not blank the public site.
+ */
+export const browseRatelimit: Limiter =
+  selection.kind === 'upstash'
+    ? createUpstashLimiter(BROWSE_RATE_LIMIT, 'browse')
+    : selection.kind === 'memory'
+      ? createInMemoryLimiter(BROWSE_RATE_LIMIT)
+      : createAllowAllLimiter(BROWSE_RATE_LIMIT);

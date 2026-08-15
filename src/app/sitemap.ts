@@ -4,6 +4,7 @@ import { SITE } from '@/config/constants';
 import { getPublicRoomCards } from '@/lib/hotel/public-rooms';
 import { getPublicFacilities } from '@/lib/hotel/public-facilities';
 import { getPublicServices } from '@/lib/hotel/public-services';
+import { facilityDetail, roomDetail, serviceDetail } from '@/lib/routes';
 
 // Regenerates hourly so newly published rooms/facilities reach the sitemap
 // without a redeploy (mutations only revalidate the page routes).
@@ -20,12 +21,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/terms-of-service', changeFrequency: 'yearly' as const, priority: 0.3 },
   ];
 
-  const [dbRooms, facilities, services] = await Promise.all([
+  const [rooms, facilities, services] = await Promise.all([
     getPublicRoomCards(),
     getPublicFacilities(),
     getPublicServices(),
   ]);
-  const rooms = dbRooms;
 
   return [
     ...staticRoutes.map((route) => ({
@@ -35,19 +35,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: route.priority,
     })),
     ...rooms.map((room) => ({
-      url: `${SITE.url}/rooms/${room.slug}`,
+      url: `${SITE.url}${roomDetail(room.slug)}`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.8,
     })),
     ...facilities.map((facility) => ({
-      url: `${SITE.url}/facilities/${facility.slug}`,
+      url: `${SITE.url}${facilityDetail(facility.slug)}`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     })),
     ...services.map((service) => ({
-      url: `${SITE.url}/services/${service.slug}`,
+      url: `${SITE.url}${serviceDetail(service.slug)}`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.6,

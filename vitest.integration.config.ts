@@ -38,15 +38,18 @@ export default defineConfig({
       NEXT_PUBLIC_BASE_URL: 'http://localhost:3000',
       // Known secret so webhook-signature tests can sign deterministically.
       PAYSTACK_SECRET_KEY: 'sk_test_vitest',
-      // Explicitly unset: in-memory limiter in test, no SMTP (mail layer is
-      // mocked anyway), no mail traps, no cron secret needed at this layer.
+      // Known secret so the housekeeping route's bearer check can be
+      // exercised (and its 401 path asserted) deterministically.
+      CRON_SECRET: 'vitest-cron-secret',
+      // Explicitly unset: Redis absent means the in-memory limiter in test
+      // (never the fail-closed one), no SMTP (the mail layer is mocked
+      // anyway), and no mail traps.
       UPSTASH_REDIS_REST_URL: '',
       UPSTASH_REDIS_REST_TOKEN: '',
       SMTP_USER: '',
       SMTP_PASSWORD: '',
       MAIL_FORCE_TO: '',
       MAIL_PREVIEW_DIR: '',
-      CRON_SECRET: '',
     },
     // One shared database, reset between tests - never run files in
     // parallel (each file's worker still gets its own Prisma pool and

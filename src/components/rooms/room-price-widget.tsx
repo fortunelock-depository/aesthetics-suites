@@ -3,6 +3,7 @@ import { Ruler, Users } from 'lucide-react';
 import { StayCtaLink } from '@/components/rooms/stay-link';
 import { formatMoney } from '@/lib/format-money';
 import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
+import { bookRoom } from '@/lib/routes';
 
 /**
  * The detail sidebar's "Your Price" widget (template): capacity rows, the
@@ -36,7 +37,7 @@ export function RoomPriceWidget({ room }: { room: IPublicRoomDetail }) {
         <span className="text-sm text-muted-foreground">/Night</span>
       </p>
 
-      <StayCtaLink href={`/rooms/${room.slug}/book`} className="mt-5">
+      <StayCtaLink href={bookRoom(room.slug)} className="mt-5">
         Book Now
       </StayCtaLink>
     </div>

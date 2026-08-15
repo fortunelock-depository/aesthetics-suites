@@ -32,10 +32,22 @@ vi.mock('@/lib/paystack/client', () => ({
   ),
   verifyPaystackTransaction: vi.fn((reference: string) => {
     const charge = paystackState.charged.get(reference);
+    // Verifying a reference this test never initialized means the fixture
+    // is wrong (the map is cleared per test). Defaulting to amount 0 would
+    // quietly trip the mismatch branch and read as a real failure, so fail
+    // where the mistake is instead.
+    if (!charge) {
+      return Promise.reject(
+        new Error(
+          `Paystack fake: reference "${reference}" was never initialized in this test. ` +
+            'Create the charge inside the test, or override verifyPaystackTransaction explicitly.',
+        ),
+      );
+    }
     return Promise.resolve({
       status: 'success',
-      amount: charge?.amount ?? 0,
-      currency: charge?.currency ?? 'GHS',
+      amount: charge.amount,
+      currency: charge.currency,
       reference,
       paidAt: '2026-01-01T00:00:00.000Z',
       channel: 'card',
@@ -43,6 +55,15 @@ vi.mock('@/lib/paystack/client', () => ({
     });
   }),
   refundPaystackTransaction: vi.fn(() => Promise.resolve()),
+  // Real implementation, not a stub: it is pure message-text matching, and
+  // the refund-retry path depends on classifying "already refunded" as
+  // settlement rather than failure. Stubbing it false would hide that.
+  isAlreadyRefunded: (error: unknown) =>
+    /already|fully revers|fully refund/i.test(
+      error && typeof error === 'object' && 'message' in error
+        ? String((error as { message: unknown }).message)
+        : '',
+    ),
 }));
 
 // ── Booking email fake ──────────────────────────────────────────────────────
@@ -126,7 +147,9 @@ export async function resetDatabase(): Promise<void> {
 beforeEach(async () => {
   await resetDatabase();
   paystackState.charged.clear();
-  // Clears call history and queued -Once overrides; keeps implementations.
+  // Resets call history. Base implementations set by vi.mock survive; any
+  // queued -Once override is expected to be consumed by the test that
+  // queued it, so nothing here relies on those being discarded.
   vi.clearAllMocks();
 });
 

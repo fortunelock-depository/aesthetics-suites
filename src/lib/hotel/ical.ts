@@ -21,6 +21,38 @@ import { BadRequestError, NotFoundError } from '@/lib/errors';
 
 const PRODID = `-//${SITE.name}//Room Calendar//EN`;
 
+/**
+ * Fetch budgets. The scheduled sweep can afford to wait on a slow Airbnb;
+ * a guest mid-checkout cannot, so the booking path passes a tighter cap and
+ * simply proceeds on timeout (see refreshStaleCalendars).
+ */
+const SCHEDULED_FETCH_TIMEOUT_MS = 20_000;
+export const BOOKING_FETCH_TIMEOUT_MS = 10_000;
+/**
+ * Browsing pays a tighter budget than the scheduled sweep: this fetch is
+ * warming data for the NEXT look, so it is never worth holding a function
+ * invocation open for twenty seconds on a feed that is not answering.
+ */
+export const BROWSE_FETCH_TIMEOUT_MS = 8_000;
+
+/**
+ * How long a failed feed is left alone before another request may retry it.
+ * Without this a permanently broken URL is re-fetched on every single
+ * request, because the failure path hands the claim straight back.
+ */
+export const FAILURE_BACKOFF_MS = 10 * 60 * 1000;
+
+/**
+ * Freshness thresholds for the demand-driven refresh. Calendar accuracy is
+ * not a scheduling problem: it matters at the moment somebody might take a
+ * room, so we sync the room being looked at rather than every room on a
+ * timer. Booking submit uses the tight one (that is where a stale calendar
+ * becomes a real double booking); browsing uses the loose one to warm the
+ * data for the next look without hammering Airbnb.
+ */
+export const BOOKING_STALE_MS = 5 * 60 * 1000;
+export const BROWSE_STALE_MS = 15 * 60 * 1000;
+
 const toIcsDate = (date: Date): string =>
   toDateOnlyString(date).replace(/-/g, '');
 
@@ -165,7 +197,10 @@ export async function roomFeedEvents(roomId: string): Promise<IcsEventInput[]> {
  * upserts by VEVENT UID, removes AIRBNB blocks that vanished from the feed
  * (a cancelled Airbnb booking frees the dates here too).
  */
-export async function syncRoomFromAirbnb(roomId: string): Promise<{
+export async function syncRoomFromAirbnb(
+  roomId: string,
+  options: { timeoutMs?: number } = {},
+): Promise<{
   imported: number;
   removed: number;
 }> {
@@ -180,7 +215,7 @@ export async function syncRoomFromAirbnb(roomId: string): Promise<{
 
   const response = await fetch(room.airbnbIcalUrl, {
     headers: { Accept: 'text/calendar' },
-    signal: AbortSignal.timeout(20_000),
+    signal: AbortSignal.timeout(options.timeoutMs ?? SCHEDULED_FETCH_TIMEOUT_MS),
   });
   if (!response.ok) {
     throw new BadRequestError(
@@ -250,6 +285,112 @@ export async function syncRoomFromAirbnb(roomId: string): Promise<{
     'Airbnb calendar synced',
   );
   return { imported: events.length, removed: removed.count };
+}
+
+export interface IRefreshResult {
+  /** Units whose calendar was pulled successfully in this call. */
+  synced: number;
+  /** Units we claimed but whose fetch/parse failed (staleness preserved). */
+  failed: number;
+  /** Units already fresh, or claimed by a concurrent caller. */
+  skipped: number;
+}
+
+/**
+ * Refreshes the Airbnb calendars of one room type's units, but only those
+ * staler than `maxAgeMs`. This is the demand-driven half of calendar
+ * freshness: instead of sweeping every room on a timer (which still leaves
+ * a window as wide as the interval), the room somebody is actually looking
+ * at or booking is brought current right then.
+ *
+ * Concurrency: `icalLastSyncedAt` doubles as the claim. Setting it to now
+ * GUARDED ON ITS PREVIOUS VALUE is a compare-and-swap - two simultaneous
+ * requests race, exactly one update matches, and only that one fetches.
+ * Same optimistic-claim pattern the payment and booking paths use, and it
+ * needs no extra infrastructure or table.
+ *
+ * A failed sync restores the previous timestamp: leaving it set would mark
+ * the room falsely fresh and suppress the next attempt for a full window,
+ * which is precisely the staleness this exists to prevent.
+ *
+ * Never throws - callers are request paths that must not fail because
+ * Airbnb is slow.
+ */
+export async function refreshStaleCalendars(
+  roomTypeId: string,
+  options: { maxAgeMs: number; timeoutMs?: number },
+): Promise<IRefreshResult> {
+  const result: IRefreshResult = { synced: 0, failed: 0, skipped: 0 };
+
+  try {
+    const cutoff = new Date(Date.now() - options.maxAgeMs);
+    const units = await prisma.room.findMany({
+      where: { roomTypeId, airbnbIcalUrl: { not: null } },
+      select: { id: true, icalLastSyncedAt: true },
+    });
+
+    const stale = units.filter(
+      (unit) => unit.icalLastSyncedAt === null || unit.icalLastSyncedAt < cutoff,
+    );
+    result.skipped = units.length - stale.length;
+    if (stale.length === 0) return result;
+
+    const outcomes = await Promise.allSettled(
+      stale.map(async (unit) => {
+        // Compare-and-swap: whoever flips the timestamp owns the fetch.
+        const claim = await prisma.room.updateMany({
+          where: { id: unit.id, icalLastSyncedAt: unit.icalLastSyncedAt },
+          data: { icalLastSyncedAt: new Date() },
+        });
+        if (claim.count === 0) return 'skipped' as const;
+
+        try {
+          await syncRoomFromAirbnb(unit.id, {
+            timeoutMs: options.timeoutMs,
+          });
+          return 'synced' as const;
+        } catch (error) {
+          // Back off rather than restoring the original timestamp. Putting
+          // the old value back leaves the unit instantly re-claimable, so a
+          // permanently broken feed (a rotated Airbnb URL) turns every
+          // request into a fresh outbound fetch with no throttle at all.
+          // This keeps the unit visibly stale for the dashboard alert while
+          // capping retries to one per backoff window.
+          await prisma.room
+            .update({
+              where: { id: unit.id },
+              data: {
+                // Capped at now so a short freshness window can never
+                // record a sync in the future.
+                icalLastSyncedAt: new Date(
+                  Math.min(
+                    Date.now(),
+                    Date.now() - options.maxAgeMs + FAILURE_BACKOFF_MS,
+                  ),
+                ),
+              },
+            })
+            .catch(() => {
+              // Best effort: the next scheduled sweep still covers it.
+            });
+          logger.warn(
+            { error, roomId: unit.id },
+            'On-demand Airbnb calendar refresh failed',
+          );
+          return 'failed' as const;
+        }
+      }),
+    );
+
+    for (const outcome of outcomes) {
+      if (outcome.status === 'rejected') result.failed += 1;
+      else result[outcome.value] += 1;
+    }
+  } catch (error) {
+    logger.warn({ error, roomTypeId }, 'On-demand calendar refresh aborted');
+  }
+
+  return result;
 }
 
 /** Syncs every unit that has an Airbnb calendar URL (housekeeping cron). */

@@ -8,6 +8,7 @@ import { revalidatePublicServices } from '@/utils/revalidate';
 
 export const servicePhotoHandlers = makePhotoHandlers({
   entityLabel: 'Service',
+  photoLabel: 'service photo',
   folder: 'services',
   findParent: (id) =>
     prisma.service.findFirst({ where: { id }, select: { id: true, slug: true } }),

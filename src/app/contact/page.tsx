@@ -5,7 +5,6 @@ import { PageBanner } from '@/components/site/page-banner';
 import { ContactInfo } from '@/components/contact/contact-info';
 import { ContactForm } from '@/components/contact/contact-form';
 import { LocationMap } from '@/components/contact/location-map';
-import { unsplash } from '@/static-data/home';
 import { SITE } from '@/config/constants';
 import { pageMetadata } from '@/lib/seo';
 
@@ -20,10 +19,7 @@ export default function ContactPage() {
     <>
       <SiteHeader />
       <main className="flex-1">
-        <PageBanner
-          title="Contact Us"
-          image={unsplash('1618773928121-c32242e63f39', 2000)}
-        />
+        <PageBanner title="Contact Us" image={'/images/contact-bg.jpg'} />
 
         {/* Get In Touch + Send Message (template's two-column layout). */}
         <section className="mx-auto grid w-full max-w-[1320px] gap-14 px-4 py-16 lg:grid-cols-[5fr_7fr] lg:gap-20 lg:px-3 lg:py-[120px]">

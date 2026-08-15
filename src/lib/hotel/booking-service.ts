@@ -27,6 +27,11 @@ import prisma, {
 } from '@/lib/prisma';
 import { findAvailability, isUnitFree } from './availability';
 import {
+  BOOKING_FETCH_TIMEOUT_MS,
+  BOOKING_STALE_MS,
+  refreshStaleCalendars,
+} from './ical';
+import {
   computeQuote,
   discountApplies,
   recomputeTaxForTotal,
@@ -75,6 +80,16 @@ const getActiveTaxFees = cache(() =>
 
 /** Seasons ordered so the FIRST overlap match wins = latest created. */
 const SEASON_RATE_ORDER = { createdAt: 'desc' } as const;
+
+/**
+ * Seat transactions wait on the per-room-type advisory lock, and that wait
+ * counts against the transaction timeout. Prisma's 5s default would turn a
+ * burst of checkouts on one room type into P2028 aborts (a guest sees an
+ * error where they should simply have queued), so seat work gets a wider
+ * budget. Isolation stays READ COMMITTED - the lock, not the isolation
+ * level, is what serializes assignment.
+ */
+const SEAT_TX_OPTIONS = { timeout: 15_000 } as const;
 
 /**
  * Serializes unit assignment per room type. hashtext() gives a stable int4
@@ -282,6 +297,18 @@ export async function createWebsiteBooking(input: ICreateBookingInput) {
     );
   }
 
+  // Somebody is about to take this room, which is the one moment a stale
+  // Airbnb calendar turns into a real double booking. Pull it now rather
+  // than trusting a schedule: the locked availability re-check below reads
+  // whatever blocks this imports, so the collision window shrinks from
+  // "however long since the last sweep" to "seconds". It never blocks the
+  // booking - refreshStaleCalendars swallows its own failures, and a
+  // timeout just leaves us on the previously imported blocks.
+  await refreshStaleCalendars(roomType.id, {
+    maxAgeMs: BOOKING_STALE_MS,
+    timeoutMs: BOOKING_FETCH_TIMEOUT_MS,
+  });
+
   const booking = await prisma.$transaction(async (tx) => {
     await lockRoomType(tx, roomType.id);
     await sweepLapsedHolds(tx, roomType.id);
@@ -318,7 +345,7 @@ export async function createWebsiteBooking(input: ICreateBookingInput) {
       specialRequests: input.specialRequests,
       holdExpiresAt: new Date(Date.now() + HOLD_MINUTES * 60 * 1000),
     });
-  });
+  }, SEAT_TX_OPTIONS);
 
   try {
     const payment = await initializePayment({
@@ -386,7 +413,7 @@ async function tryReseatBooking(booking: {
       },
     });
     return claim.count > 0;
-  });
+  }, SEAT_TX_OPTIONS);
 }
 
 /**
@@ -432,7 +459,13 @@ async function reconcileLatePayment(bookingId: string): Promise<boolean> {
   let outcome: 'no_payment' | 'refund_failed' | 'refunded' = 'no_payment';
   if (payment) {
     const reversal = await reversePayment(payment.id);
-    outcome = reversal?.refunded ? 'refunded' : 'refund_failed';
+    // `alreadyReversed` means a concurrent cancel beat us to it and its
+    // refund stands - flagging that as failed would put a false
+    // refundFailedAt on the dashboard for an admin to chase.
+    outcome =
+      reversal?.refunded || reversal?.alreadyReversed
+        ? 'refunded'
+        : 'refund_failed';
     if (outcome === 'refund_failed') {
       await prisma.booking
         .update({
@@ -497,16 +530,28 @@ export async function markBookingPaid(bookingId: string): Promise<void> {
   if (booking.discountId) {
     // Guarded raw increment: redemptions never exceed maxUses even under
     // concurrent settles (Prisma cannot compare two columns in a where).
-    await prisma.$executeRaw`
+    const incremented = await prisma.$executeRaw`
       UPDATE "Discount" SET "usedCount" = "usedCount" + 1
       WHERE "id" = ${booking.discountId}
         AND ("maxUses" IS NULL OR "usedCount" < "maxUses")`.catch(
-      (error: unknown) =>
+      (error: unknown) => {
         logger.error(
           { error, discountId: booking.discountId },
           'Discount usage increment failed',
-        ),
+        );
+        return 0;
+      },
     );
+    if (incremented === 0) {
+      // The cap was checked at quote time, so concurrent bookings on the
+      // last redemption can both be honored while only one increments.
+      // Refusing now is wrong (the guest has already paid) - the point is
+      // that an over-redeemed code stops being invisible.
+      logger.warn(
+        { discountId: booking.discountId, bookingCode: booking.code },
+        'Discount honored beyond its maxUses cap',
+      );
+    }
   }
 
   // The settling payment doubles the confirmation into a receipt.
@@ -600,6 +645,21 @@ export async function createManualBooking(
     );
   }
 
+  // A negotiated walk-in total is a DISCOUNT off the quote, never a
+  // surcharge: the stored breakdown carries the difference in
+  // `discountAmount` (clamped at zero), so an override above the quote
+  // would leave base + occupancy - discount + tax disagreeing with
+  // `totalAmount`. The schema cannot check this - it does not know the
+  // quote - so it is enforced here.
+  if (
+    input.totalOverride !== undefined &&
+    input.totalOverride > quote.totalAmount
+  ) {
+    throw new BadRequestError(
+      `The override cannot exceed the quoted total of ${(quote.totalAmount / 100).toFixed(2)} ${roomType.currency}. Charge extras as a separate booking or service.`,
+    );
+  }
+
   const totalAmount = input.totalOverride ?? quote.totalAmount;
   // An overridden (negotiated) total changes the money actually collected,
   // so the frozen tax lines are re-derived from it - a VAT report summing
@@ -664,7 +724,7 @@ export async function createManualBooking(
       confirmedAt: new Date(),
       createdById: actorId,
     });
-  });
+  }, SEAT_TX_OPTIONS);
 }
 
 /** Allowed status transitions for staff actions. */
@@ -835,7 +895,10 @@ export async function cancelBookingWithPolicy(
     const payment = await findSettledPayment('BOOKING', bookingId);
     if (payment) {
       const reversal = await reversePayment(payment.id);
-      if (reversal?.refunded) {
+      // `alreadyReversed` means reconciliation (or another cancel) already
+      // refunded this charge - record the money as returned rather than
+      // silently telling the guest no refund applied.
+      if (reversal?.refunded || reversal?.alreadyReversed) {
         refundedAmount = payment.amount;
         await prisma.booking.update({
           where: { id: bookingId },
@@ -896,10 +959,33 @@ export async function refundCancelledBooking(
     orderBy: { reversedAt: 'desc' },
   });
   if (reversed) {
-    const { refundPaystackTransaction } = await import(
+    const { refundPaystackTransaction, isAlreadyRefunded } = await import(
       '@/lib/paystack/client'
     );
-    await refundPaystackTransaction(reversed.reference);
+    try {
+      await refundPaystackTransaction(reversed.reference);
+    } catch (error) {
+      // "Already refunded" is success wearing an error's clothes: the money
+      // did go back, and only the local refundedAmount write failed last
+      // time. Fall through and repair the row rather than leaving it
+      // flagged forever with a refund Paystack has already paid.
+      if (!isAlreadyRefunded(error)) {
+        // Same clean, actionable 409 as the never-refunded branch below
+        // instead of whatever status the provider client raises. The flag
+        // stays set, so the dashboard keeps counting it for the next retry.
+        logger.error(
+          { error, bookingId, reference: reversed.reference },
+          'Admin refund retry rejected by Paystack - still flagged',
+        );
+        throw new ConflictError(
+          'Paystack rejected the refund - it stays flagged for retry.',
+        );
+      }
+      logger.warn(
+        { bookingId, reference: reversed.reference },
+        'Paystack reports this charge already refunded - repairing the record',
+      );
+    }
     await prisma.booking.update({
       where: { id: bookingId },
       data: { refundedAmount: reversed.amount, refundFailedAt: null },
@@ -1060,6 +1146,59 @@ export async function sendLifecycleEmails(): Promise<{
     reviewInvites: dueInvites.length,
     paymentReminders: dueNudges.length,
   };
+}
+
+/**
+ * Housekeeping safety net for the gap between settling a payment and
+ * fulfilling its booking. Those are two writes: if the payment claim
+ * commits and fulfilment then dies (DB blip, transaction budget, the
+ * function being killed), the guest is charged while the booking sits
+ * PENDING - and once its hold lapses it becomes EXPIRED and the unit is
+ * resold under someone who paid.
+ *
+ * `confirmPayment` now re-drives fulfilment on every retry, so most gaps
+ * close on the next webhook attempt. This sweep is the backstop for the
+ * case where nothing retries at all, and guarantees repair within the hour.
+ * `markBookingPaid` is the right repair for both states: a live hold is
+ * claimed and confirmed, a lapsed one goes through reconciliation (reseat,
+ * or refund and page the staff).
+ */
+export async function reconcileStrandedBookingPayments(): Promise<number> {
+  // Raw join because `Payment.purposeId` is a deliberately generic string
+  // rather than a relation, so Prisma cannot express "payments whose
+  // booking is in these states" as a nested filter. Booking hard-deletes
+  // (no deletedAt), so bypassing the soft-delete extension changes nothing.
+  // Bounded so a backlog drains across runs instead of blowing the budget.
+  const stranded = await prisma.$queryRaw<{ id: string }[]>`
+    SELECT b."id"
+    FROM "Booking" b
+    JOIN "Payment" p ON p."purposeId" = b."id"
+    WHERE p."purpose" = 'BOOKING'
+      AND p."status" = 'SUCCESS'
+      AND b."status" IN ('PENDING', 'EXPIRED')
+    ORDER BY p."paidAt" ASC
+    LIMIT 25`;
+
+  let repaired = 0;
+  for (const { id } of stranded) {
+    try {
+      await markBookingPaid(id);
+      repaired++;
+      logger.warn(
+        { bookingId: id },
+        'Swept a paid booking that was left unfulfilled',
+      );
+    } catch (error) {
+      logger.error(
+        { error, bookingId: id },
+        'Could not reconcile a stranded paid booking',
+      );
+    }
+  }
+  if (repaired > 0) {
+    logger.warn({ repaired }, 'Reconciled stranded paid bookings');
+  }
+  return repaired;
 }
 
 /** Housekeeping: flips lapsed unpaid holds to EXPIRED, freeing the unit. */

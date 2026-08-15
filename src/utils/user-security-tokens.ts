@@ -15,7 +15,7 @@ export const generateOtpCode = (): string =>
 export const generateResetToken = (): string =>
   crypto.randomBytes(32).toString('hex');
 
-export const hashSecurityToken = (token: string): string =>
+const hashSecurityToken = (token: string): string =>
   crypto.createHash('sha256').update(token).digest('hex');
 
 /**

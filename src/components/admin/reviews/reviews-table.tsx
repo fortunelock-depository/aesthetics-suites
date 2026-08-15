@@ -112,7 +112,7 @@ function ReviewViewDialog({
             {REVIEW_STATUS_LABEL[review.status]}
           </StatusBadge>
           {review.booking && (
-            <span className="inline-flex items-center gap-1 text-xs text-brand">
+            <span className="inline-flex items-center gap-1 text-xs text-brand-text">
               <BadgeCheck className="h-3.5 w-3.5" />
               Verified stay · {review.booking.code}
             </span>

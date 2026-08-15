@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Reveal } from '@/components/site/reveal';
 import { amenityIcon } from '@/lib/amenity-icons';
 import type { IPublicService } from '@/lib/hotel/public-services';
+import { serviceDetail } from '@/lib/routes';
 
 /**
  * The three-up services strip (icon in a soft circle, title, blurb) from
@@ -28,8 +29,8 @@ export function ServicesRow({ services }: { services: IPublicService[] }) {
                 <div className="min-w-0">
                   <h3 className="font-heading text-[22px] font-medium">
                     <Link
-                      href={`/services/${service.slug}`}
-                      className="text-foreground transition-colors hover:text-brand [overflow-wrap:anywhere]"
+                      href={serviceDetail(service.slug)}
+                      className="text-foreground transition-colors hover:text-brand-text [overflow-wrap:anywhere]"
                     >
                       {service.name}
                     </Link>

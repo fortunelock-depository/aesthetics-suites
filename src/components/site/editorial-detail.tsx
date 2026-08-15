@@ -29,7 +29,7 @@ export function EditorialDetail({
 
   return (
     <article className="mx-auto w-full max-w-[966px] px-4 py-16 lg:px-3 lg:py-[120px]">
-      <p className="text-[15px] font-semibold text-brand capitalize">
+      <p className="text-[15px] font-semibold text-brand-text capitalize">
         {item.eyebrow}
       </p>
       <h2 className="mt-2.5 font-heading text-[28px] leading-[1.3] font-medium text-foreground [overflow-wrap:anywhere] lg:text-[35px]">
@@ -122,10 +122,10 @@ export function EditorialDetail({
                   href={link.href}
                   className="group block border border-border bg-card p-4 transition-colors hover:border-brand"
                 >
-                  <p className="text-xs font-semibold text-brand capitalize">
+                  <p className="text-xs font-semibold text-brand-text capitalize">
                     {link.eyebrow}
                   </p>
-                  <p className="mt-1 min-w-0 truncate font-heading text-base font-medium text-foreground group-hover:text-brand">
+                  <p className="mt-1 min-w-0 truncate font-heading text-base font-medium text-foreground group-hover:text-brand-text">
                     {link.name}
                   </p>
                 </Link>

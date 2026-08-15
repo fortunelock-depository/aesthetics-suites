@@ -14,16 +14,13 @@ import { ForbiddenError } from '@/lib/errors';
  * - ADMIN: rooms, pricing, bookings, reviews, payments.
  * - FRONT_DESK: bookings, check-ins/outs, guest lookups; read elsewhere.
  */
-export async function requireRole(
+async function requireRole(
   ...roles: UserRole[]
 ): Promise<SessionInfo> {
   const session = await verifySession();
   if (!roles.includes(session.role)) throw new ForbiddenError();
   return session;
 }
-
-/** Any authenticated staff account. */
-export const requireUser = () => verifySession();
 
 /** ADMIN or SUPER_ADMIN. */
 export const requireAdmin = () =>

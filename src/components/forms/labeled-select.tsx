@@ -51,13 +51,21 @@ export function LabeledSelect({
   disabled,
   srOnlyLabel = false,
 }: LabeledSelectProps) {
+  // Same wiring as TextField: an aria-invalid trigger with no
+  // aria-describedby announces "invalid" without saying why.
+  const errorId = error && id ? `${id}-error` : undefined;
+
   return (
     <div className={srOnlyLabel ? undefined : 'space-y-1.5'}>
       <Label htmlFor={id} className={srOnlyLabel ? 'sr-only' : undefined}>
         {label}
       </Label>
       <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-        <SelectTrigger id={id} aria-invalid={!!error}>
+        <SelectTrigger
+          id={id}
+          aria-invalid={!!error}
+          aria-describedby={errorId}
+        >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
@@ -68,7 +76,7 @@ export function LabeledSelect({
           ))}
         </SelectContent>
       </Select>
-      <FieldError message={error} />
+      <FieldError message={error} id={errorId} />
     </div>
   );
 }

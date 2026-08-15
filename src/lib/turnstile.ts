@@ -11,9 +11,6 @@ import logger from '@/utils/logger';
 const SITEVERIFY_URL =
   'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
-export const isTurnstileEnabled = (): boolean =>
-  Boolean(ENV.TURNSTILE_SECRET_KEY);
-
 export const verifyTurnstile = async (
   token: string | undefined,
   remoteIp?: string,

@@ -31,11 +31,11 @@ export const HERO = {
 /** The Welcome section's overlapping photo pair. */
 export const WELCOME_PHOTOS = {
   main: {
-    src: unsplash('1582719478250-c89cae4dc85b'),
+    src: '/images/cta-bg-1.jpg',
     alt: 'A calm, sunlit suite bedroom',
   },
   inset: {
-    src: unsplash('1584132967334-10e028bd69f7', 800),
+    src: '/images/cta-bg-2.jpg',
     alt: 'Fresh towels and amenities laid out on a bed',
   },
 } as const;
@@ -208,9 +208,18 @@ export const FACILITIES: FacilityItem[] = [
       alt: 'Tables set for dinner in a warm restaurant',
     },
     gallery: [
-      { src: unsplash('1414235077428-338989a2e8c0', 1200), alt: 'Terrace tables in the evening light' },
-      { src: unsplash('1552566626-52f8b828add9', 1200), alt: 'The warm dining-room interior' },
-      { src: unsplash('1559339352-11d035aa65de', 1200), alt: 'A freshly plated dish' },
+      {
+        src: unsplash('1414235077428-338989a2e8c0', 1200),
+        alt: 'Terrace tables in the evening light',
+      },
+      {
+        src: unsplash('1552566626-52f8b828add9', 1200),
+        alt: 'The warm dining-room interior',
+      },
+      {
+        src: unsplash('1559339352-11d035aa65de', 1200),
+        alt: 'A freshly plated dish',
+      },
     ],
   },
   {
@@ -239,9 +248,18 @@ export const FACILITIES: FacilityItem[] = [
       alt: 'A welcoming hotel reception desk',
     },
     gallery: [
-      { src: unsplash('1564501049412-61c2a3083791', 1200), alt: 'The hotel entrance at dusk' },
-      { src: unsplash('1568084680786-a84f91d1153c', 1200), alt: 'The lobby lounge seating' },
-      { src: unsplash('1551632436-cbf8dd35adfa', 1200), alt: 'A quiet corridor to the suites' },
+      {
+        src: unsplash('1564501049412-61c2a3083791', 1200),
+        alt: 'The hotel entrance at dusk',
+      },
+      {
+        src: unsplash('1568084680786-a84f91d1153c', 1200),
+        alt: 'The lobby lounge seating',
+      },
+      {
+        src: unsplash('1551632436-cbf8dd35adfa', 1200),
+        alt: 'A quiet corridor to the suites',
+      },
     ],
   },
   {
@@ -270,8 +288,14 @@ export const FACILITIES: FacilityItem[] = [
       alt: 'Rows of equipment in a bright fitness studio',
     },
     gallery: [
-      { src: unsplash('1540497077202-7c8a3999166f', 1200), alt: 'The weights corner of the studio' },
-      { src: unsplash('1571019613454-1cb2f99b2d8b', 1200), alt: 'A morning stretch session' },
+      {
+        src: unsplash('1540497077202-7c8a3999166f', 1200),
+        alt: 'The weights corner of the studio',
+      },
+      {
+        src: unsplash('1571019613454-1cb2f99b2d8b', 1200),
+        alt: 'A morning stretch session',
+      },
     ],
   },
   {
@@ -300,9 +324,18 @@ export const FACILITIES: FacilityItem[] = [
       alt: 'An outdoor pool at golden hour',
     },
     gallery: [
-      { src: unsplash('1572331165267-854da2b10ccc', 1200), alt: 'Loungers along the pool edge' },
-      { src: unsplash('1560850038-f95de6e715b3', 1200), alt: 'The pool deck in the afternoon' },
-      { src: unsplash('1561501878-aabd62634533', 1200), alt: 'The resort pool from above' },
+      {
+        src: unsplash('1572331165267-854da2b10ccc', 1200),
+        alt: 'Loungers along the pool edge',
+      },
+      {
+        src: unsplash('1560850038-f95de6e715b3', 1200),
+        alt: 'The pool deck in the afternoon',
+      },
+      {
+        src: unsplash('1561501878-aabd62634533', 1200),
+        alt: 'The resort pool from above',
+      },
     ],
   },
 ];
@@ -338,7 +371,7 @@ export const VIDEO_BANNER = {
   title: 'Book your suite online in minutes.',
   blurb: 'Live availability, instant confirmation, secure payment.',
   image: {
-    src: unsplash('1566073771259-6a8506099945', 2000),
+    src: '/images/background-image-scroll.jpg',
     alt: 'The resort exterior and pool at dusk',
   },
 } as const;

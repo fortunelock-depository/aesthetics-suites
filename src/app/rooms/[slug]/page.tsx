@@ -21,6 +21,7 @@ import {
   hotelRoomJsonLd,
   breadcrumbJsonLd,
 } from '@/lib/structured-data';
+import { bookRoom, roomDetail } from '@/lib/routes';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -40,7 +41,7 @@ export async function generateMetadata({
   return {
     title: room.name,
     description: clampDescription(room.summary, 155),
-    alternates: { canonical: `${SITE.url}/rooms/${slug}` },
+    alternates: { canonical: `${SITE.url}${roomDetail(slug)}` },
   };
 }
 
@@ -58,7 +59,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
         data={breadcrumbJsonLd([
           { name: 'Home', path: '/' },
           { name: 'Rooms', path: '/rooms' },
-          { name: room.name, path: `/rooms/${room.slug}` },
+          { name: room.name, path: roomDetail(room.slug) },
         ])}
       />
       <SiteHeader />
@@ -83,7 +84,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
             </div>
             <RoomsSidebarWidgets
               rooms={allRooms}
-              bookPath={`/rooms/${room.slug}/book`}
+              bookPath={bookRoom(room.slug)}
             />
           </aside>
 

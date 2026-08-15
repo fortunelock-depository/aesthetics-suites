@@ -53,7 +53,7 @@ export function ContactInfo() {
               {href ? (
                 <a
                   href={href}
-                  className="mt-0.5 block font-heading text-lg font-medium text-foreground transition-colors [overflow-wrap:anywhere] hover:text-brand"
+                  className="mt-0.5 block font-heading text-lg font-medium text-foreground transition-colors [overflow-wrap:anywhere] hover:text-brand-text"
                 >
                   {value}
                 </a>

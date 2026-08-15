@@ -79,7 +79,7 @@ export function UserMenu({
             <span className="block truncate text-xs font-normal">
               {email}
             </span>
-            <span className="mt-0.5 block text-xs font-normal text-brand">
+            <span className="mt-0.5 block text-xs font-normal text-brand-text">
               {USER_ROLE_LABEL[role]}
             </span>
           </DropdownMenuLabel>

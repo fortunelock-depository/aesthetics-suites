@@ -8,6 +8,7 @@ import { revalidatePublicRooms } from '@/utils/revalidate';
 
 export const roomTypePhotoHandlers = makePhotoHandlers({
   entityLabel: 'Room type',
+  photoLabel: 'room photo',
   folder: 'rooms',
   findParent: (id) =>
     prisma.roomType.findFirst({ where: { id }, select: { id: true, slug: true } }),

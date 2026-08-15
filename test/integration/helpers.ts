@@ -7,9 +7,31 @@ import { toDateOnlyString } from '@/lib/hotel/dates';
 
 let seq = 0;
 
-/** "YYYY-MM-DD" `days` days from now (UTC). */
+/**
+ * One anchor for the whole run, fixed at midday UTC on the day the suite
+ * loaded. Computing each fixture from `new Date()` meant two calls either
+ * side of a UTC midnight disagreed by a day, so a "2 night" stay could be
+ * seeded as 1 or 3 - a confusing failure with no relation to the code
+ * under test. Anchoring removes that entirely.
+ *
+ * A run that itself straddles midnight can still disagree with the
+ * service's own `new Date()` (Ghana is UTC, so there is no DST hazard on
+ * top). That window is one second wide per day and fails loudly rather
+ * than corrupting a fixture.
+ */
+const RUN_ANCHOR = (() => {
+  const now = new Date();
+  return Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    12,
+  );
+})();
+
+/** "YYYY-MM-DD" `days` days from the run anchor (UTC). */
 export const futureDate = (days: number): string => {
-  const date = new Date();
+  const date = new Date(RUN_ANCHOR);
   date.setUTCDate(date.getUTCDate() + days);
   return toDateOnlyString(date);
 };

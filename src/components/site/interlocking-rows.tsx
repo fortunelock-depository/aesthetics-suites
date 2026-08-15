@@ -58,7 +58,7 @@ export function InterlockingRows({
                 from={flipped ? 'left' : 'right'}
                 className={cn(flipped && 'lg:order-1')}
               >
-                <p className="text-[15px] font-semibold text-brand capitalize">
+                <p className="text-[15px] font-semibold text-brand-text capitalize">
                   {item.eyebrow}
                 </p>
                 <h3 className="mt-2.5 font-heading text-[28px] leading-snug font-medium text-foreground [overflow-wrap:anywhere] lg:text-[38px]">

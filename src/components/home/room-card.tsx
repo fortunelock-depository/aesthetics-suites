@@ -4,6 +4,7 @@ import { ArrowRight, BedDouble } from 'lucide-react';
 import { PhotoFrame } from '@/components/site/photo-frame';
 import { formatMoney } from '@/lib/format-money';
 import type { IPublicRoomCard } from '@/lib/hotel/public-rooms';
+import { roomDetail } from '@/lib/routes';
 
 /**
  * A room card copied from the template mechanically: full-bleed photo (no
@@ -43,7 +44,7 @@ export function RoomCard({ room }: { room: IPublicRoomCard }) {
           title={room.name}
         >
           <StayLink
-            href={`/rooms/${room.slug}`}
+            href={roomDetail(room.slug)}
             className="text-white transition-colors hover:text-brand"
           >
             {room.name}
@@ -52,7 +53,7 @@ export function RoomCard({ room }: { room: IPublicRoomCard }) {
 
         {/* The simple-btn row: hairline divider + circled arrow + label. */}
         <StayLink
-          href={`/rooms/${room.slug}`}
+          href={roomDetail(room.slug)}
           className="mt-[15px] flex items-center gap-2.5 border-t border-white/50 pt-2.5 text-sm font-semibold tracking-[0.06em] text-neutral-300 uppercase transition-all duration-400 hover:text-brand lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100 lg:group-focus-within:opacity-100"
         >
           <span className="grid h-6 w-6 place-items-center rounded-full border border-current transition-colors">

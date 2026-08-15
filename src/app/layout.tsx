@@ -1,6 +1,6 @@
 // src/app/layout.tsx
 import type { Metadata } from 'next';
-import { Bai_Jamjuree, Lato } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/theme-provider';
 import { StoreProvider } from '@/redux/store-provider';
@@ -8,18 +8,30 @@ import { SITE } from '@/config/constants';
 import { clampDescription } from '@/lib/seo';
 import './globals.css';
 
+// Both faces are self-hosted (latin subset, woff2) rather than fetched from
+// Google at build time. `next/font/google` downloads the files during
+// `next build`, which makes every deploy depend on a third-party network
+// call - it has already failed a build once for reasons unrelated to the
+// code. These are the same files Google would have served.
+
 // Body face - matches the reference template (Lato ships 400/700 only).
-const lato = Lato({
-  subsets: ['latin'],
-  weight: ['400', '700'],
+const lato = localFont({
+  src: [
+    { path: './fonts/lato-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/lato-700.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-sans',
   display: 'swap',
 });
 
 // Display face for headings (the Hostily-inspired landing look).
-const baiJamjuree = Bai_Jamjuree({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+const baiJamjuree = localFont({
+  src: [
+    { path: './fonts/bai-jamjuree-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/bai-jamjuree-500.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/bai-jamjuree-600.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/bai-jamjuree-700.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-heading',
   display: 'swap',
 });

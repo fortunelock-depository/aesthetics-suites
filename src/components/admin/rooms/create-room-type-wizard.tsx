@@ -67,7 +67,7 @@ function StepHeader({ current }: { current: number }) {
                   'grid h-8 w-8 flex-none place-items-center rounded-full border text-sm font-semibold transition-colors',
                   done && 'border-brand bg-brand text-brand-foreground',
                   isCurrent &&
-                    'border-brand text-brand',
+                    'border-brand text-brand-text',
                   !done && !isCurrent && 'border-border text-muted-foreground',
                 )}
               >

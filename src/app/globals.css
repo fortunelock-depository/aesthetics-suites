@@ -121,6 +121,10 @@
   --ring: oklch(0.794 0.076 57.1);
   --brand: oklch(0.794 0.076 57.1); /* clay, lightened */
   --brand-foreground: oklch(0.241 0.017 122.7);
+  /* The light-mode --brand-text is darkened for contrast against cream; on
+     the dark surface that same value drops to ~2.65:1, so it inverts here
+     to the lightened clay that already passes against this background. */
+  --brand-text: oklch(0.85 0.076 57.1);
   --chart-1: oklch(0.853 0.046 115.5);
   --chart-2: oklch(0.794 0.076 57.1);
   --chart-3: oklch(0.762 0.053 115);

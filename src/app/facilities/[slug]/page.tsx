@@ -12,6 +12,7 @@ import {
 import { clampDescription } from '@/lib/seo';
 import { SITE } from '@/config/constants';
 import { JsonLd, breadcrumbJsonLd } from '@/lib/structured-data';
+import { facilityDetail } from '@/lib/routes';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -34,7 +35,7 @@ export async function generateMetadata({
   return {
     title: facility.name,
     description: clampDescription(facility.summary, 155),
-    alternates: { canonical: `${SITE.url}/facilities/${slug}` },
+    alternates: { canonical: `${SITE.url}${facilityDetail(slug)}` },
   };
 }
 
@@ -53,7 +54,7 @@ export default async function FacilityDetailPage({ params }: PageProps) {
         data={breadcrumbJsonLd([
           { name: 'Home', path: '/' },
           { name: 'Facilities', path: '/facilities' },
-          { name: facility.name, path: `/facilities/${facility.slug}` },
+          { name: facility.name, path: facilityDetail(facility.slug) },
         ])}
       />
       <SiteHeader />
@@ -70,7 +71,7 @@ export default async function FacilityDetailPage({ params }: PageProps) {
           }
           moreTitle="More at the Suites"
           moreLinks={others.map((other) => ({
-            href: `/facilities/${other.slug}`,
+            href: facilityDetail(other.slug),
             eyebrow: other.eyebrow,
             name: other.name,
           }))}

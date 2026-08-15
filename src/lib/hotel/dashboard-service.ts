@@ -37,7 +37,7 @@ const REVENUE_STATUSES: BookingStatus[] = [
   BookingStatus.CHECKED_OUT,
 ];
 
-export function resolveRange(
+function resolveRange(
   preset: DashboardPreset,
   now = new Date(),
   /** CUSTOM only: [start, end) resolved by the route from ?from&to. */
@@ -103,7 +103,7 @@ export function resolveRange(
   return { start, end, previousStart, previousEnd: start };
 }
 
-export function trendOf(current: number, previous: number): ITrendData {
+function trendOf(current: number, previous: number): ITrendData {
   if (previous === 0) {
     return current === 0
       ? { percentage: 0, direction: 'neutral' }

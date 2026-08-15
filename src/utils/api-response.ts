@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { CustomError, ErrorSeverity } from '@/lib/errors';
+import { isUnitOverlapViolation } from '@/lib/hotel/constraints';
 import logger from '@/utils/logger';
 import type { IPagination } from '@/types/api';
 
@@ -61,14 +62,10 @@ export function handleApiError(err: unknown): NextResponse {
     }
   }
 
-  // The Booking_no_unit_overlap exclusion constraint (23P01) is the DB
-  // backstop against double-seating a unit; Prisma has no typed code for
-  // exclusion violations, so match the raw Postgres error.
-  if (
-    err instanceof Error &&
-    (err.message.includes('23P01') ||
-      err.message.includes('Booking_no_unit_overlap'))
-  ) {
+  // The unit-overlap exclusion constraint is the DB backstop against
+  // double-seating a unit; see lib/hotel/constraints.ts for why this needs
+  // its own predicate rather than a Prisma error code.
+  if (isUnitOverlapViolation(err)) {
     return NextResponse.json(
       {
         status: 'error',

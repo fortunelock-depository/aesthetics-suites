@@ -1,5 +1,5 @@
 // src/app/api/admin/overview/route.ts
-import type { NextRequest } from 'next/server';
+import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { requireStaff } from '@/lib/api-auth';
 import { getDashboardStats } from '@/lib/hotel/dashboard-service';

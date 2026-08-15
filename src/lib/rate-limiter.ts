@@ -5,7 +5,15 @@
 // the selection rules are unit-testable.
 
 export const RATE_LIMIT = 5;
-export const RATE_WINDOW_MS = 60_000;
+const RATE_WINDOW_MS = 60_000;
+
+/**
+ * Browse endpoints (availability quotes, public listings) get a far looser
+ * budget than credential flows: the goal is capping abuse and the outbound
+ * work a quote triggers, not stopping password guessing. One guest sizing
+ * up several date ranges is normal traffic.
+ */
+export const BROWSE_RATE_LIMIT = 60;
 
 export interface LimitResult {
   success: boolean;
@@ -24,7 +32,7 @@ export interface Limiter {
  * (local dev). In serverless production each instance has its own memory, so
  * a shared store (Upstash) is required instead - see selectLimiter.
  */
-export function createInMemoryLimiter(): Limiter {
+export function createInMemoryLimiter(limit: number = RATE_LIMIT): Limiter {
   const hits = new Map<string, number[]>();
 
   return {
@@ -47,10 +55,32 @@ export function createInMemoryLimiter(): Limiter {
       const oldest = timestamps[0] ?? now;
 
       return {
-        success: count <= RATE_LIMIT,
+        success: count <= limit,
         reset: oldest + RATE_WINDOW_MS,
-        remaining: Math.max(RATE_LIMIT - count, 0),
-        limit: RATE_LIMIT,
+        remaining: Math.max(limit - count, 0),
+        limit,
+      };
+    },
+  };
+}
+
+/**
+ * Allow-everything limiter for BROWSE endpoints when no shared store is
+ * configured. Credential flows fail closed because a missing cache must
+ * never quietly weaken brute-force protection; a public availability quote
+ * is the opposite trade - refusing every visitor because Upstash is
+ * unconfigured takes the whole site down to prevent nothing worse than
+ * extra database reads. The misconfiguration is already logged fatally by
+ * the shared selection.
+ */
+export function createAllowAllLimiter(limit: number = RATE_LIMIT): Limiter {
+  return {
+    async limit(): Promise<LimitResult> {
+      return {
+        success: true,
+        reset: Date.now() + RATE_WINDOW_MS,
+        remaining: limit,
+        limit,
       };
     },
   };

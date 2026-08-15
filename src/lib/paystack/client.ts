@@ -130,6 +130,23 @@ export async function initializePaystackTransaction(
  * refund. Paystack processes refunds asynchronously - a success here means
  * the refund was ACCEPTED, not yet settled.
  */
+/**
+ * Whether a failed refund call actually means "this charge was already
+ * refunded", which is settlement rather than failure - a retry after a
+ * partial local write must repair the record, not keep flagging it.
+ *
+ * Paystack has no distinct error code for this, so the provider's message
+ * text is the only signal available; the match is deliberately broad and
+ * the caller treats a miss as a genuine failure (the safe direction).
+ */
+export function isAlreadyRefunded(error: unknown): boolean {
+  const message =
+    error && typeof error === 'object' && 'message' in error
+      ? String((error as { message: unknown }).message)
+      : '';
+  return /already|fully revers|fully refund/i.test(message);
+}
+
 export async function refundPaystackTransaction(
   reference: string,
   amount?: number,

@@ -33,7 +33,7 @@ export function Hero() {
       <div className="mx-auto w-full max-w-[1320px] px-4 lg:px-3">
         <div className="flex min-h-[70vh] items-center justify-between gap-10 pt-36 pb-16 sm:pb-24 lg:min-h-[750px] lg:pt-[161px]">
           <Reveal>
-            <p className="text-sm font-medium tracking-[0.2em] text-brand uppercase">
+            <p className="text-sm font-medium tracking-[0.2em] text-brand-text uppercase">
               {HERO.eyebrow}
             </p>
             {/* The template's staircase headline: line two steps inward. */}

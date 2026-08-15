@@ -4,6 +4,7 @@ import { ArrowRight, BedDouble, Ruler, Star, Users } from 'lucide-react';
 import { PhotoFrame } from '@/components/site/photo-frame';
 import { formatMoney } from '@/lib/format-money';
 import type { IPublicRoomCard } from '@/lib/hotel/public-rooms';
+import { roomDetail } from '@/lib/routes';
 
 /**
  * One row of the room list (template's room__list-item): bordered white
@@ -37,8 +38,8 @@ export function RoomListItem({ room }: { room: IPublicRoomCard }) {
             title={room.name}
           >
             <StayLink
-              href={`/rooms/${room.slug}`}
-              className="text-foreground transition-colors hover:text-brand"
+              href={roomDetail(room.slug)}
+              className="text-foreground transition-colors hover:text-brand-text"
             >
               {room.name}
             </StayLink>
@@ -89,8 +90,8 @@ export function RoomListItem({ room }: { room: IPublicRoomCard }) {
             )}
           </p>
           <StayLink
-            href={`/rooms/${room.slug}`}
-            className="inline-flex items-center gap-2.5 text-sm font-semibold tracking-[0.06em] text-foreground uppercase transition-colors hover:text-brand"
+            href={roomDetail(room.slug)}
+            className="inline-flex items-center gap-2.5 text-sm font-semibold tracking-[0.06em] text-foreground uppercase transition-colors hover:text-brand-text"
           >
             <span className="grid h-6 w-6 place-items-center rounded-full border border-current">
               <ArrowRight className="h-3 w-3" />

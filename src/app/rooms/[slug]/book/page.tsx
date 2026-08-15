@@ -7,6 +7,7 @@ import { PageBanner } from '@/components/site/page-banner';
 import { BookingCheckout } from '@/components/rooms/booking-checkout';
 import { getPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 import { unsplash } from '@/static-data/home';
+import { roomDetail } from '@/lib/routes';
 
 interface BookPageProps {
   params: Promise<{ slug: string }>;
@@ -63,7 +64,7 @@ export default async function BookRoomPage({
         }
         trail={[
           { label: 'Room List', href: '/rooms' },
-          { label: room.name, href: `/rooms/${room.slug}` },
+          { label: room.name, href: roomDetail(room.slug) },
         ]}
       />
       <div className="mx-auto w-full max-w-[1320px] px-4 py-16 lg:px-3 lg:py-[120px]">

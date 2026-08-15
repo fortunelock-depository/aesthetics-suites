@@ -8,6 +8,7 @@ import { revalidatePublicFacilities } from '@/utils/revalidate';
 
 export const facilityPhotoHandlers = makePhotoHandlers({
   entityLabel: 'Facility',
+  photoLabel: 'facility photo',
   folder: 'facilities',
   findParent: (id) =>
     prisma.facility.findFirst({ where: { id }, select: { id: true, slug: true } }),

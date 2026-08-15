@@ -47,7 +47,7 @@ export function SiteFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-[15px] text-muted-foreground transition-colors hover:text-brand"
+                    className="text-[15px] text-muted-foreground transition-colors hover:text-brand-text"
                   >
                     {link.label}
                   </Link>
@@ -64,7 +64,7 @@ export function SiteFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-[15px] text-muted-foreground transition-colors hover:text-brand"
+                    className="text-[15px] text-muted-foreground transition-colors hover:text-brand-text"
                   >
                     {link.label}
                   </Link>
@@ -84,7 +84,7 @@ export function SiteFooter() {
               <Mail className="mt-0.5 h-4 w-4 flex-none text-brand" />
               <a
                 href={`mailto:${CONTACT.email}`}
-                className="min-w-0 transition-colors [overflow-wrap:anywhere] hover:text-brand"
+                className="min-w-0 transition-colors [overflow-wrap:anywhere] hover:text-brand-text"
               >
                 {CONTACT.email}
               </a>
@@ -93,7 +93,7 @@ export function SiteFooter() {
               <Phone className="mt-0.5 h-4 w-4 flex-none text-brand" />
               <a
                 href={`tel:${CONTACT.phone}`}
-                className="transition-colors hover:text-brand"
+                className="transition-colors hover:text-brand-text"
               >
                 {CONTACT.phone}
               </a>
@@ -141,7 +141,7 @@ export function SiteFooter() {
                 href="https://manuru.dev"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-foreground transition-colors hover:text-brand hover:underline"
+                className="font-semibold text-foreground transition-colors hover:text-brand-text hover:underline"
               >
                 manuru
               </a>
@@ -156,7 +156,7 @@ export function SiteFooter() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="transition-colors hover:text-brand"
+                  className="transition-colors hover:text-brand-text"
                 >
                   {link.label}
                 </Link>

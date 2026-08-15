@@ -43,7 +43,7 @@ export function CtaLink({
   const classes = cn(
     'btn-sweep inline-flex items-center gap-2.5 px-[43px] py-4 font-heading text-base font-bold uppercase',
     variant === 'solid' && 'bg-brand text-brand-foreground',
-    variant === 'outline' && 'border border-brand bg-transparent text-brand',
+    variant === 'outline' && 'border border-brand bg-transparent text-brand-text',
     SWEEP_CLASS[sweep],
     className,
   );

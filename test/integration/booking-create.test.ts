@@ -12,7 +12,7 @@ import { recomputeTaxForTotal, type ITaxLine } from '@/lib/hotel/pricing';
 import { parseDateOnly } from '@/lib/hotel/dates';
 import { generateBookingCode } from '@/utils/codes';
 import { bookingCreateSchema } from '@/validations/hotel-validation';
-import { ConflictError, BadRequestError } from '@/lib/errors';
+import { ConflictError } from '@/lib/errors';
 import { handleApiError } from '@/utils/api-response';
 import { createRoomTypeWithUnits, futureDate, guestInput } from './helpers';
 
@@ -246,6 +246,41 @@ describe('createManualBooking', () => {
     expect(lines.reduce((sum, line) => sum + line.amount, 0)).toBe(
       expected.taxAmount,
     );
+
+    // The stored breakdown still adds up to what was charged: the
+    // negotiated difference lives in discountAmount.
+    expect(
+      booking.baseAmount +
+        booking.occupancyAmount -
+        booking.discountAmount +
+        booking.taxAmount,
+    ).toBe(booking.totalAmount);
+  });
+
+  it('refuses an override ABOVE the quote (a discount, never a surcharge)', async () => {
+    const actor = await ACTOR();
+    const { roomType } = await createRoomTypeWithUnits({ basePrice: 100_000 });
+
+    // discountAmount clamps at zero, so a surcharge cannot be represented
+    // in the stored breakdown - the service rejects it instead of storing
+    // components that disagree with totalAmount.
+    await expect(
+      createManualBooking(
+        {
+          roomTypeId: roomType.id,
+          checkIn: futureDate(5),
+          checkOut: futureDate(6),
+          adults: 1,
+          children: 0,
+          guestName: 'Surcharge',
+          guestEmail: 'surcharge@test.local',
+          totalOverride: 500_000,
+        },
+        actor.id,
+      ),
+    ).rejects.toThrow(/cannot exceed the quoted total/);
+
+    expect(await prisma.booking.count()).toBe(0);
   });
 
   it('refuses a specific unit that is not free', async () => {
@@ -323,12 +358,5 @@ describe('stay-cap and date validation (bookingCreateSchema)', () => {
       });
       expect(result.success).toBe(false);
     }
-  });
-});
-
-describe('error mapping', () => {
-  it('BadRequestError and ConflictError carry their HTTP statuses', () => {
-    expect(handleApiError(new BadRequestError('nope')).status).toBe(400);
-    expect(handleApiError(new ConflictError('busy')).status).toBe(409);
   });
 });

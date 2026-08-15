@@ -34,7 +34,7 @@ export function MobileSidebarDrawers({
         <button
           type="button"
           onClick={() => setOpen('categories')}
-          className="inline-flex items-center justify-center gap-2 border border-border bg-card px-4 py-3.5 font-heading text-sm font-semibold text-foreground uppercase transition-colors hover:border-brand hover:text-brand"
+          className="inline-flex items-center justify-center gap-2 border border-border bg-card px-4 py-3.5 font-heading text-sm font-semibold text-foreground uppercase transition-colors hover:border-brand hover:text-brand-text"
         >
           <LayoutList className="h-4 w-4 text-brand" />
           Categories

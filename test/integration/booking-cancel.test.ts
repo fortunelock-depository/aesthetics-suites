@@ -182,3 +182,48 @@ describe('cancelBookingAsGuest', () => {
     ).rejects.toThrow(/no longer be cancelled online/);
   });
 });
+
+describe('cancel racing settlement', () => {
+  it('never leaves money credited against a cancelled stay', async () => {
+    const { roomType } = await createRoomTypeWithUnits();
+    const created = await createWebsiteBooking(
+      guestInput(roomType.slug, futureDate(10), futureDate(12)),
+    );
+    const payment = await prisma.payment.findFirstOrThrow({
+      where: { purpose: 'BOOKING', purposeId: created.booking.id },
+    });
+
+    // The guest gives up and cancels at the same moment their payment
+    // finally lands. Whichever order the two resolve in, the pair must
+    // agree: either the stay is confirmed and paid, or it is cancelled and
+    // the money went back.
+    const [cancelResult, settleResult] = await Promise.allSettled([
+      cancelBookingAsGuest(created.booking.code, created.booking.guestEmail),
+      confirmPayment(payment.reference),
+    ]);
+
+    const booking = await prisma.booking.findUniqueOrThrow({
+      where: { id: created.booking.id },
+    });
+    const settled = await prisma.payment.findUniqueOrThrow({
+      where: { id: payment.id },
+    });
+
+    // At least one side must have succeeded - a race that fails both would
+    // strand the guest with no booking and no answer.
+    expect(
+      cancelResult.status === 'fulfilled' || settleResult.status === 'fulfilled',
+    ).toBe(true);
+
+    if (booking.status === BookingStatus.CANCELLED) {
+      // Money must not sit as a live credit on a dead booking: either it
+      // never settled, or it settled and was reversed.
+      expect([PaymentStatus.PENDING, PaymentStatus.REVERSED]).toContain(
+        settled.status,
+      );
+    } else {
+      expect(booking.status).toBe(BookingStatus.CONFIRMED);
+      expect(settled.status).toBe(PaymentStatus.SUCCESS);
+    }
+  });
+});

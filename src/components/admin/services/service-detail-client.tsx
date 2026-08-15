@@ -51,6 +51,7 @@ import {
   type ServiceFormInput,
   type ServiceFormOutput,
 } from './service-form';
+import { serviceDetail } from '@/lib/routes';
 
 /** The Details tab: full field grid, read-only until Edit is clicked. */
 function ServiceDetailsCard({ service }: { service: IServiceDetail }) {
@@ -285,9 +286,9 @@ export function ServiceDetailClient({ serviceId }: { serviceId: string }) {
             </p>
             {service.isPublished && (
               <Link
-                href={`/services/${service.slug}`}
+                href={serviceDetail(service.slug)}
                 target="_blank"
-                className="mt-1.5 inline-flex items-center gap-1 text-xs text-brand hover:underline"
+                className="mt-1.5 inline-flex items-center gap-1 text-xs text-brand-text hover:underline"
               >
                 <ExternalLink className="h-3 w-3" />
                 View public page

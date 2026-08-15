@@ -19,7 +19,43 @@ import {
   sendPaymentReconciliationAlert,
 } from '@/lib/mail/booking-emails';
 import { POST as webhookPost } from '@/app/api/payments/paystack/webhook/route';
+import { POST as verifyPost } from '@/app/api/payments/verify/route';
 import { createRoomTypeWithUnits, futureDate, guestInput } from './helpers';
+
+// The verify route reads the caller IP for rate limiting; outside a request
+// context `headers()` throws, so it is stubbed here.
+vi.mock('next/headers', () => ({
+  headers: () => Promise.resolve(new Headers({ 'x-real-ip': '203.0.113.7' })),
+}));
+
+// The in-memory limiter counts per worker, so several route calls in one
+// file would trip it. Limiter selection and windows have their own unit
+// tests (src/lib/rate-limiter.test.ts); this file is about outcomes.
+vi.mock('@/lib/rate-limit', () => ({
+  ratelimit: {
+    limit: () =>
+      Promise.resolve({ success: true, reset: 0, remaining: 5, limit: 5 }),
+  },
+}));
+
+interface IVerifyBody {
+  data: {
+    status: string;
+    outcome: string;
+    booking: { code: string; refunded: boolean; refundFailed: boolean } | null;
+  };
+}
+
+const verifyViaRoute = async (reference: string) => {
+  const res = await verifyPost(
+    new Request('http://localhost/api/payments/verify', {
+      method: 'POST',
+      body: JSON.stringify({ reference }),
+      headers: { 'content-type': 'application/json' },
+    }),
+  );
+  return { status: res.status, body: (await res.json()) as IVerifyBody };
+};
 
 async function bookAndGetReference(slug: string, email = 'guest@test.local') {
   const result = await createWebsiteBooking(
@@ -72,6 +108,36 @@ describe('confirmPayment', () => {
     expect(vi.mocked(sendBookingConfirmedEmail)).toHaveBeenCalledTimes(1);
   });
 
+  it('survives a webhook and a verify racing the same charge: one credit', async () => {
+    const { roomType } = await createRoomTypeWithUnits();
+    const { booking, payment } = await bookAndGetReference(roomType.slug);
+
+    // The guest lands back on the return page at the same moment Paystack
+    // posts the webhook. Both call confirmPayment; the guarded claim must
+    // pick exactly one winner.
+    const results = await Promise.allSettled([
+      confirmPayment(payment.reference),
+      confirmPayment(payment.reference),
+    ]);
+    expect(results.every((r) => r.status === 'fulfilled')).toBe(true);
+
+    const settled = await prisma.payment.findUniqueOrThrow({
+      where: { id: payment.id },
+    });
+    expect(settled.status).toBe(PaymentStatus.SUCCESS);
+    expect(
+      (await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } }))
+        .status,
+    ).toBe(BookingStatus.CONFIRMED);
+    // One credit, one confirmation - the race must not double either.
+    expect(
+      await prisma.payment.count({
+        where: { purposeId: booking.id, status: PaymentStatus.SUCCESS },
+      }),
+    ).toBe(1);
+    expect(vi.mocked(sendBookingConfirmedEmail)).toHaveBeenCalledTimes(1);
+  });
+
   it('refuses an amount mismatch and leaves the payment PENDING', async () => {
     const { roomType } = await createRoomTypeWithUnits();
     const { booking, payment } = await bookAndGetReference(roomType.slug);
@@ -97,6 +163,35 @@ describe('confirmPayment', () => {
       where: { id: booking.id },
     });
     expect(still.status).toBe(BookingStatus.PENDING);
+  });
+
+  it('refuses a currency mismatch and leaves the payment PENDING', async () => {
+    const { roomType } = await createRoomTypeWithUnits();
+    const { booking, payment } = await bookAndGetReference(roomType.slug);
+
+    // Right amount, wrong currency: 120000 NGN is not 120000 GHS, and a
+    // reconciliation that only compared amounts would credit it.
+    vi.mocked(verifyPaystackTransaction).mockResolvedValueOnce({
+      status: 'success',
+      amount: payment.amount,
+      currency: 'NGN',
+      reference: payment.reference,
+      paidAt: new Date().toISOString(),
+      channel: 'card',
+      customerEmail: null,
+    });
+
+    await expect(confirmPayment(payment.reference)).rejects.toThrow(
+      /could not be reconciled/,
+    );
+    expect(
+      (await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } }))
+        .status,
+    ).toBe(PaymentStatus.PENDING);
+    expect(
+      (await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } }))
+        .status,
+    ).toBe(BookingStatus.PENDING);
   });
 
   it('leaves an unpaid verify PENDING so a later webhook can still settle', async () => {
@@ -157,15 +252,32 @@ describe('initializePayment', () => {
 });
 
 describe('CRITICAL-2 reconcile: payment settles after the hold lapsed', () => {
+  // Note on what this pins: the reconcile path's OUTCOME, not the fix
+  // itself. Pre-fix code (a status-only claim) also confirmed this booking,
+  // so this case cannot fail on the old code - the auto-refund case below
+  // is what discriminates. Its value is proving that a lapsed hold whose
+  // unit is still free is reseated rather than refunded, and that the
+  // reconcile branch fires at all (the sweep would otherwise have expired
+  // it out from under the payment).
   it('reseats the booking when its unit is still free', async () => {
     const { roomType } = await createRoomTypeWithUnits();
     const { booking, payment } = await bookAndGetReference(roomType.slug);
 
     // Hold lapses, nobody takes the unit.
+    const lapsedAt = new Date(Date.now() - 60_000);
     await prisma.booking.update({
       where: { id: booking.id },
-      data: { holdExpiresAt: new Date(Date.now() - 60_000) },
+      data: { holdExpiresAt: lapsedAt },
     });
+
+    // The hold really was dead before the money landed: the claim in
+    // markBookingPaid requires a LIVE hold, so settlement here can only
+    // have gone through reconcileLatePayment.
+    const beforeSettle = await prisma.booking.findUniqueOrThrow({
+      where: { id: booking.id },
+    });
+    expect(beforeSettle.holdExpiresAt!.getTime()).toBeLessThan(Date.now());
+    expect(beforeSettle.status).toBe(BookingStatus.PENDING);
 
     await confirmPayment(payment.reference);
 
@@ -174,6 +286,14 @@ describe('CRITICAL-2 reconcile: payment settles after the hold lapsed', () => {
     });
     expect(resurrected.status).toBe(BookingStatus.CONFIRMED);
     expect(resurrected.roomId).toBe(booking.roomId);
+    // Reseated, so the guest keeps their money and their room.
+    expect(resurrected.refundedAmount).toBe(0);
+    expect(resurrected.refundFailedAt).toBeNull();
+    expect(
+      (await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } }))
+        .status,
+    ).toBe(PaymentStatus.SUCCESS);
+    expect(vi.mocked(refundPaystackTransaction)).not.toHaveBeenCalled();
     expect(vi.mocked(sendBookingConfirmedEmail)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(sendPaymentReconciliationAlert)).not.toHaveBeenCalled();
   });
@@ -294,5 +414,167 @@ describe('Paystack webhook route', () => {
     });
     const response = await webhookPost(webhookRequest(body, sign(body)));
     expect(response.status).toBe(200);
+  });
+});
+
+// The return page branches on `outcome` alone. These assertions exist
+// because the naive version (branch on payment status) told a guest whose
+// room was resold that their payment "was not confirmed" - the money had
+// arrived and a refund was already in flight.
+describe('verify route outcome', () => {
+  it('reports confirmed for a normal settle', async () => {
+    const { roomType } = await createRoomTypeWithUnits();
+    const { booking, payment } = await bookAndGetReference(roomType.slug);
+
+    const { status, body } = await verifyViaRoute(payment.reference);
+
+    expect(status).toBe(200);
+    expect(body.data.outcome).toBe('confirmed');
+    expect(body.data.status).toBe(PaymentStatus.SUCCESS);
+    expect(body.data.booking?.code).toBe(booking.code);
+    expect(body.data.booking?.refunded).toBe(false);
+  });
+
+  it('reports refunded when the room was resold and the refund went through', async () => {
+    const { roomType } = await createRoomTypeWithUnits({ units: 1 });
+    const { booking, payment } = await bookAndGetReference(roomType.slug);
+
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { holdExpiresAt: new Date(Date.now() - 60_000) },
+    });
+    await createWebsiteBooking(
+      guestInput(roomType.slug, futureDate(10), futureDate(12), {
+        guestEmail: 'rival3@test.local',
+      }),
+    );
+
+    const { status, body } = await verifyViaRoute(payment.reference);
+
+    expect(status).toBe(200);
+    // The payment row is REVERSED by now - the outcome, not the status, is
+    // what the guest is shown.
+    expect(body.data.status).toBe(PaymentStatus.REVERSED);
+    expect(body.data.outcome).toBe('refunded');
+    expect(body.data.booking?.refunded).toBe(true);
+    expect(body.data.booking?.refundFailed).toBe(false);
+  });
+
+  it('reports refund_pending when the auto-refund was rejected', async () => {
+    const { roomType } = await createRoomTypeWithUnits({ units: 1 });
+    const { booking, payment } = await bookAndGetReference(roomType.slug);
+
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { holdExpiresAt: new Date(Date.now() - 60_000) },
+    });
+    await createWebsiteBooking(
+      guestInput(roomType.slug, futureDate(10), futureDate(12), {
+        guestEmail: 'rival4@test.local',
+      }),
+    );
+    vi.mocked(refundPaystackTransaction).mockRejectedValueOnce(
+      new Error('insufficient payout balance'),
+    );
+
+    const { status, body } = await verifyViaRoute(payment.reference);
+
+    expect(status).toBe(200);
+    expect(body.data.outcome).toBe('refund_pending');
+    expect(body.data.booking?.refunded).toBe(false);
+    expect(body.data.booking?.refundFailed).toBe(true);
+  });
+
+  it('keeps telling the truth when the guest revisits the return page', async () => {
+    const { roomType } = await createRoomTypeWithUnits({ units: 1 });
+    const { booking, payment } = await bookAndGetReference(roomType.slug);
+
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { holdExpiresAt: new Date(Date.now() - 60_000) },
+    });
+    await createWebsiteBooking(
+      guestInput(roomType.slug, futureDate(10), futureDate(12), {
+        guestEmail: 'rival5@test.local',
+      }),
+    );
+
+    await verifyViaRoute(payment.reference);
+    // A refresh: confirmPayment now refuses (REVERSED is terminal), which
+    // must not degrade into "payment not confirmed".
+    const { status, body } = await verifyViaRoute(payment.reference);
+
+    expect(status).toBe(200);
+    expect(body.data.outcome).toBe('refunded');
+  });
+});
+
+describe('provider-side refunds (refund.processed webhook)', () => {
+  // A refund executed on the Paystack dashboard never passes through
+  // reversePayment. Without this handler the ledger keeps reading SUCCESS
+  // while the money has gone back: the room stays blocked for a stay
+  // nobody paid for, and revenue is overstated by the refunded amount.
+  const refundEvent = (reference: string, amount?: number) =>
+    JSON.stringify({
+      event: 'refund.processed',
+      data: { transaction_reference: reference, ...(amount ? { amount } : {}) },
+    });
+
+  it('reverses the ledger row and records the refund on the booking', async () => {
+    const { roomType } = await createRoomTypeWithUnits();
+    const { booking, payment } = await bookAndGetReference(roomType.slug);
+    await confirmPayment(payment.reference);
+
+    const body = refundEvent(payment.reference, payment.amount);
+    const res = await webhookPost(webhookRequest(body, sign(body)));
+    expect(res.status).toBe(200);
+
+    const reversed = await prisma.payment.findUniqueOrThrow({
+      where: { id: payment.id },
+    });
+    expect(reversed.status).toBe(PaymentStatus.REVERSED);
+    expect(reversed.reversedAt).not.toBeNull();
+
+    const row = await prisma.booking.findUniqueOrThrow({
+      where: { id: booking.id },
+    });
+    expect(row.refundedAmount).toBe(payment.amount);
+  });
+
+  it('is idempotent: a replayed event changes nothing', async () => {
+    const { roomType } = await createRoomTypeWithUnits();
+    const { payment } = await bookAndGetReference(roomType.slug);
+    await confirmPayment(payment.reference);
+
+    const body = refundEvent(payment.reference, payment.amount);
+    await webhookPost(webhookRequest(body, sign(body)));
+    const first = await prisma.payment.findUniqueOrThrow({
+      where: { id: payment.id },
+    });
+
+    const res = await webhookPost(webhookRequest(body, sign(body)));
+    expect(res.status).toBe(200);
+
+    const second = await prisma.payment.findUniqueOrThrow({
+      where: { id: payment.id },
+    });
+    expect(second.reversedAt).toEqual(first.reversedAt);
+  });
+
+  it('does NOT reverse the whole charge on a partial refund', async () => {
+    const { roomType } = await createRoomTypeWithUnits();
+    const { payment } = await bookAndGetReference(roomType.slug);
+    await confirmPayment(payment.reference);
+
+    // Half the money back: flipping the row REVERSED would overstate the
+    // reversal, so this pages for a manual adjustment instead.
+    const body = refundEvent(payment.reference, Math.floor(payment.amount / 2));
+    const res = await webhookPost(webhookRequest(body, sign(body)));
+    expect(res.status).toBe(200);
+
+    const untouched = await prisma.payment.findUniqueOrThrow({
+      where: { id: payment.id },
+    });
+    expect(untouched.status).toBe(PaymentStatus.SUCCESS);
   });
 });

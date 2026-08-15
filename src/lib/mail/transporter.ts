@@ -5,7 +5,7 @@ import { ENV } from '@/config/env';
 
 let cachedTransporter: Transporter | null = null;
 
-export const isEmailConfigured = (): boolean =>
+const isEmailConfigured = (): boolean =>
   // Host has a Gmail default, so credentials are the real gate.
   Boolean(ENV.SMTP_USER && ENV.SMTP_PASSWORD);
 
@@ -22,6 +22,11 @@ export const getTransporter = (): Transporter | null => {
     host: ENV.SMTP_HOST,
     port: ENV.SMTP_PORT,
     secure: ENV.SMTP_SECURE === 'true',
+    // On the STARTTLS path (587), demand that the upgrade actually happens.
+    // Without this nodemailer will quietly continue in cleartext if the
+    // server does not advertise STARTTLS, and this channel carries
+    // password-reset links and 2FA codes.
+    requireTLS: ENV.SMTP_SECURE !== 'true',
     auth: {
       user: ENV.SMTP_USER,
       pass: ENV.SMTP_PASSWORD,

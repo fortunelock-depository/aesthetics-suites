@@ -106,18 +106,59 @@ Target: Vercel (serverless) + Neon Postgres. The pieces that are NOT code:
 2. **Migrations run before code**: the CI `migrate` job runs
    `prisma migrate deploy` against the direct URL on every push to main,
    BEFORE Vercel builds - new code never runs against an old schema.
-3. **Cron**: `vercel.json` schedules `/api/cron/housekeeping` every 15
-   minutes. Set `CRON_SECRET` in the Vercel env - Vercel Cron sends it as
-   the Bearer token automatically. Without it the route fails closed (and
-   logs fatally at boot): no hold expiry, no Airbnb sync, no lifecycle
-   emails.
-4. **Paystack**: set the dashboard webhook URL to
+3. **Airbnb calendar freshness is demand-driven, not scheduled.** The room
+   somebody is looking at gets its calendar pulled right then: on booking
+   submit if it is over 5 minutes old (synchronous, 10s cap, before the unit
+   is seated), and after an availability check if it is over 15 minutes old
+   (in the background, so nobody waits). `icalLastSyncedAt` doubles as the
+   claim, so simultaneous visitors fetch once. This matters because a
+   schedule can only ever be as fresh as its interval - a 15-minute cron
+   still leaves a 15-minute window to sell a room Airbnb just booked,
+   whereas syncing at the decision point closes it to seconds. A failed
+   fetch never blocks a booking; the existing blocks plus the locked
+   availability re-check still protect correctness.
+4. **Scheduled housekeeping** (`/api/cron/housekeeping`) is the batch safety
+   net: expiring lapsed holds, syncing units nobody browsed, and sending due
+   lifecycle emails. Two things call it, both sending
+   `Authorization: Bearer <CRON_SECRET>`:
+   - **External pinger (primary)**: point cron-job.org at
+     `https://<domain>/api/cron/housekeeping`, method GET (POST also works),
+     with a custom header `Authorization: Bearer <CRON_SECRET>`. **Use an
+     hourly interval.** The response is a JSON summary of what the run did,
+     visible in cron-job.org's execution log.
+   - **Vercel backstop**: `vercel.json` runs the same route daily at 03:00
+     UTC (daily is the Hobby plan's cron limit), so the sweeps still happen
+     if the external pinger dies or its account lapses.
+
+   **Why hourly and not every 15 minutes - this is a billing decision.**
+   Neon autosuspends the compute when idle and wakes it for the full suspend
+   window (~5 minutes) on *any* query. Cost therefore tracks how often
+   something pings the database, not how much work each ping does. Hourly
+   costs roughly 2 compute-hours a day in the worst case; every 15 minutes
+   costs around 8, for sweeps that are not time-critical now that calendar
+   freshness rides on demand. If your Neon plan allows it, lowering the
+   scale-to-zero delay cuts this further. Nothing here needs a tighter
+   interval - if you ever want one, it is a one-line change in the pinger.
+
+   Without `CRON_SECRET` the route fails closed (and logs fatally at boot):
+   no hold expiry, no batch Airbnb sync, no lifecycle emails.
+
+   Concurrency is handled by a Postgres advisory lock held for the run, so a
+   double-fire from the pinger or a Vercel tick landing on a live run
+   returns `{ skipped: true }` instead of duplicating work. It is
+   transaction-scoped, so a crash or timeout releases it automatically.
+
+   `maxDuration` is pinned to 60 because Vercel **fails the deployment**
+   when a function exceeds the plan maximum, and Hobby's is 60. Pro can
+   raise it to 300. A cut-short sweep resumes next run; a failed deploy
+   ships nothing.
+5. **Paystack**: set the dashboard webhook URL to
    `https://<domain>/api/payments/paystack/webhook` and configure
    `PAYSTACK_SECRET_KEY` (+ optional `PAYSTACK_CALLBACK_URL`).
-5. **Required in production**: `NEXT_PUBLIC_BASE_URL` (build fails without
+6. **Required in production**: `NEXT_PUBLIC_BASE_URL` (build fails without
    it), `SESSION_SECRET`, `UPSTASH_REDIS_REST_URL`/`_TOKEN` (rate limiting
    fails closed without them), `CRON_SECRET`, SMTP credentials, Cloudinary
    keys, Turnstile keys.
-6. **Observability**: logs are structured JSON (pino). There is no error
+7. **Observability**: logs are structured JSON (pino). There is no error
    tracker wired; point a Vercel log drain at the project (or add Sentry)
    so `level >= error` pages someone - payment incidents land there.

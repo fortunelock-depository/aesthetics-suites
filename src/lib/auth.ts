@@ -97,22 +97,10 @@ const userSelect = {
 const DUMMY_PASSWORD_HASH =
   '$2b$12$oVzYbVerXrczeL2LeVm4s.wVyuwA/Gqb0ibqE1mnr.J0npZqZY1vO';
 
-/**
- * Per-flow throttle for the auth actions. The prefix gives each flow its
- * own bucket (login attempts must not eat the forgot-password budget), and
- * an optional extra key adds an account-scoped bucket (e.g. per email) so
- * a distributed attacker cannot spread one account's guesses across IPs.
- */
-async function checkRateLimit(
-  prefix: string,
-  extraKey?: string,
-): Promise<{ allowed: boolean; retrySecs: number }> {
-  const ip = clientIp(await headers());
-
-  const results = await Promise.all([
-    ratelimit.limit(`${prefix}:${ip}`),
-    ...(extraKey ? [ratelimit.limit(`${prefix}:${extraKey}`)] : []),
-  ]);
+function limitOutcome(results: { success: boolean; reset: number }[]): {
+  allowed: boolean;
+  retrySecs: number;
+} {
   const blocked = results.find((result) => !result.success);
   return {
     allowed: !blocked,
@@ -120,6 +108,31 @@ async function checkRateLimit(
       ? Math.max(Math.ceil((blocked.reset - Date.now()) / 1000), 1)
       : 0,
   };
+}
+
+/**
+ * Per-flow, per-IP throttle for the auth actions. The prefix gives each
+ * flow its own bucket, so login attempts cannot eat the forgot-password
+ * budget.
+ */
+async function checkRateLimit(
+  prefix: string,
+): Promise<{ allowed: boolean; retrySecs: number }> {
+  const ip = clientIp(await headers());
+  return limitOutcome([await ratelimit.limit(`${prefix}:${ip}`)]);
+}
+
+/**
+ * Account-scoped throttle, keyed on the identifier alone: N rotating IPs
+ * still share one budget of guesses against a single account. Deliberately
+ * does NOT also consume an IP bucket - the caller's per-IP check already
+ * did that, and double-counting halves the honest user's allowance.
+ */
+async function checkAccountRateLimit(
+  prefix: string,
+  key: string,
+): Promise<{ allowed: boolean; retrySecs: number }> {
+  return limitOutcome([await ratelimit.limit(`${prefix}:${key}`)]);
 }
 
 /** Masks an email for display on the 2FA step, e.g. "ab***@gmail.com". */
@@ -166,7 +179,10 @@ export async function signin(
 
   // Account-scoped bucket: N rotating IPs still get one shared budget of
   // guesses against a single staff account.
-  const perAccount = await checkRateLimit('auth-login-acct', normalizedEmail);
+  const perAccount = await checkAccountRateLimit(
+    'auth-login-acct',
+    normalizedEmail,
+  );
   if (!perAccount.allowed) {
     return {
       success: false,

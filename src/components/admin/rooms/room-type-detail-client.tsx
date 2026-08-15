@@ -41,6 +41,7 @@ import { RoomTypeDetailsCard } from './room-type-details-card';
 import { RoomPhotosCard } from './room-photos-card';
 import { RoomUnitsCard } from './room-units-card';
 import { SeasonRatesCard } from './season-rates-card';
+import { roomDetail } from '@/lib/routes';
 
 /**
  * One room type end to end: identity banner, then tabs for the details
@@ -186,9 +187,9 @@ export function RoomTypeDetailClient({ roomTypeId }: { roomTypeId: string }) {
             </p>
             {roomType.isPublished && (
               <Link
-                href={`/rooms/${roomType.slug}`}
+                href={roomDetail(roomType.slug)}
                 target="_blank"
-                className="mt-1.5 inline-flex items-center gap-1 text-xs text-brand hover:underline"
+                className="mt-1.5 inline-flex items-center gap-1 text-xs text-brand-text hover:underline"
               >
                 <ExternalLink className="h-3 w-3" />
                 View public page

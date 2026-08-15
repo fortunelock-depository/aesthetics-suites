@@ -5,7 +5,6 @@ import { PageBanner } from '@/components/site/page-banner';
 import { EmptyState } from '@/components/ui/empty-state';
 import { InterlockingRows } from '@/components/site/interlocking-rows';
 import { getPublicServices } from '@/lib/hotel/public-services';
-import { unsplash } from '@/static-data/home';
 import { SITE } from '@/config/constants';
 import { pageMetadata } from '@/lib/seo';
 
@@ -25,15 +24,12 @@ export default async function ServicesPage() {
     <>
       <SiteHeader />
       <main className="flex-1">
-        <PageBanner
-          title="Services"
-          image={unsplash('1563911302283-d2bc129e7570', 2000)}
-        />
+        <PageBanner title="Services" image={'/images/services-bg.png'} />
         <div className="pt-16 lg:pt-[120px]">
           {services.length === 0 ? (
             <div className="mx-auto w-full max-w-[1320px] px-4 pb-16 lg:px-3 lg:pb-[120px]">
               <EmptyState
-              variant="site"
+                variant="site"
                 title="Nothing here just yet"
                 description="Our services are being refreshed - please check back soon."
               />

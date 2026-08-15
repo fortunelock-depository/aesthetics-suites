@@ -12,7 +12,7 @@ import { MAX_UPLOAD_BYTES } from '@/lib/uploads-shared';
 export { MAX_UPLOAD_BYTES } from '@/lib/uploads-shared';
 
 /** SVG is deliberately excluded - it can carry scripts (stored XSS). */
-export const ALLOWED_IMAGE_MIME_TYPES = [
+const ALLOWED_IMAGE_MIME_TYPES = [
   'image/jpeg',
   'image/png',
   'image/webp',
@@ -26,7 +26,7 @@ const prettyMax = `${MAX_UPLOAD_BYTES / (1024 * 1024)}MB`;
  * Validates an image's size and MIME type before any buffering/upload.
  * `label` names the field in error messages ("cover image", "room photo").
  */
-export function assertValidImage(
+function assertValidImage(
   { size, mimetype }: { size: number; mimetype: string },
   label = 'image',
 ): void {

@@ -10,7 +10,13 @@ import { useVerifyPaymentMutation } from '@/redux/payments-api';
 import { extractApiError } from '@/lib/extract-api-error';
 import { routes } from '@/lib/routes';
 
-type State = 'verifying' | 'success' | 'refunded' | 'failed';
+type State =
+  | 'verifying'
+  | 'success'
+  | 'processing'
+  | 'refunded'
+  | 'refund_pending'
+  | 'failed';
 
 /**
  * The Paystack return page body. Paystack appends BOTH `reference` and
@@ -45,15 +51,34 @@ export function PaymentVerifyClient({
       .unwrap()
       .then((res) => {
         const paidBooking = res.data.booking;
-        if (res.data.status !== 'SUCCESS') {
-          setState('failed');
-          setMessage("This payment hasn't been confirmed yet.");
+        // Branch on the server-resolved outcome, never on the raw payment
+        // status: an auto-refunded charge arrives here already REVERSED,
+        // so a status check would call it "not confirmed" while a refund
+        // is in flight.
+        if (res.data.outcome === 'refunded') {
+          setState('refunded');
           return;
         }
-        // Paid, but the booking could not be honored (hold lapsed, room
-        // resold) and was auto-refunded - never show a false "confirmed".
-        if (paidBooking?.refunded) {
-          setState('refunded');
+        if (res.data.outcome === 'refund_pending') {
+          setState('refund_pending');
+          return;
+        }
+        // Money landed but the booking is not finalised yet. Never show
+        // this as failed (they paid) or as confirmed (the stay is not
+        // secured); "Try again" re-verifies and usually resolves it.
+        if (res.data.outcome === 'processing') {
+          if (paidBooking) {
+            setBooking({
+              code: paidBooking.code,
+              guestEmail: paidBooking.guestEmail,
+            });
+          }
+          setState('processing');
+          return;
+        }
+        if (res.data.outcome !== 'confirmed') {
+          setState('failed');
+          setMessage("This payment hasn't been confirmed yet.");
           return;
         }
         if (paidBooking) {
@@ -113,6 +138,36 @@ export function PaymentVerifyClient({
         </>
       )}
 
+      {state === 'processing' && (
+        <>
+          <Loader2 className="mx-auto h-10 w-10 animate-spin text-brand" />
+          <h1 className="mt-4 text-lg font-semibold">
+            Payment received - finalising your booking
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            We have your payment and are still confirming the reservation.
+            This normally settles within a few minutes and you will get a
+            confirmation email. If anything needs attention our team is
+            alerted automatically.
+          </p>
+          <p className="mt-3 text-xs text-muted-foreground [overflow-wrap:anywhere]">
+            Reference: {reference}
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Button onClick={runVerify}>Check again</Button>
+            {booking && (
+              <Button asChild variant="outline">
+                <Link
+                  href={`${routes.bookings}?code=${encodeURIComponent(booking.code)}&email=${encodeURIComponent(booking.guestEmail)}`}
+                >
+                  View my booking
+                </Link>
+              </Button>
+            )}
+          </div>
+        </>
+      )}
+
       {state === 'refunded' && (
         <>
           <CircleX className="mx-auto h-10 w-10 text-destructive" />
@@ -127,6 +182,32 @@ export function PaymentVerifyClient({
           <Button asChild variant="outline" className="mt-6">
             <Link href={routes.rooms}>Browse other rooms</Link>
           </Button>
+        </>
+      )}
+
+      {state === 'refund_pending' && (
+        <>
+          <CircleX className="mx-auto h-10 w-10 text-destructive" />
+          <h1 className="mt-4 text-lg font-semibold">
+            Payment received - room no longer available
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your payment arrived after the reservation hold expired and the
+            room has since been taken. We could not return the money
+            automatically, so our team has been alerted and will sort out
+            your refund. Please keep your payment reference.
+          </p>
+          <p className="mt-3 text-xs text-muted-foreground [overflow-wrap:anywhere]">
+            Reference: {reference}
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Button asChild variant="outline">
+              <Link href={routes.contact}>Contact us</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={routes.rooms}>Browse other rooms</Link>
+            </Button>
+          </div>
         </>
       )}
 

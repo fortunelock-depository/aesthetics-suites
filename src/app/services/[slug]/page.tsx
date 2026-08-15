@@ -12,6 +12,7 @@ import {
 import { clampDescription } from '@/lib/seo';
 import { SITE } from '@/config/constants';
 import { JsonLd, breadcrumbJsonLd } from '@/lib/structured-data';
+import { serviceDetail } from '@/lib/routes';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -34,7 +35,7 @@ export async function generateMetadata({
   return {
     title: service.name,
     description: clampDescription(service.summary, 155),
-    alternates: { canonical: `${SITE.url}/services/${slug}` },
+    alternates: { canonical: `${SITE.url}${serviceDetail(slug)}` },
   };
 }
 
@@ -53,7 +54,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
         data={breadcrumbJsonLd([
           { name: 'Home', path: '/' },
           { name: 'Services', path: '/services' },
-          { name: service.name, path: `/services/${service.slug}` },
+          { name: service.name, path: serviceDetail(service.slug) },
         ])}
       />
       <SiteHeader />
@@ -70,7 +71,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
           }
           moreTitle="More guest services"
           moreLinks={others.map((other) => ({
-            href: `/services/${other.slug}`,
+            href: serviceDetail(other.slug),
             eyebrow: other.eyebrow,
             name: other.name,
           }))}

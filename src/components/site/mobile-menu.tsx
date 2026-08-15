@@ -75,7 +75,7 @@ export function MobileMenu() {
                     aria-current={active ? 'page' : undefined}
                     className={cn(
                       'block py-3 text-sm font-medium',
-                      active ? 'text-brand' : 'text-foreground',
+                      active ? 'text-brand-text' : 'text-foreground',
                     )}
                   >
                     {link.label}

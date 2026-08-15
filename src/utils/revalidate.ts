@@ -1,16 +1,23 @@
 // src/utils/revalidate.ts
 import 'server-only';
 import { revalidatePath } from 'next/cache';
+import { facilityDetail, roomDetail, serviceDetail } from '@/lib/routes';
 
 // The portfolio cache pattern: public pages are server-rendered from the DB
 // and statically cached; admin mutations call these helpers so changes
 // appear without a redeploy (on-demand ISR). Add a helper per public
 // surface and call it from every mutation route that affects it.
+//
+// Every helper also purges /sitemap.xml, which is built from the same three
+// data sources: publishing, renaming or removing an entity otherwise leaves
+// the sitemap advertising the old set for up to an hour.
+//
+// There is deliberately NO helper for season rates or discounts. Cached
+// pages render only `basePrice`; every seasonal and discounted figure is
+// computed live by /api/rooms/[slug]/availability, so those mutations have
+// nothing static to purge. Please do not "fix" that into a bug.
 
-/** Invalidates the home page (featured rooms, hero content). */
-export function revalidatePublicHome(): void {
-  revalidatePath('/');
-}
+const SITEMAP = '/sitemap.xml';
 
 /**
  * Invalidates the public room pages after a room mutation: the listing, the
@@ -19,7 +26,8 @@ export function revalidatePublicHome(): void {
 export function revalidatePublicRooms(slug?: string): void {
   revalidatePath('/');
   revalidatePath('/rooms');
-  if (slug) revalidatePath(`/rooms/${slug}`);
+  if (slug) revalidatePath(roomDetail(slug));
+  revalidatePath(SITEMAP);
 }
 
 /**
@@ -29,7 +37,8 @@ export function revalidatePublicRooms(slug?: string): void {
 export function revalidatePublicFacilities(slug?: string): void {
   revalidatePath('/');
   revalidatePath('/facilities');
-  if (slug) revalidatePath(`/facilities/${slug}`);
+  if (slug) revalidatePath(facilityDetail(slug));
+  revalidatePath(SITEMAP);
 }
 
 /**
@@ -39,5 +48,6 @@ export function revalidatePublicFacilities(slug?: string): void {
 export function revalidatePublicServices(slug?: string): void {
   revalidatePath('/');
   revalidatePath('/services');
-  if (slug) revalidatePath(`/services/${slug}`);
+  if (slug) revalidatePath(serviceDetail(slug));
+  revalidatePath(SITEMAP);
 }

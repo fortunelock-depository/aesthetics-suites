@@ -487,6 +487,12 @@ model Booking {
   @@index([status])
   @@index([guestEmail])
   @@index([createdAt])
+  /// The dashboard counts refunds needing retry on every load; without this
+  /// that is a sequential scan of the whole table. Deliberately NOT indexing
+  /// createdById/cancelledById: nothing queries bookings by staff member,
+  /// and users are soft-deleted (the extension rewrites delete to update),
+  /// so no FK scan on delete ever happens either.
+  @@index([refundFailedAt])
 }
 
 /// A percentage tax or levy applied to every booking (VAT, tourism levy).
