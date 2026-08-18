@@ -5,7 +5,7 @@ import { BedDouble } from 'lucide-react';
 import { SiteHeader } from '@/components/site/site-header';
 import { SiteFooter } from '@/components/site/site-footer';
 import { PageBanner } from '@/components/site/page-banner';
-import { PhotoFrame } from '@/components/site/photo-frame';
+import { GalleryGrid, PhotoGallery } from '@/components/site/photo-gallery';
 import { Accordion } from '@/components/site/accordion';
 import { RoomPriceWidget } from '@/components/rooms/room-price-widget';
 import { RoomReviews } from '@/components/rooms/room-reviews';
@@ -92,7 +92,9 @@ export default async function RoomDetailPage({ params }: PageProps) {
           <article className="order-1 min-w-0 lg:order-2">
             {/* h2: the banner's h1 already carries the room name - two
                 competing h1s made the generic one win in outlines. */}
-            <h2 className="font-heading text-[28px] leading-[1.3] font-medium text-foreground [overflow-wrap:anywhere] lg:text-[35px]">
+            {/* Steps down on phones so the name + summary line reads as a
+                heading rather than a wall of display type. */}
+            <h2 className="font-heading text-[22px] leading-[1.35] font-medium text-foreground [overflow-wrap:anywhere] sm:text-[28px] sm:leading-[1.3] lg:text-[35px]">
               {room.name} - {room.summary}
             </h2>
             {room.description.map((paragraph) => (
@@ -104,20 +106,16 @@ export default async function RoomDetailPage({ params }: PageProps) {
               </p>
             ))}
 
-            {/* Two-up gallery (template's photo pair). */}
+            {/* Photo gallery: every uploaded photo (up to ten), each
+                opening the full-view viewer with previous/next. */}
             {room.photos.length > 0 && (
-              <div className="mt-[35px] grid gap-6 sm:grid-cols-2">
-                {room.photos.slice(0, 2).map((photo, index) => (
-                  <PhotoFrame
-                    key={photo.url}
-                    src={photo.url}
-                    alt={photo.alt ?? `${room.name} photo ${index + 1}`}
-                    icon={BedDouble}
-                    className="h-[250px] w-full"
-                    sizes="(max-width: 640px) 100vw, 470px"
-                  />
-                ))}
-              </div>
+              <PhotoGallery
+                photos={room.photos}
+                name={room.name}
+                icon={BedDouble}
+              >
+                <GalleryGrid className="mt-[35px]" />
+              </PhotoGallery>
             )}
 
             {/* Special check-in instructions. */}

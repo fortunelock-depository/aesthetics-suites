@@ -322,7 +322,7 @@ export const FACILITIES: FacilityItem[] = [
       'The lounge serves drinks and light plates from the Terrace kitchen through the afternoon. Towels are at the stand - no need to bring your own.',
       'Children are welcome until 6 PM with an adult; evenings are kept adult-calm.',
     ],
-    openingHours: '8:00 AM - 8:00 PM',
+    openingHours: '7:00 AM - 10:00 PM',
     highlights: [
       'Heated year-round',
       'Shaded loungers',
@@ -396,7 +396,5 @@ export interface OpeningHoursRow {
 /** Footer "Opening Hours" column. */
 export const OPENING_HOURS: OpeningHoursRow[] = [
   { label: 'Front desk', value: '24 hours' },
-  { label: 'Restaurant', value: '6:30 AM - 10:00 PM' },
-  { label: 'Pool', value: '8:00 AM - 8:00 PM' },
-  { label: 'Fitness studio', value: '5:00 AM - 10:00 PM' },
+  { label: 'Pool', value: '7:00 AM - 10:00 PM' },
 ];
