@@ -1,6 +1,6 @@
 // src/components/site/editorial-detail.tsx
 import Link from 'next/link';
-import { Clock, Sparkles } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { CtaLink } from './cta-link';
 import { GalleryCover, GalleryGrid, PhotoGallery } from './photo-gallery';
 import { amenityIcon } from '@/lib/amenity-icons';
@@ -27,7 +27,7 @@ export function EditorialDetail({
   moreLinks: { href: string; eyebrow: string; name: string }[];
 }) {
   return (
-    <PhotoGallery photos={item.photos} name={item.name} icon={Sparkles}>
+    <PhotoGallery photos={item.photos} name={item.name} placeholder="editorial">
       <article className="mx-auto w-full max-w-[966px] px-4 py-16 lg:px-3 lg:py-[120px]">
         <p className="text-[15px] font-semibold text-brand-text capitalize">
           {item.eyebrow}

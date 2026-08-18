@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
           createdAt: true,
           updatedAt: true,
           photos: { orderBy: { sortOrder: 'asc' as const }, take: 1 },
-          _count: { select: { units: true, bookings: true } },
+          _count: { select: { units: true, sharedUnits: true, bookings: true } },
         },
       }),
       prisma.roomType.count({ where }),

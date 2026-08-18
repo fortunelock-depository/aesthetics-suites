@@ -14,6 +14,7 @@ import {
 } from '@/validations/hotel-validation';
 import { NotFoundError } from '@/lib/errors';
 import { revalidatePublicRooms } from '@/utils/revalidate';
+import { unitsSoldAs } from '@/lib/hotel/units';
 
 export async function GET(req: NextRequest) {
   try {
@@ -23,7 +24,8 @@ export async function GET(req: NextRequest) {
     );
 
     const where: Prisma.RoomWhereInput = {
-      ...(query.roomTypeId ? { roomTypeId: query.roomTypeId } : {}),
+      // "Units of a type" = owned + shared into it.
+      ...(query.roomTypeId ? unitsSoldAs(query.roomTypeId) : {}),
       ...(query.status ? { status: query.status } : {}),
     };
 

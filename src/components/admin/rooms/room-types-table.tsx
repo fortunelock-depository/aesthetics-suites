@@ -46,7 +46,7 @@ import {
 import { extractApiError } from '@/lib/extract-api-error';
 import { formatMoney } from '@/lib/format-money';
 import { ErrorState } from '@/components/ui/error-state';
-import type { IRoomTypeRow } from '@/types/room.types';
+import { sellableUnitCount, type IRoomTypeRow } from '@/types/room.types';
 
 interface RoomsFilters extends Record<string, string | boolean | undefined> {
   search?: string;
@@ -130,7 +130,7 @@ function createColumns({
       header: () => <span className="block text-right">Units</span>,
       cell: ({ row }) => (
         <span className="block text-right text-sm text-muted-foreground">
-          {row.original._count?.units ?? 0}
+          {sellableUnitCount(row.original)}
         </span>
       ),
     },
@@ -358,8 +358,8 @@ export function RoomTypesTable() {
                     {roomType.name}
                   </Link>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {roomType._count?.units ?? 0} unit
-                    {(roomType._count?.units ?? 0) === 1 ? '' : 's'} · sleeps{' '}
+                    {sellableUnitCount(roomType)} unit
+                    {sellableUnitCount(roomType) === 1 ? '' : 's'} · sleeps{' '}
                     {roomType.capacityAdults}
                     {roomType.capacityChildren > 0 &&
                       ` + ${roomType.capacityChildren}`}

@@ -2,6 +2,7 @@
 import 'server-only';
 import prisma, { ReviewStatus } from '@/lib/prisma';
 import logger from '@/utils/logger';
+import { activeUnitsByRoomType } from './units';
 
 export interface IPublicRoomCard {
   id: string;
@@ -27,7 +28,7 @@ export interface IPublicRoomCard {
  */
 export async function getPublicRoomCards(): Promise<IPublicRoomCard[]> {
   try {
-    const [roomTypes, ratings] = await Promise.all([
+    const [roomTypes, ratings, unitIndex] = await Promise.all([
       prisma.roomType.findMany({
         where: { isPublished: true },
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
@@ -41,9 +42,6 @@ export async function getPublicRoomCards(): Promise<IPublicRoomCard[]> {
           capacityAdults: true,
           capacityChildren: true,
           sizeSqm: true,
-          _count: {
-            select: { units: { where: { status: 'ACTIVE', deletedAt: null } } },
-          },
           photos: {
             orderBy: { sortOrder: 'asc' },
             take: 1,
@@ -57,6 +55,9 @@ export async function getPublicRoomCards(): Promise<IPublicRoomCard[]> {
         _avg: { rating: true },
         _count: { _all: true },
       }),
+      // Owned + shared units per listing (a shared apartment counts for
+      // every listing that sells it).
+      activeUnitsByRoomType(),
     ]);
 
     const ratingByType = new Map(
@@ -69,9 +70,9 @@ export async function getPublicRoomCards(): Promise<IPublicRoomCard[]> {
       ]),
     );
 
-    return roomTypes.map(({ photos, _count, ...roomType }) => ({
+    return roomTypes.map(({ photos, ...roomType }) => ({
       ...roomType,
-      unitCount: _count.units,
+      unitCount: unitIndex.get(roomType.id)?.length ?? 0,
       coverPhoto: photos[0] ?? null,
       rating: ratingByType.get(roomType.id) ?? null,
     }));

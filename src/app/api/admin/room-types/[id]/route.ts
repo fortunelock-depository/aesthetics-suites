@@ -19,13 +19,43 @@ export async function GET(
       where: { id },
       include: {
         photos: { orderBy: { sortOrder: 'asc' } },
-        units: { orderBy: { name: 'asc' } },
+        // Owned units, each with the sibling listings it is also sold under.
+        units: {
+          orderBy: { name: 'asc' },
+          include: {
+            sharedWith: {
+              where: { roomType: { deletedAt: null } },
+              select: { roomType: { select: { id: true, name: true } } },
+            },
+          },
+        },
+        // Units owned elsewhere that this listing also sells. Relation
+        // includes bypass the soft-delete extension, hence the explicit
+        // deletedAt filter on the unit.
+        sharedUnits: {
+          where: { room: { deletedAt: null } },
+          include: {
+            room: {
+              include: { roomType: { select: { id: true, name: true } } },
+            },
+          },
+        },
         seasonRates: { orderBy: { startDate: 'asc' } },
       },
     });
     if (!roomType) throw new NotFoundError('Room type not found');
 
-    return successResponse(roomType);
+    return successResponse({
+      ...roomType,
+      units: roomType.units.map(({ sharedWith, ...unit }) => ({
+        ...unit,
+        sharedWith: sharedWith.map((link) => link.roomType),
+      })),
+      // Flattened: the unit row plus who owns it, sorted by name.
+      sharedUnits: roomType.sharedUnits
+        .map((link) => link.room)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    });
   } catch (err) {
     return handleApiError(err);
   }

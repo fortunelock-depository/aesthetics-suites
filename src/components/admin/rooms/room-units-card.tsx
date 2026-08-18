@@ -353,6 +353,12 @@ export function RoomUnitsCard({ roomType }: { roomType: IRoomTypeDetail }) {
                       : 'Airbnb linked - not synced yet'
                     : 'No Airbnb calendar linked'}
                 </p>
+                {unit.sharedWith && unit.sharedWith.length > 0 && (
+                  <p className="mt-0.5 text-xs text-brand-text [overflow-wrap:anywhere]">
+                    Also sold as{' '}
+                    {unit.sharedWith.map((sibling) => sibling.name).join(', ')}
+                  </p>
+                )}
               </div>
               <div className="flex flex-none items-center gap-1 self-start sm:self-auto">
                 <DropdownMenu>

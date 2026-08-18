@@ -124,7 +124,11 @@ model RoomType {
   freeCancellationDays  Int @default(2)
 
   photos      RoomPhoto[]
+  /// Units this listing OWNS (created under it).
   units       Room[]
+  /// Units owned by ANOTHER listing that this one also sells - see
+  /// RoomTypeSharedUnit. Sellable inventory = units + sharedUnits.
+  sharedUnits RoomTypeSharedUnit[]
   seasonRates SeasonRate[]
   bookings    Booking[]
   reviews     Review[]
@@ -187,6 +191,8 @@ model Room {
 
   bookings Booking[]
   blocks   CalendarBlock[]
+  /// Other listings this unit is also sold under.
+  sharedWith RoomTypeSharedUnit[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -196,6 +202,25 @@ model Room {
   @@index([roomTypeId])
   @@index([status])
   @@index([deletedAt])
+}
+
+/// Shared physical inventory ("derived room types"). A two-bedroom
+/// apartment owned by the "Two-Bedroom Apartment" listing can ALSO be sold
+/// as a "One-Bedroom in Apartment" listing: this row links the unit to that
+/// second listing. Bookings of either listing seat on the same Room, so
+/// the unit-level availability query and the Booking_no_unit_overlap
+/// constraint block the apartment for BOTH listings automatically - two
+/// parties can never share it. Hard-deleted with either side.
+model RoomTypeSharedUnit {
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  roomTypeId String
+  room       Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId     String
+
+  createdAt DateTime @default(now())
+
+  @@id([roomTypeId, roomId])
+  @@index([roomId])
 }
 
 enum BlockSource {

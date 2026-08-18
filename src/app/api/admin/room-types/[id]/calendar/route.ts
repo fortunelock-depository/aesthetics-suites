@@ -1,6 +1,7 @@
 // src/app/api/admin/room-types/[id]/calendar/route.ts
 import type { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
+import { unitsSoldAs } from '@/lib/hotel/units';
 import { requireStaff } from '@/lib/api-auth';
 import { successResponse, handleApiError } from '@/utils/api-response';
 import { calendarQuerySchema } from '@/validations/hotel-validation';
@@ -41,8 +42,10 @@ export async function GET(
     });
     if (!roomType) throw new NotFoundError('Room type not found');
 
+    // Owned AND shared units: a booking under a sibling listing occupies
+    // the same physical apartment, so it must show on this calendar too.
     const units = await prisma.room.findMany({
-      where: { roomTypeId: id },
+      where: unitsSoldAs(id),
       orderBy: { name: 'asc' },
       select: {
         id: true,

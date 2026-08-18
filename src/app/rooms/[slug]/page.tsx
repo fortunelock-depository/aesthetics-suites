@@ -1,11 +1,9 @@
 // src/app/rooms/[slug]/page.tsx
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { BedDouble } from 'lucide-react';
-import { SiteHeader } from '@/components/site/site-header';
-import { SiteFooter } from '@/components/site/site-footer';
 import { PageBanner } from '@/components/site/page-banner';
 import { GalleryGrid, PhotoGallery } from '@/components/site/photo-gallery';
+import { StayLink } from '@/components/rooms/stay-link';
 import { Accordion } from '@/components/site/accordion';
 import { RoomPriceWidget } from '@/components/rooms/room-price-widget';
 import { RoomReviews } from '@/components/rooms/room-reviews';
@@ -62,7 +60,6 @@ export default async function RoomDetailPage({ params }: PageProps) {
           { name: room.name, path: roomDetail(room.slug) },
         ])}
       />
-      <SiteHeader />
       <main className="flex-1">
         <PageBanner
           title={room.name}
@@ -106,13 +103,45 @@ export default async function RoomDetailPage({ params }: PageProps) {
               </p>
             ))}
 
+            {/* Shared-inventory note: this listing sells the same physical
+                apartments as its siblings, so a stay under either takes the
+                whole apartment. Guests deserve to know before they choose. */}
+            {room.alsoSoldAs.length > 0 && (
+              <aside
+                aria-label="Other ways to book this apartment"
+                className="mt-[35px] border border-border bg-card p-5 sm:p-6"
+              >
+                <p className="text-[15px] font-semibold text-brand-text capitalize">
+                  Also available as
+                </p>
+                <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5">
+                  {room.alsoSoldAs.map((sibling) => (
+                    <li key={sibling.slug}>
+                      <StayLink
+                        href={roomDetail(sibling.slug)}
+                        className="font-heading text-lg font-medium text-foreground underline-offset-4 transition-colors hover:text-brand-text hover:underline"
+                      >
+                        {sibling.name}
+                      </StayLink>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-[15px] leading-[26px] text-muted-foreground">
+                  These options share the same apartments. Whichever you
+                  book, the whole apartment is reserved for you alone for
+                  your dates - any part you have not taken stays locked, and
+                  the other option becomes unavailable for those nights.
+                </p>
+              </aside>
+            )}
+
             {/* Photo gallery: every uploaded photo (up to ten), each
                 opening the full-view viewer with previous/next. */}
             {room.photos.length > 0 && (
               <PhotoGallery
                 photos={room.photos}
                 name={room.name}
-                icon={BedDouble}
+                placeholder="room"
               >
                 <GalleryGrid className="mt-[35px]" />
               </PhotoGallery>
@@ -184,7 +213,6 @@ export default async function RoomDetailPage({ params }: PageProps) {
           rating={room.rating}
         />
       </main>
-      <SiteFooter />
     </>
   );
 }

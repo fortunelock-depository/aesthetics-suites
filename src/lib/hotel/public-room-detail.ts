@@ -3,6 +3,7 @@ import 'server-only';
 import { normalizeFaqs } from '@/lib/hotel/faqs';
 import prisma, { ReviewStatus } from '@/lib/prisma';
 import logger from '@/utils/logger';
+import { activeUnitsByRoomType } from './units';
 
 export interface IPublicRoomDetail {
   id: string;
@@ -20,6 +21,12 @@ export interface IPublicRoomDetail {
   minNights: number;
   airbnbUrl: string | null;
   photos: { url: string; alt: string | null }[];
+  /**
+   * Published sibling listings that sell the SAME physical units (a
+   * two-bedroom apartment sold whole and as one bedroom). Booking either
+   * takes the apartment for both, which the page explains.
+   */
+  alsoSoldAs: { name: string; slug: string }[];
   rating: { average: number; count: number } | null;
   /** First page of approved reviews (REVIEWS_PAGE_SIZE). */
   reviews: {
@@ -57,16 +64,11 @@ export async function getPublicRoomDetail(
   try {
     const roomType = await prisma.roomType.findFirst({
       where: { slug, isPublished: true },
-      include: {
-        photos: { orderBy: { sortOrder: 'asc' } },
-        _count: {
-          select: { units: { where: { status: 'ACTIVE', deletedAt: null } } },
-        },
-      },
+      include: { photos: { orderBy: { sortOrder: 'asc' } } },
     });
     if (!roomType) return null;
 
-    const [aggregate, reviews] = await Promise.all([
+    const [aggregate, reviews, unitIndex] = await Promise.all([
       prisma.review.aggregate({
         // aggregate is NOT covered by the soft-delete extension (it only
         // scopes findMany/findFirst/count) - exclude deleted rows here so
@@ -93,7 +95,25 @@ export async function getPublicRoomDetail(
           createdAt: true,
         },
       }),
+      activeUnitsByRoomType(),
     ]);
+
+    // Listings that share at least one ACTIVE unit with this one.
+    const ownUnits = new Set(unitIndex.get(roomType.id) ?? []);
+    const siblingIds = [...unitIndex.entries()]
+      .filter(
+        ([typeId, units]) =>
+          typeId !== roomType.id && units.some((unit) => ownUnits.has(unit)),
+      )
+      .map(([typeId]) => typeId);
+    const alsoSoldAs =
+      siblingIds.length > 0
+        ? await prisma.roomType.findMany({
+            where: { id: { in: siblingIds }, isPublished: true },
+            orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+            select: { name: true, slug: true },
+          })
+        : [];
 
     return {
       id: roomType.id,
@@ -106,7 +126,7 @@ export async function getPublicRoomDetail(
       capacityAdults: roomType.capacityAdults,
       capacityChildren: roomType.capacityChildren,
       sizeSqm: roomType.sizeSqm,
-      unitCount: roomType._count.units,
+      unitCount: ownUnits.size,
       amenities: roomType.amenities,
       minNights: roomType.minNights,
       airbnbUrl: roomType.airbnbUrl,
@@ -114,6 +134,7 @@ export async function getPublicRoomDetail(
         url: photo.url,
         alt: photo.alt,
       })),
+      alsoSoldAs,
       rating:
         aggregate._count._all > 0
           ? {

@@ -35,6 +35,26 @@ export interface IRoomUnitRow {
   icalLastSyncedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Sibling listings this unit is ALSO sold under (detail payload only). */
+  sharedWith?: { id: string; name: string }[];
+}
+
+/**
+ * A unit owned by another listing that this one also sells (a two-bedroom
+ * apartment sold whole AND as a single bedroom). Booking it under either
+ * listing takes the physical unit for both.
+ */
+export interface ISharedUnitRow extends IRoomUnitRow {
+  roomType: { id: string; name: string };
+}
+
+/** A unit that could be shared into a listing (owned by a sibling). */
+export interface ISharedUnitCandidate {
+  id: string;
+  name: string;
+  floor: string | null;
+  status: RoomUnitStatus;
+  roomType: { id: string; name: string };
 }
 
 export interface ISeasonRateRow {
@@ -73,15 +93,23 @@ export interface IRoomTypeRow {
   createdAt: string;
   updatedAt: string;
   photos?: IRoomPhoto[];
-  _count?: { units: number; bookings: number };
+  /** units = owned; sharedUnits = sold here but owned by a sibling. */
+  _count?: { units: number; sharedUnits?: number; bookings: number };
 }
 
 /** Full detail payload: photos, units and season rates included. */
 export interface IRoomTypeDetail extends IRoomTypeRow {
   photos: IRoomPhoto[];
   units: IRoomUnitRow[];
+  sharedUnits: ISharedUnitRow[];
   seasonRates: ISeasonRateRow[];
 }
+
+/** Total sellable units of a listing: owned plus shared into it. */
+export const sellableUnitCount = (
+  roomType: Pick<IRoomTypeRow, '_count'>,
+): number =>
+  (roomType._count?.units ?? 0) + (roomType._count?.sharedUnits ?? 0);
 
 export interface IRoomTypesQueryParams {
   page: number;
@@ -147,6 +175,11 @@ export type IUpdateSeasonRateBody = Partial<
 > & {
   minNights?: number | null;
 };
+
+export type ISharedUnitsResponse = IApiResponse<{
+  linked: ISharedUnitCandidate[];
+  candidates: ISharedUnitCandidate[];
+}>;
 
 export type IRoomTypesResponse = IPaginatedResponse<IRoomTypeRow[]>;
 export type IRoomTypeResponse = IApiResponse<IRoomTypeDetail>;

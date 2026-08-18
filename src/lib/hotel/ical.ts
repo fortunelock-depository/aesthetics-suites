@@ -13,6 +13,7 @@
 // half-open [checkIn, checkOut) convention, so no off-by-one mapping.
 import 'server-only';
 import prisma, { BlockSource } from '@/lib/prisma';
+import { unitsSoldAs } from './units';
 import { BLOCKING_STATUSES } from './availability';
 import { parseDateOnly, toDateOnlyString } from './dates';
 import { SITE } from '@/config/constants';
@@ -325,7 +326,7 @@ export async function refreshStaleCalendars(
   try {
     const cutoff = new Date(Date.now() - options.maxAgeMs);
     const units = await prisma.room.findMany({
-      where: { roomTypeId, airbnbIcalUrl: { not: null } },
+      where: { ...unitsSoldAs(roomTypeId), airbnbIcalUrl: { not: null } },
       select: { id: true, icalLastSyncedAt: true },
     });
 

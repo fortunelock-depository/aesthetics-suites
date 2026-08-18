@@ -5,12 +5,18 @@
 // CONFIRMED, or CHECKED_IN) nor a CalendarBlock (Airbnb import / manual)
 // overlapping the half-open range. This is what makes cross-platform
 // double-booking impossible once Airbnb calendars are synced.
+//
+// "Units of a room type" includes units SHARED into it from another
+// listing (unitsSoldAs): a two-bedroom apartment sold both whole and as a
+// single bedroom is one Room, so a booking under either listing occupies
+// it for both - the queries below need no special casing for that.
 import 'server-only';
 import prisma, {
   BookingStatus,
   RoomStatus,
   type TransactionClient,
 } from '@/lib/prisma';
+import { unitsSoldAs } from './units';
 
 /** Booking statuses that occupy a unit's calendar. */
 export const BLOCKING_STATUSES: BookingStatus[] = [
@@ -61,7 +67,7 @@ export async function findAvailability(
 
   const freeUnits = await db.room.findMany({
     where: {
-      roomTypeId,
+      ...unitsSoldAs(roomTypeId),
       status: RoomStatus.ACTIVE,
       NOT: [{ bookings }, { blocks }],
     },

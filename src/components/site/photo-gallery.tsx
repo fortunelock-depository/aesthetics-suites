@@ -5,7 +5,15 @@ import * as React from 'react';
 import Image from 'next/image';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 import type { LucideIcon } from 'lucide-react';
-import { ChevronLeft, ChevronRight, Expand, X } from 'lucide-react';
+import {
+  BedDouble,
+  ChevronLeft,
+  ChevronRight,
+  Expand,
+  ImageIcon,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PhotoFrame } from './photo-frame';
 
@@ -16,6 +24,19 @@ export interface GalleryPhoto {
 
 /** The most photos a detail page shows (grid and viewer alike). */
 export const GALLERY_MAX_PHOTOS = 10;
+
+/**
+ * Placeholder glyph for a missing photo, chosen by NAME. This is a client
+ * component rendered from server pages, and a React component (a function)
+ * cannot cross that boundary as a prop - only serializable values can. So
+ * the server says "room" or "editorial" and the icon is resolved here.
+ */
+export type GalleryPlaceholder = 'room' | 'editorial' | 'generic';
+const PLACEHOLDER_ICON: Record<GalleryPlaceholder, LucideIcon> = {
+  room: BedDouble,
+  editorial: Sparkles,
+  generic: ImageIcon,
+};
 
 interface GalleryContextValue {
   photos: GalleryPhoto[];
@@ -46,16 +67,17 @@ function useGallery(component: string): GalleryContextValue {
 export function PhotoGallery({
   photos,
   name,
-  icon,
+  placeholder = 'generic',
   children,
 }: {
   photos: GalleryPhoto[];
   /** What the photos are of, for alt/label fallbacks ("Deluxe Suite"). */
   name: string;
-  /** Placeholder glyph when a photo is missing. */
-  icon?: LucideIcon;
+  /** Placeholder glyph when a photo is missing (a name, never a component). */
+  placeholder?: GalleryPlaceholder;
   children: React.ReactNode;
 }) {
+  const icon = PLACEHOLDER_ICON[placeholder];
   const shown = React.useMemo(
     () => photos.slice(0, GALLERY_MAX_PHOTOS),
     [photos],

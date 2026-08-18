@@ -11,6 +11,7 @@ import type {
   IRoomTypesResponse,
   IRoomUnitResponse,
   ISeasonRateResponse,
+  ISharedUnitsResponse,
   IUpdateRoomTypeBody,
   IUpdateRoomUnitBody,
   IUpdateSeasonRateBody,
@@ -137,6 +138,40 @@ export const roomsApi = apiSlice.injectEndpoints({
         { type: 'RoomType', id: roomTypeId },
       ],
     }),
+    // Shared inventory: units owned by a sibling listing that this one
+    // also sells. Both mutations invalidate the parent detail (its unit
+    // list and count change) and the list (unit counts there too).
+    getSharedUnits: builder.query<ISharedUnitsResponse, string>({
+      query: (id) => `admin/room-types/${id}/shared-units`,
+      providesTags: (_result, _error, id) => [{ type: 'RoomType', id }],
+    }),
+    shareUnit: builder.mutation<
+      IApiResponse<{ roomTypeId: string; roomId: string }>,
+      { roomTypeId: string; roomId: string }
+    >({
+      query: ({ roomTypeId, roomId }) => ({
+        url: `admin/room-types/${roomTypeId}/shared-units`,
+        method: 'POST',
+        body: { roomId },
+      }),
+      invalidatesTags: (_result, _error, { roomTypeId }) => [
+        { type: 'RoomType', id: roomTypeId },
+        { type: 'RoomTypes', id: 'LIST' },
+      ],
+    }),
+    unshareUnit: builder.mutation<
+      IApiResponse<{ roomTypeId: string; roomId: string }>,
+      { roomTypeId: string; roomId: string }
+    >({
+      query: ({ roomTypeId, roomId }) => ({
+        url: `admin/room-types/${roomTypeId}/shared-units/${roomId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { roomTypeId }) => [
+        { type: 'RoomType', id: roomTypeId },
+        { type: 'RoomTypes', id: 'LIST' },
+      ],
+    }),
     // The export URL is a capability; rotating the token is the only way
     // to revoke a leaked calendar link.
     rotateRoomIcalToken: builder.mutation<
@@ -190,6 +225,9 @@ export const roomsApi = apiSlice.injectEndpoints({
 });
 
 export const {
+  useGetSharedUnitsQuery,
+  useShareUnitMutation,
+  useUnshareUnitMutation,
   useGetRoomTypesQuery,
   useGetRoomTypeQuery,
   useCreateRoomTypeMutation,

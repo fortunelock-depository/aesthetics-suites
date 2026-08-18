@@ -80,6 +80,11 @@ export const roomUpdateSchema = roomCreateSchema
   .partial()
   .extend({ airbnbIcalUrl: z.url().max(500).nullable().optional() });
 
+/** Link a unit owned by another listing so this one can sell it too. */
+export const sharedUnitLinkSchema = z.object({
+  roomId: z.uuid(),
+});
+
 export const roomsQuerySchema = z.object({
   ...pagination,
   roomTypeId: z.uuid().optional(),

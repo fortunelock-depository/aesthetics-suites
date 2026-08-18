@@ -40,6 +40,7 @@ import { formatMoney } from '@/lib/format-money';
 import { RoomTypeDetailsCard } from './room-type-details-card';
 import { RoomPhotosCard } from './room-photos-card';
 import { RoomUnitsCard } from './room-units-card';
+import { SharedUnitsCard } from './shared-units-card';
 import { SeasonRatesCard } from './season-rates-card';
 import { roomDetail } from '@/lib/routes';
 
@@ -179,8 +180,12 @@ export function RoomTypeDetailClient({ roomTypeId }: { roomTypeId: string }) {
               <span className="font-semibold text-foreground">
                 {formatMoney(roomType.basePrice, roomType.currency)}
               </span>
-              /night · {roomType.units.length} unit
-              {roomType.units.length === 1 ? '' : 's'} · sleeps{' '}
+              /night · {roomType.units.length + roomType.sharedUnits.length}{' '}
+              unit
+              {roomType.units.length + roomType.sharedUnits.length === 1
+                ? ''
+                : 's'}{' '}
+              · sleeps{' '}
               {roomType.capacityAdults}
               {roomType.capacityChildren > 0 &&
                 ` + ${roomType.capacityChildren} children`}
@@ -229,8 +234,9 @@ export function RoomTypeDetailClient({ roomTypeId }: { roomTypeId: string }) {
         <TabsContent value="photos" className="mt-0">
           <RoomPhotosCard roomType={roomType} />
         </TabsContent>
-        <TabsContent value="units" className="mt-0">
+        <TabsContent value="units" className="mt-0 space-y-6">
           <RoomUnitsCard roomType={roomType} />
+          <SharedUnitsCard roomType={roomType} />
         </TabsContent>
         <TabsContent value="rates" className="mt-0">
           <SeasonRatesCard roomType={roomType} />

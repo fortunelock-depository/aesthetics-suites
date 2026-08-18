@@ -26,6 +26,7 @@ import prisma, {
   type TransactionClient,
 } from '@/lib/prisma';
 import { findAvailability, isUnitFree } from './availability';
+import { unitsSoldAs } from './units';
 import {
   BOOKING_FETCH_TIMEOUT_MS,
   BOOKING_STALE_MS,
@@ -675,6 +676,16 @@ export async function createManualBooking(
 
     let roomId = input.roomId ?? null;
     if (roomId) {
+      // The chosen unit must be sellable under this listing (owned by it or
+      // shared into it) - a stale form must not seat a stay on a unit that
+      // belongs to an unrelated room type.
+      const sellable = await tx.room.findFirst({
+        where: { id: roomId, ...unitsSoldAs(roomType.id) },
+        select: { id: true },
+      });
+      if (!sellable) {
+        throw new BadRequestError('That unit does not belong to this room type.');
+      }
       if (!(await isUnitFree(roomId, checkIn, checkOut, tx))) {
         throw new ConflictError('That unit is not free for those dates.');
       }
