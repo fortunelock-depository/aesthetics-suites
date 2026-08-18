@@ -10,6 +10,7 @@ import { OverviewSkeleton } from '@/components/admin/skeletons';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LabeledSelect } from '@/components/forms/labeled-select';
 import { Input } from '@/components/ui/input';
+import { DatePlaceholder } from '@/components/ui/date-placeholder';
 import { Button } from '@/components/ui/button';
 import { formatMoney, formatMoneyCompact } from '@/lib/format-money';
 import { formatDate } from '@/lib/format-date';
@@ -184,14 +185,21 @@ export function OverviewClient() {
               >
                 From
               </label>
-              <Input
-                id="overview-from"
-                type="date"
+              <DatePlaceholder
                 value={customFrom}
-                max={customTo || undefined}
-                onChange={(e) => setCustomFrom(e.target.value)}
+                placeholder="Start date"
+                pad="px-2.5"
+                hintClassName="text-base md:text-sm"
                 className="w-40"
-              />
+              >
+                <Input
+                  id="overview-from"
+                  type="date"
+                  value={customFrom}
+                  max={customTo || undefined}
+                  onChange={(e) => setCustomFrom(e.target.value)}
+                />
+              </DatePlaceholder>
             </div>
             <div className="space-y-1.5">
               <label
@@ -200,14 +208,21 @@ export function OverviewClient() {
               >
                 To
               </label>
-              <Input
-                id="overview-to"
-                type="date"
+              <DatePlaceholder
                 value={customTo}
-                min={customFrom || undefined}
-                onChange={(e) => setCustomTo(e.target.value)}
+                placeholder="End date"
+                pad="px-2.5"
+                hintClassName="text-base md:text-sm"
                 className="w-40"
-              />
+              >
+                <Input
+                  id="overview-to"
+                  type="date"
+                  value={customTo}
+                  min={customFrom || undefined}
+                  onChange={(e) => setCustomTo(e.target.value)}
+                />
+              </DatePlaceholder>
             </div>
             <Button onClick={applyCustom} disabled={!customValid}>
               Apply

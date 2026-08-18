@@ -22,6 +22,7 @@ import { extractApiError } from '@/lib/extract-api-error';
 import { formatDate } from '@/lib/format-date';
 import { formatMoney } from '@/lib/format-money';
 import { toDateOnlyString } from '@/lib/hotel/dates';
+import { DatePlaceholder } from '@/components/ui/date-placeholder';
 import { cn } from '@/lib/utils';
 import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 
@@ -260,36 +261,40 @@ export function BookingCheckout({
           </h2>
           <div className="mt-5 grid grid-cols-1 gap-4 min-[480px]:grid-cols-2">
             <Field id="book-check-in" label="Check In">
-              <input
-                id="book-check-in"
-                type="date"
-                aria-describedby={stayError ? STAY_ERROR_ID : undefined}
-                aria-invalid={stayError ? true : undefined}
-                min={today}
-                value={checkIn}
-                onChange={(e) => {
-                  setCheckIn(e.target.value);
-                  // A stale "pick your dates" complaint must not outlive
-                  // its fix; the fresh quote speaks next.
-                  setStayError(null);
-                }}
-                className={FIELD}
-              />
+              <DatePlaceholder value={checkIn} placeholder="Add check-in date">
+                <input
+                  id="book-check-in"
+                  type="date"
+                  aria-describedby={stayError ? STAY_ERROR_ID : undefined}
+                  aria-invalid={stayError ? true : undefined}
+                  min={today}
+                  value={checkIn}
+                  onChange={(e) => {
+                    setCheckIn(e.target.value);
+                    // A stale "pick your dates" complaint must not outlive
+                    // its fix; the fresh quote speaks next.
+                    setStayError(null);
+                  }}
+                  className={FIELD}
+                />
+              </DatePlaceholder>
             </Field>
             <Field id="book-check-out" label="Check Out">
-              <input
-                id="book-check-out"
-                type="date"
-                aria-describedby={stayError ? STAY_ERROR_ID : undefined}
-                aria-invalid={stayError ? true : undefined}
-                min={checkIn || today}
-                value={checkOut}
-                onChange={(e) => {
-                  setCheckOut(e.target.value);
-                  setStayError(null);
-                }}
-                className={FIELD}
-              />
+              <DatePlaceholder value={checkOut} placeholder="Add check-out date">
+                <input
+                  id="book-check-out"
+                  type="date"
+                  aria-describedby={stayError ? STAY_ERROR_ID : undefined}
+                  aria-invalid={stayError ? true : undefined}
+                  min={checkIn || today}
+                  value={checkOut}
+                  onChange={(e) => {
+                    setCheckOut(e.target.value);
+                    setStayError(null);
+                  }}
+                  className={FIELD}
+                />
+              </DatePlaceholder>
             </Field>
             <Field id="book-adults" label="Adults">
               <select

@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePlaceholder } from '@/components/ui/date-placeholder';
 import { Label } from '@/components/ui/label';
 import { DataTableToolbar } from '@/components/filters/data-table-toolbar';
 import {
@@ -85,12 +86,19 @@ function DateFilter({
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        type="date"
+      <DatePlaceholder
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
+        placeholder="Any date"
+        pad="px-2.5"
+        hintClassName="text-base md:text-sm"
+      >
+        <Input
+          id={id}
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </DatePlaceholder>
     </div>
   );
 }

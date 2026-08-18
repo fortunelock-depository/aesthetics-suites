@@ -4,6 +4,7 @@ import { normalizeFaqs } from '@/lib/hotel/faqs';
 import prisma, { ReviewStatus } from '@/lib/prisma';
 import logger from '@/utils/logger';
 import { activeUnitsByRoomType } from './units';
+import { DEFAULT_ROOM_AMENITIES } from '@/lib/amenity-icons';
 
 export interface IPublicRoomDetail {
   id: string;
@@ -127,7 +128,11 @@ export async function getPublicRoomDetail(
       capacityChildren: roomType.capacityChildren,
       sizeSqm: roomType.sizeSqm,
       unitCount: ownUnits.size,
-      amenities: roomType.amenities,
+      // A room with no amenities listed still has the house basics.
+      amenities:
+        roomType.amenities.length > 0
+          ? roomType.amenities
+          : DEFAULT_ROOM_AMENITIES,
       minNights: roomType.minNights,
       airbnbUrl: roomType.airbnbUrl,
       photos: roomType.photos.map((photo) => ({

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { toDateOnlyString } from '@/lib/hotel/dates';
+import { DatePlaceholder } from '@/components/ui/date-placeholder';
 
 /**
  * The hero's check-in / check-out / guests bar (the template's flat joined
@@ -48,28 +49,32 @@ export function BookingBar() {
         <label htmlFor="hero-check-in" className={label}>
           Check In
         </label>
-        <input
-          id="hero-check-in"
-          type="date"
-          min={today}
-          value={checkIn}
-          onChange={(e) => setCheckIn(e.target.value)}
-          className={field}
-        />
+        <DatePlaceholder value={checkIn} placeholder="Add date" pad="px-0">
+          <input
+            id="hero-check-in"
+            type="date"
+            min={today}
+            value={checkIn}
+            onChange={(e) => setCheckIn(e.target.value)}
+            className={field}
+          />
+        </DatePlaceholder>
       </div>
 
       <div className={cell}>
         <label htmlFor="hero-check-out" className={label}>
           Check Out
         </label>
-        <input
-          id="hero-check-out"
-          type="date"
-          min={checkIn || today}
-          value={checkOut}
-          onChange={(e) => setCheckOut(e.target.value)}
-          className={field}
-        />
+        <DatePlaceholder value={checkOut} placeholder="Add date" pad="px-0">
+          <input
+            id="hero-check-out"
+            type="date"
+            min={checkIn || today}
+            value={checkOut}
+            onChange={(e) => setCheckOut(e.target.value)}
+            className={field}
+          />
+        </DatePlaceholder>
       </div>
 
       <div className={cell}>

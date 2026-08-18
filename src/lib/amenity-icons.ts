@@ -49,6 +49,18 @@ export function amenityIcon(label: string): LucideIcon {
  * with a proper icon. Custom (advanced) amenities still go through
  * amenityIcon - best keyword match, generic sparkle otherwise.
  */
+/**
+ * What every room is assumed to have when the admin has not listed any
+ * amenities yet. The public detail page shows these instead of an empty
+ * "Amenities" heading; the moment the admin saves even one amenity, only
+ * their list is shown (these are a fallback, never merged in).
+ */
+export const DEFAULT_ROOM_AMENITIES: string[] = [
+  'Wi-Fi',
+  'Air conditioning',
+  'Smart TV',
+];
+
 export const AMENITY_OPTIONS: string[] = [
   'Wi-Fi',
   'Air conditioning',

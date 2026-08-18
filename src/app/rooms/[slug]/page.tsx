@@ -5,7 +5,10 @@ import { PageBanner } from '@/components/site/page-banner';
 import { GalleryGrid, PhotoGallery } from '@/components/site/photo-gallery';
 import { StayLink } from '@/components/rooms/stay-link';
 import { Accordion } from '@/components/site/accordion';
-import { RoomPriceWidget } from '@/components/rooms/room-price-widget';
+import {
+  RoomBookStrip,
+  RoomPriceWidget,
+} from '@/components/rooms/room-price-widget';
 import { RoomReviews } from '@/components/rooms/room-reviews';
 import { RoomsSidebarWidgets } from '@/components/rooms/rooms-sidebar';
 import { getPublicRoomDetail } from '@/lib/hotel/public-room-detail';
@@ -87,6 +90,13 @@ export default async function RoomDetailPage({ params }: PageProps) {
 
           {/* Content column. */}
           <article className="order-1 min-w-0 lg:order-2">
+            {/* Booking is the point of the page: below lg the sidebar's price
+                widget lands after everything else, so a compact price +
+                Book Now strip leads the content instead. */}
+            <div className="mb-8 lg:hidden">
+              <RoomBookStrip room={room} />
+            </div>
+
             {/* h2: the banner's h1 already carries the room name - two
                 competing h1s made the generic one win in outlines. */}
             {/* Name + a summary of up to 300 characters: never display

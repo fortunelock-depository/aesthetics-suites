@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { toDateOnlyString } from '@/lib/hotel/dates';
+import { DatePlaceholder } from '@/components/ui/date-placeholder';
 
 /**
  * The sidebar's Booking Now widget (template style: stacked bordered
@@ -53,14 +54,16 @@ export function SidebarBookingCard({
         >
           Check In
         </label>
-        <input
-          id="sidebar-check-in"
-          type="date"
-          min={today}
-          value={checkIn}
-          onChange={(e) => setCheckIn(e.target.value)}
-          className={field}
-        />
+        <DatePlaceholder value={checkIn} placeholder="Add check-in date">
+          <input
+            id="sidebar-check-in"
+            type="date"
+            min={today}
+            value={checkIn}
+            onChange={(e) => setCheckIn(e.target.value)}
+            className={field}
+          />
+        </DatePlaceholder>
       </div>
 
       <div>
@@ -70,14 +73,16 @@ export function SidebarBookingCard({
         >
           Check Out
         </label>
-        <input
-          id="sidebar-check-out"
-          type="date"
-          min={checkIn || today}
-          value={checkOut}
-          onChange={(e) => setCheckOut(e.target.value)}
-          className={field}
-        />
+        <DatePlaceholder value={checkOut} placeholder="Add check-out date">
+          <input
+            id="sidebar-check-out"
+            type="date"
+            min={checkIn || today}
+            value={checkOut}
+            onChange={(e) => setCheckOut(e.target.value)}
+            className={field}
+          />
+        </DatePlaceholder>
       </div>
 
       <div>
