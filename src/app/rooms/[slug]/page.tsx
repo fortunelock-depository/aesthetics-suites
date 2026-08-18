@@ -89,9 +89,10 @@ export default async function RoomDetailPage({ params }: PageProps) {
           <article className="order-1 min-w-0 lg:order-2">
             {/* h2: the banner's h1 already carries the room name - two
                 competing h1s made the generic one win in outlines. */}
-            {/* Steps down on phones so the name + summary line reads as a
-                heading rather than a wall of display type. */}
-            <h2 className="font-heading text-[22px] leading-[1.35] font-medium text-foreground [overflow-wrap:anywhere] sm:text-[28px] sm:leading-[1.3] lg:text-[35px]">
+            {/* Name + a summary of up to 300 characters: never display
+                type. Description-sized bold ink on phones, a restrained
+                heading from sm. */}
+            <h2 className="font-heading text-[15px] leading-[26px] font-bold text-foreground [overflow-wrap:anywhere] sm:text-[22px] sm:leading-[1.4] sm:font-semibold lg:text-[26px]">
               {room.name} - {room.summary}
             </h2>
             {room.description.map((paragraph) => (

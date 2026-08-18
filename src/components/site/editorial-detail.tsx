@@ -32,9 +32,10 @@ export function EditorialDetail({
         <p className="text-[15px] font-semibold text-brand-text capitalize">
           {item.eyebrow}
         </p>
-        {/* The summary reads as a headline; on phones it steps down so a
-            two-sentence blurb does not tower over the page. */}
-        <h2 className="mt-2.5 font-heading text-[22px] leading-[1.35] font-medium text-foreground [overflow-wrap:anywhere] sm:text-[28px] sm:leading-[1.3] lg:text-[35px]">
+        {/* The summary can run to 300 characters, so it must not be
+            display type: on phones it is the description's size in bold
+            ink, and it only grows into a restrained heading from sm. */}
+        <h2 className="mt-2.5 font-heading text-[15px] leading-[26px] font-bold text-foreground [overflow-wrap:anywhere] sm:text-[22px] sm:leading-[1.4] sm:font-semibold lg:text-[26px]">
           {item.summary}
         </h2>
 
