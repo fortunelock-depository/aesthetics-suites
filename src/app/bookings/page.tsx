@@ -4,7 +4,7 @@ import { SiteHeader } from '@/components/site/site-header';
 import { SiteFooter } from '@/components/site/site-footer';
 import { PageBanner } from '@/components/site/page-banner';
 import { ManageBookingClient } from '@/components/rooms/manage-booking-client';
-import { unsplash } from '@/static-data/home';
+import { SECTION_BANNERS } from '@/static-data/home';
 
 export const metadata: Metadata = {
   title: 'Manage your booking',
@@ -26,7 +26,7 @@ export default async function ManageBookingPage({
       <main className="flex-1">
       <PageBanner
         title="Manage Booking"
-        image={unsplash('1618773928121-c32242e63f39', 2000)}
+        image={SECTION_BANNERS.rooms}
       />
       <div className="mx-auto w-full max-w-[1320px] px-4 py-16 lg:px-3 lg:py-[120px]">
         <p className="mx-auto max-w-xl pb-8 text-center text-[15px] leading-[26px] text-muted-foreground">

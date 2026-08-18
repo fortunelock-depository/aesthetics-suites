@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PageBanner } from '@/components/site/page-banner';
+import { SECTION_BANNERS } from '@/static-data/home';
 import { EditorialDetail } from '@/components/site/editorial-detail';
 import {
   getPublicFacilities,
@@ -58,7 +59,7 @@ export default async function FacilityDetailPage({ params }: PageProps) {
       <main className="flex-1">
         <PageBanner
           title={facility.name}
-          image={facility.photos[0]?.url ?? ''}
+          image={SECTION_BANNERS.facilities}
           trail={[{ label: 'Facilities', href: '/facilities' }]}
         />
         <EditorialDetail

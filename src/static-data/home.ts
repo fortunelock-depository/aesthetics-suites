@@ -22,6 +22,18 @@ import heroTwo from '../../public/images/hero-bg-2.webp';
 import heroThree from '../../public/images/hero-bg-3.webp';
 import heroFour from '../../public/images/hero-bg-4.webp';
 
+/**
+ * The inner-page banner photo per section. The list page AND every detail
+ * page of a section share it (an item's own photos lead its gallery below),
+ * so a detail route's loading skeleton can paint the exact banner the
+ * finished page will have - no swap when the data lands.
+ */
+export const SECTION_BANNERS = {
+  rooms: '/images/room-hero-bg.webp',
+  facilities: '/images/facilities-bg.webp',
+  services: '/images/services-bg.webp',
+} as const;
+
 /** Free Unsplash placeholder (hot-linkable) until real photos replace it. */
 export const unsplash = (id: string, width = 1600): string =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${width}&q=80`;

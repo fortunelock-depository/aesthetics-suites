@@ -1,5 +1,6 @@
 // src/app/facilities/page.tsx
 import { PageBanner } from '@/components/site/page-banner';
+import { SECTION_BANNERS } from '@/static-data/home';
 import { EmptyState } from '@/components/ui/empty-state';
 import { FacilitiesSection } from '@/components/home/facilities-section';
 import { getPublicFacilities } from '@/lib/hotel/public-facilities';
@@ -20,7 +21,7 @@ export default async function FacilitiesPage() {
 
   return (
     <main className="flex-1">
-      <PageBanner title="Facilities" image={'/images/facilities-bg.webp'} />
+      <PageBanner title="Facilities" image={SECTION_BANNERS.facilities} />
       <div className="pt-16 lg:pt-[120px]">
         {facilities.length === 0 ? (
           <div className="mx-auto w-full max-w-[1320px] px-4 pb-16 lg:px-3 lg:pb-[120px]">

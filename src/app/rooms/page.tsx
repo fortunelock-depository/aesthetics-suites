@@ -1,5 +1,6 @@
 // src/app/rooms/page.tsx
 import { PageBanner } from '@/components/site/page-banner';
+import { SECTION_BANNERS } from '@/static-data/home';
 import { Reveal } from '@/components/site/reveal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { RoomListItem } from '@/components/rooms/room-list-item';
@@ -23,7 +24,7 @@ export default async function RoomsPage() {
 
   return (
     <main className="flex-1">
-      <PageBanner title="Room List" image={'/images/room-hero-bg.webp'} />
+      <PageBanner title="Room List" image={SECTION_BANNERS.rooms} />
 
       {rooms.length === 0 ? (
         <section className="mx-auto w-full max-w-[1320px] px-4 py-16 lg:px-3 lg:py-[120px]">

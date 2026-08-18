@@ -13,7 +13,7 @@ import { RoomReviews } from '@/components/rooms/room-reviews';
 import { RoomsSidebarWidgets } from '@/components/rooms/rooms-sidebar';
 import { getPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 import { getPublicRoomCards } from '@/lib/hotel/public-rooms';
-import { ROOM_DETAILS_CONTENT, unsplash } from '@/static-data/home';
+import { ROOM_DETAILS_CONTENT, SECTION_BANNERS } from '@/static-data/home';
 import { amenityIcon } from '@/lib/amenity-icons';
 import { clampDescription } from '@/lib/seo';
 import { SITE } from '@/config/constants';
@@ -66,7 +66,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
       <main className="flex-1">
         <PageBanner
           title={room.name}
-          image={room.photos[0]?.url ?? unsplash('1618773928121-c32242e63f39', 2000)}
+          image={SECTION_BANNERS.rooms}
           trail={[{ label: 'Room List', href: '/rooms' }]}
         />
 

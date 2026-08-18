@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { PageBanner } from '@/components/site/page-banner';
 import { BookingCheckout } from '@/components/rooms/booking-checkout';
 import { getPublicRoomDetail } from '@/lib/hotel/public-room-detail';
-import { unsplash } from '@/static-data/home';
+import { SECTION_BANNERS } from '@/static-data/home';
 import { roomDetail } from '@/lib/routes';
 
 interface BookPageProps {
@@ -55,9 +55,7 @@ export default async function BookRoomPage({
     <main className="flex-1">
       <PageBanner
         title="Book Your Stay"
-        image={
-          room.photos[0]?.url ?? unsplash('1618773928121-c32242e63f39', 2000)
-        }
+        image={SECTION_BANNERS.rooms}
         trail={[
           { label: 'Room List', href: '/rooms' },
           { label: room.name, href: roomDetail(room.slug) },

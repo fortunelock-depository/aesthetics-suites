@@ -1,5 +1,6 @@
 // src/app/services/page.tsx
 import { PageBanner } from '@/components/site/page-banner';
+import { SECTION_BANNERS } from '@/static-data/home';
 import { EmptyState } from '@/components/ui/empty-state';
 import { InterlockingRows } from '@/components/site/interlocking-rows';
 import { getPublicServices } from '@/lib/hotel/public-services';
@@ -20,7 +21,7 @@ export default async function ServicesPage() {
 
   return (
     <main className="flex-1">
-      <PageBanner title="Services" image={'/images/services-bg.webp'} />
+      <PageBanner title="Services" image={SECTION_BANNERS.services} />
       <div className="pt-16 lg:pt-[120px]">
         {services.length === 0 ? (
           <div className="mx-auto w-full max-w-[1320px] px-4 pb-16 lg:px-3 lg:pb-[120px]">
