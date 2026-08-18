@@ -44,8 +44,13 @@ export default async function HomePage() {
         {rooms.length > 0 && <RoomsSection rooms={rooms} />}
         <VideoBanner />
         {services.length > 0 && <ServicesRow services={services} />}
+        {/* With no services strip in between, the rows would sit flush
+            against the media band above - give them their own top gap. */}
         {facilities.length > 0 && (
-          <FacilitiesSection facilities={facilities} />
+          <FacilitiesSection
+            facilities={facilities}
+            spacedTop={services.length === 0}
+          />
         )}
       </main>
       <SiteFooter />

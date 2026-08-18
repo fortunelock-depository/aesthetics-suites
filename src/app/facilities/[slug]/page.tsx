@@ -1,8 +1,6 @@
 // src/app/facilities/[slug]/page.tsx
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { SiteHeader } from '@/components/site/site-header';
-import { SiteFooter } from '@/components/site/site-footer';
 import { PageBanner } from '@/components/site/page-banner';
 import { EditorialDetail } from '@/components/site/editorial-detail';
 import {
@@ -57,7 +55,6 @@ export default async function FacilityDetailPage({ params }: PageProps) {
           { name: facility.name, path: facilityDetail(facility.slug) },
         ])}
       />
-      <SiteHeader />
       <main className="flex-1">
         <PageBanner
           title={facility.name}
@@ -77,7 +74,6 @@ export default async function FacilityDetailPage({ params }: PageProps) {
           }))}
         />
       </main>
-      <SiteFooter />
     </>
   );
 }

@@ -1,6 +1,4 @@
 // src/app/facilities/page.tsx
-import { SiteHeader } from '@/components/site/site-header';
-import { SiteFooter } from '@/components/site/site-footer';
 import { PageBanner } from '@/components/site/page-banner';
 import { EmptyState } from '@/components/ui/empty-state';
 import { FacilitiesSection } from '@/components/home/facilities-section';
@@ -21,25 +19,21 @@ export default async function FacilitiesPage() {
   const facilities = await getPublicFacilities();
 
   return (
-    <>
-      <SiteHeader />
-      <main className="flex-1">
-        <PageBanner title="Facilities" image={'/images/facilities-bg.webp'} />
-        <div className="pt-16 lg:pt-[120px]">
-          {facilities.length === 0 ? (
-            <div className="mx-auto w-full max-w-[1320px] px-4 pb-16 lg:px-3 lg:pb-[120px]">
-              <EmptyState
-                variant="site"
-                title="Nothing here just yet"
-                description="Our facilities are being refreshed - please check back soon."
-              />
-            </div>
-          ) : (
-            <FacilitiesSection facilities={facilities} />
-          )}
-        </div>
-      </main>
-      <SiteFooter />
-    </>
+    <main className="flex-1">
+      <PageBanner title="Facilities" image={'/images/facilities-bg.webp'} />
+      <div className="pt-16 lg:pt-[120px]">
+        {facilities.length === 0 ? (
+          <div className="mx-auto w-full max-w-[1320px] px-4 pb-16 lg:px-3 lg:pb-[120px]">
+            <EmptyState
+              variant="site"
+              title="Nothing here just yet"
+              description="Our facilities are being refreshed - please check back soon."
+            />
+          </div>
+        ) : (
+          <FacilitiesSection facilities={facilities} />
+        )}
+      </div>
+    </main>
   );
 }

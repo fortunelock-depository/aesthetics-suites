@@ -16,17 +16,28 @@ export function InterlockingRows({
   items,
   hrefBase,
   id,
+  spacedTop = false,
 }: {
   items: IEditorialRow[];
   /** Detail route prefix, e.g. "/facilities". */
   hrefBase: string;
   /** Anchor id for in-page navigation (homepage sections). */
   id?: string;
+  /**
+   * Adds the standard section gap ABOVE the rows. Off by default because
+   * the section that normally precedes these rows (the services strip on
+   * the homepage, the banner spacer on /facilities) already carries it;
+   * turn it on when nothing sits between the rows and a full-bleed block.
+   */
+  spacedTop?: boolean;
 }) {
   return (
     <section
       id={id}
-      className="scroll-mt-24 mx-auto w-full max-w-[1320px] space-y-16 px-4 pb-16 lg:px-3 lg:space-y-[60px] lg:pb-[120px]"
+      className={cn(
+        'scroll-mt-24 mx-auto w-full max-w-[1320px] space-y-16 px-4 pb-16 lg:px-3 lg:space-y-[60px] lg:pb-[120px]',
+        spacedTop && 'pt-16 lg:pt-[120px]',
+      )}
     >
       {items.map((item, index) => {
         const flipped = index % 2 === 1;
