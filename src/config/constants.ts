@@ -40,9 +40,15 @@ export const SITE = {
 export const CONTACT = {
   phone: '+233597143103',
   email: 'info@aestheticssuites.com',
-  location: 'Tamale, Ghana',
-  /** Map pin (central Tamale - adjust to the property). */
-  map: { lat: 9.4008, lng: -0.8393 },
+  location: 'Nantong Road, Tamale, Ghana',
+  /** Street line for structured data (schema.org PostalAddress). */
+  street: 'Nantong Road',
+  /**
+   * The property's Google Business Profile pin ("Aesthetics Suites,
+   * Nantong Road, Tamale", plus code F56C+3W Tamale) - drives the contact
+   * map embed, the Get Directions link and the Hotel JSON-LD geo block.
+   */
+  map: { lat: 9.460212, lng: -0.8277075 },
 } as const;
 
 /**

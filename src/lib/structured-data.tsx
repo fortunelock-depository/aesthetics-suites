@@ -42,6 +42,7 @@ export function lodgingBusinessJsonLd(): Record<string, unknown> {
     email: CONTACT.email,
     address: {
       '@type': 'PostalAddress',
+      streetAddress: CONTACT.street,
       addressLocality: 'Tamale',
       addressCountry: 'GH',
     },
