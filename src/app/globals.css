@@ -228,10 +228,14 @@
   opacity: 1;
 }
 
-/* Clay button that sweeps to PEACH with ink text (navbar, hero bar). */
+/* Clay button that sweeps to PEACH with ink text (navbar, hero bar).
+   The fill is peach in BOTH themes, so its text takes --brand-foreground,
+   which is the ink that sits on a brand fill and stays dark in both. Reading
+   it from --foreground would flip the label to near-white in dark mode and
+   leave it invisible on the light fill. */
 .btn-sweep-light {
   --sweep-bg: var(--peach);
-  --sweep-fg: var(--foreground);
+  --sweep-fg: var(--brand-foreground);
 }
 /* Clay button that sweeps to the olive INK with ivory text (welcome CTA). */
 .btn-sweep-dark {
@@ -241,7 +245,7 @@
 /* Outlined clay button that sweeps to solid clay with ink text. */
 .btn-sweep-gold {
   --sweep-bg: var(--brand);
-  --sweep-fg: var(--foreground);
+  --sweep-fg: var(--brand-foreground);
 }
 
 /* Social circles: the same tapered arc runs ONE full lap on hover, in
