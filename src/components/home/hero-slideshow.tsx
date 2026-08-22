@@ -15,11 +15,13 @@ import { HERO } from '@/static-data/home';
  * have meant shipping JS to animate something the compositor can run alone.
  *
  * Decorative by intent: the headline carries the meaning, so the stage is
- * aria-hidden and every still has an empty alt.
+ * aria-hidden and every still has an empty alt. Because it is hidden, the
+ * play/pause control cannot live in here: it sits in the hero and addresses
+ * the stage by `id`, flipping the `data-paused` hook the stylesheet reads.
  */
-export function HeroSlideshow() {
+export function HeroSlideshow({ id }: { id: string }) {
   return (
-    <div aria-hidden className="kk-hero-stage">
+    <div id={id} aria-hidden className="kk-hero-stage">
       {HERO.images.map((image, index) => (
         <div
           key={image.src}

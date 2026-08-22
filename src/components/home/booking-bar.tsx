@@ -38,7 +38,7 @@ export function BookingBar() {
   // 16px font so iOS doesn't zoom the page on focus. Shared by the guests
   // select and the two date triggers so all three cells read as one strip.
   const field =
-    'w-full min-w-0 bg-transparent text-base text-foreground outline-none';
+    'w-full min-w-0 bg-transparent text-base text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
 
   return (
     <form
@@ -47,11 +47,12 @@ export function BookingBar() {
       className="grid overflow-hidden border border-border bg-card shadow-lg shadow-foreground/5 sm:grid-cols-[1fr_1fr_minmax(7rem,0.8fr)_auto]"
     >
       <div className={cell}>
-        <label htmlFor="hero-check-in" className={label}>
+        <label id="hero-check-in-label" htmlFor="hero-check-in" className={label}>
           Check in
         </label>
         <DateField
           id="hero-check-in"
+          aria-labelledby="hero-check-in-label"
           value={checkIn}
           onChange={setCheckIn}
           min={today}
@@ -62,11 +63,12 @@ export function BookingBar() {
       </div>
 
       <div className={cell}>
-        <label htmlFor="hero-check-out" className={label}>
+        <label id="hero-check-out-label" htmlFor="hero-check-out" className={label}>
           Check out
         </label>
         <DateField
           id="hero-check-out"
+          aria-labelledby="hero-check-out-label"
           value={checkOut}
           onChange={setCheckOut}
           min={checkIn || today}

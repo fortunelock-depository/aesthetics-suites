@@ -58,10 +58,18 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
   );
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
+// scope="col" by default: these are the column headers every data table
+// renders, and a <th> without a scope leaves the row cells unassociated.
+// Still overridable for a row header.
+function TableHead({
+  className,
+  scope = 'col',
+  ...props
+}: React.ComponentProps<'th'>) {
   return (
     <th
       data-slot="table-head"
+      scope={scope}
       className={cn(
         'h-10 px-3 text-left align-middle text-xs font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0',
         className,

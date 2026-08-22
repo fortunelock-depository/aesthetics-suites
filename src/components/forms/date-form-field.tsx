@@ -16,10 +16,10 @@ import { FieldError } from './field-error';
 export const DATE_FIELD_BOX = cn(
   'h-8 rounded-lg border border-input bg-transparent px-2.5 py-1 transition-colors md:text-sm',
   'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-0',
-  'aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20',
+  'data-[invalid=true]:border-destructive data-[invalid=true]:ring-3 data-[invalid=true]:ring-destructive/20',
   'disabled:bg-input/50 disabled:opacity-50',
   'dark:bg-input/30 dark:disabled:bg-input/80',
-  'dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
+  'dark:data-[invalid=true]:border-destructive/50 dark:data-[invalid=true]:ring-destructive/40',
 );
 
 interface DateFormFieldProps extends Omit<DateFieldProps, 'aria-describedby'> {
@@ -51,10 +51,11 @@ export function DateFormField({
   const errorId = error ? `${id}-error` : undefined;
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <Label id={`${id}-label`} htmlFor={id}>{label}</Label>
       <DateField
         id={id}
-        aria-invalid={!!error}
+        invalid={!!error}
+        aria-labelledby={`${id}-label`}
         aria-describedby={errorId}
         className={cn(DATE_FIELD_BOX, className)}
         {...props}

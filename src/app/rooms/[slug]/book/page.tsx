@@ -52,7 +52,7 @@ export default async function BookRoomPage({
   if (!room) notFound();
 
   return (
-    <main className="flex-1">
+    <main id="main" className="flex-1">
       <PageBanner
         title="Book your stay"
         image={SECTION_BANNERS.rooms}

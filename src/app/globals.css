@@ -53,6 +53,9 @@
 }
 
 :root {
+  /* Native UI (scrollbars, form controls, the caret) follows the theme
+     instead of the OS default. */
+  color-scheme: light;
   /* Aesthetics Suites brand palette:
      Ivory #FFF9E2 (field) · Pistachio #EBECCC (soft surfaces) ·
      Eucalyptus #CDD3B1 (secondary) · Clay #DCA278 (accent) ·
@@ -74,7 +77,10 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.891 0.037 112.1);
   --input: oklch(0.891 0.037 112.1);
-  --ring: oklch(0.757 0.089 56.8);
+  /* Focus must be seen, so the ring is the darkened clay rather than the fill:
+     the fill measures about 2.1:1 on ivory, which is not a visible indicator.
+     Same hue, so focus still reads as brand. */
+  --ring: oklch(0.5 0.089 56.8);
   /* Brand accent - clay terracotta; ink text keeps it accessible. */
   --brand: oklch(0.757 0.089 56.8); /* clay */
   --brand-foreground: oklch(0.275 0.026 124);
@@ -103,10 +109,11 @@
   --sidebar-accent: oklch(0.934 0.042 108.7);
   --sidebar-accent-foreground: oklch(0.275 0.026 124);
   --sidebar-border: oklch(0.891 0.037 112.1);
-  --sidebar-ring: oklch(0.757 0.089 56.8);
+  --sidebar-ring: oklch(0.5 0.089 56.8);
 }
 
 .dark {
+  color-scheme: dark;
   /* Deep-olive night theme derived from the same palette. */
   --background: oklch(0.241 0.017 122.7);
   --foreground: oklch(0.955 0.028 100.3);
@@ -260,6 +267,10 @@
 }
 .social-ring {
   position: relative;
+}
+/* Only a linked mark is clickable; the <span> used when a profile has no
+   URL must not claim to be. */
+a.social-ring {
   cursor: pointer;
 }
 .social-ring .social-arc {
@@ -319,6 +330,14 @@
 /* Alternate the direction so the loop never settles into a pulse. */
 .kk-hero-slide:nth-child(even) .kk-hero-drift {
   animation-name: kk-hero-drift-b;
+}
+
+/* Paused by the hero's play/pause control (WCAG 2.2.2: motion over five
+   seconds needs a stop). Holding play-state keeps the current frame rather
+   than snapping back to the first still. */
+.kk-hero-stage[data-paused='true'] .kk-hero-slide,
+.kk-hero-stage[data-paused='true'] .kk-hero-drift {
+  animation-play-state: paused;
 }
 
 @keyframes kk-hero-fade {

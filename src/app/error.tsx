@@ -31,7 +31,7 @@ export default function Error({
   return (
     <>
       <SiteHeader />
-      <main className="flex flex-1 items-center justify-center px-4 py-20 lg:py-[120px]">
+      <main id="main" className="flex flex-1 items-center justify-center px-4 py-20 lg:py-[120px]">
         <div className="w-full max-w-xl text-center">
           <p className={EYEBROW}>Error 500</p>
           <h1 className="mt-4 font-heading text-[34px] leading-[1.15] font-light tracking-[-0.01em] text-foreground lg:text-[52px]">

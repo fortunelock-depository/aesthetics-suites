@@ -11,7 +11,7 @@ export interface BreadcrumbEntry {
 /**
  * The inner-page breadcrumb banner: room photography under an ink wash,
  * with a centered white display title and the trail
- * "Home - [ancestors] - {page}" (current page in clay). Detail pages pass
+ * "Home - [ancestors] - {page}". Detail pages pass
  * their list page via `trail`, so the crumb reads
  * Home - Rooms & Suites - {room}.
  */
@@ -35,9 +35,11 @@ export function PageBanner({
         sizes="100vw"
         priority
       />
-      {/* An even wash light enough to keep the photograph, plus a deeper
-          gradient from the base where the title and trail sit. */}
-      <div aria-hidden className="absolute inset-0 -z-10 bg-scrim/40" />
+      {/* The wash carries the white title and trail over ANY frame of the
+          photograph, so it holds the text above 4.5:1 rather than leaving
+          contrast to the image; the base gradient deepens it further where
+          the type sits. */}
+      <div aria-hidden className="absolute inset-0 -z-10 bg-scrim/65" />
       <div
         aria-hidden
         className="absolute inset-x-0 bottom-0 -z-10 h-3/4 bg-linear-to-t from-scrim/60 to-transparent"
@@ -74,7 +76,10 @@ export function PageBanner({
               <span aria-hidden className="text-white/60">
                 -
               </span>
-              <span aria-current="page" className="min-w-0 text-brand [overflow-wrap:anywhere]">
+              {/* White, not clay: over photography the clay crumb is the one
+                  piece of the trail that can drop under AA. Clay stays the
+                  hover colour on the crumbs that are links. */}
+              <span aria-current="page" className="min-w-0 text-white [overflow-wrap:anywhere]">
                 {title}
               </span>
             </li>

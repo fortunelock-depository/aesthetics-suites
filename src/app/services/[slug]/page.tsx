@@ -56,7 +56,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
           { name: service.name, path: serviceDetail(service.slug) },
         ])}
       />
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <PageBanner
           title={service.name}
           image={SECTION_BANNERS.services}

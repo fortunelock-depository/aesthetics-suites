@@ -4,6 +4,10 @@ import { EYEBROW } from '@/components/site/section-heading';
 import { HERO } from '@/static-data/home';
 import { BookingBar } from './booking-bar';
 import { HeroSlideshow } from './hero-slideshow';
+import { HeroMotionToggle } from './hero-motion-toggle';
+
+/** Ties the pause control to the (aria-hidden) slideshow stage it drives. */
+const HERO_STAGE_ID = 'hero-slideshow';
 
 /**
  * The landing hero: full-bleed imagery, a two-line staircase headline and
@@ -19,7 +23,7 @@ export function Hero() {
           the copy across the full width, so it holds a lighter wash all the
           way over; from lg the right half is the photograph alone. */}
       <div className="absolute inset-0 -z-10">
-        <HeroSlideshow />
+        <HeroSlideshow id={HERO_STAGE_ID} />
         <div
           aria-hidden
           className="absolute inset-0 bg-[linear-gradient(90deg,color-mix(in_oklch,var(--background),transparent_8%)_0%,color-mix(in_oklch,var(--background),transparent_28%)_45%,color-mix(in_oklch,var(--background),transparent_55%)_100%)] lg:bg-[linear-gradient(90deg,color-mix(in_oklch,var(--background),transparent_12%)_0%,color-mix(in_oklch,var(--background),transparent_45%)_32%,transparent_62%)]"
@@ -39,6 +43,13 @@ export function Hero() {
               {HERO.blurb}
             </p>
           </Reveal>
+
+          {/* Stop/start for the backdrop. Parked on the outer edge, below
+              the copy and clear of the booking bar, so it never competes
+              with the headline. */}
+          <div className="mt-8 flex justify-end sm:mt-10">
+            <HeroMotionToggle stageId={HERO_STAGE_ID} />
+          </div>
         </div>
 
         {/* Booking bar riding the hero's bottom edge. */}

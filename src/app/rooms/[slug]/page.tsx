@@ -72,7 +72,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
           { name: room.name, path: roomDetail(room.slug) },
         ])}
       />
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <PageBanner
           title={room.name}
           image={SECTION_BANNERS.rooms}

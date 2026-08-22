@@ -161,7 +161,18 @@ export function PaymentVerifyClient({
   }, [reference, runVerify]);
 
   return (
-    <div className="mx-auto w-full max-w-lg border border-border bg-card px-6 py-10 text-center sm:px-10">
+    // The page swaps between six outcomes in place after an async check, so
+    // the region announces itself: without this a guest using a screen reader
+    // hears "Confirming your payment" and then silence, with no way to know
+    // whether the charge succeeded. aria-atomic reads the whole outcome, not
+    // just the words that changed.
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-busy={state === 'verifying'}
+      className="mx-auto w-full max-w-lg border border-border bg-card px-6 py-10 text-center sm:px-10"
+    >
       {state === 'verifying' && (
         <>
           <Loader2 className="mx-auto h-9 w-9 animate-spin text-brand" />

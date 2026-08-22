@@ -80,13 +80,24 @@ export function RoomReviewsList({
   const reviews = page === 1 ? initialReviews : (data?.data ?? []);
 
   const goTo = (next: number) => {
-    setPage(Math.min(Math.max(1, next), totalPages));
+    const target = Math.min(Math.max(1, next), totalPages);
+    if (target === page) return;
+    setPage(target);
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // The grid is replaced in place, so focus has to follow it: a keyboard
+    // user would otherwise be left on a pager button (possibly now
+    // disabled) with the new reviews above them, unread. preventScroll
+    // leaves the smooth scroll above to do the moving.
+    topRef.current?.focus({ preventScroll: true });
   };
 
   return (
-    <div ref={topRef} className="scroll-mt-28">
-      <ul className="mt-8 grid gap-6 lg:grid-cols-2">
+    <div ref={topRef} tabIndex={-1} className="scroll-mt-28">
+      <ul
+        aria-live="polite"
+        aria-busy={isFetching}
+        className="mt-8 grid gap-6 lg:grid-cols-2"
+      >
         {isFetching
           ? Array.from({ length: Math.min(pageSize, 4) }).map((_, i) => (
               <CardSkeleton key={i} />
@@ -97,7 +108,7 @@ export function RoomReviewsList({
       </ul>
 
       {isError && page > 1 && (
-        <p className="mt-6 text-center text-sm text-muted-foreground">
+        <p role="alert" className="mt-6 text-center text-sm text-muted-foreground">
           Couldn&apos;t load this page of reviews - please try again.
         </p>
       )}
@@ -116,7 +127,7 @@ export function RoomReviewsList({
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm text-muted-foreground">
+          <span role="status" className="text-sm text-muted-foreground">
             Page{' '}
             <span className="font-medium text-foreground">{page}</span> of{' '}
             {totalPages}

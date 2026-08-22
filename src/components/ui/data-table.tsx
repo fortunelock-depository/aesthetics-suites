@@ -150,6 +150,15 @@ export function DataTable<TData>({
 
   const emptyMode = tableEmptyMode(loading, rows.length, filtersActive);
 
+  // Both renders swap silently - skeletons, rows, filtered-empty - so a
+  // screen reader typing into the debounced search would otherwise hear
+  // nothing. One polite status line reports the outcome for both halves.
+  const status = loading
+    ? `Loading ${entityLabel}`
+    : rows.length === 0
+      ? `No matching ${entityLabel}`
+      : `Showing ${rows.length.toLocaleString()} of ${totalCount.toLocaleString()} ${entityLabel}`;
+
   if (emptyMode === 'no-data') {
     return <div className="w-full max-w-full">{emptyState}</div>;
   }
@@ -158,8 +167,15 @@ export function DataTable<TData>({
     <div className="w-full max-w-full space-y-6">
       {(totalCount > 0 || filtersActive) && toolbar}
 
+      {/* Outside the busy wrapper on purpose: assistive tech holds back
+          updates from an aria-busy subtree, which would swallow the
+          "Loading" half of this announcement. */}
+      <p role="status" aria-live="polite" className="sr-only">
+        {status}
+      </p>
+
       {/* Dual render: row cards below md, the real table from md up. */}
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden rounded-md border" aria-busy={loading}>
         {/* Phones: dense tappable row cards - no side-scroll. */}
         <RowCardList>
           {loading ? (

@@ -101,6 +101,12 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
+            <a
+              href="#main"
+              className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:border focus:border-border focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:text-foreground focus:outline-2 focus:outline-offset-2 focus:outline-ring"
+            >
+              Skip to content
+            </a>
             <div className="flex min-h-dvh flex-col">{children}</div>
             <Toaster />
           </ThemeProvider>

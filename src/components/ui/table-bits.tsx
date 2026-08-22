@@ -83,48 +83,40 @@ export function RowCard({
   className?: string;
   children: ReactNode;
 }) {
-  // Keyboard access: with onOpen the row is the phone replacement for the
-  // desktop row's View link, so it must be reachable and activatable
-  // without a pointer (role button + Enter/Space). The guard keeps inner
-  // interactive elements (checkbox, actions menu) on their own handlers.
-  const handleKeyDown = onOpen
-    ? (e: React.KeyboardEvent<HTMLLIElement>) => {
-        if (e.target !== e.currentTarget) return;
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onOpen();
-        }
-      }
-    : undefined;
+  // The row stays a plain listitem so the list keeps its item count and
+  // position announcements: the tap affordance is a real control INSIDE the
+  // row, not a role on the <li>. A stretched button covers the row and takes
+  // its name from the row's own content, which also keeps `leading` and
+  // `action` out of it - they sit above the overlay with their own hit
+  // areas instead of being nested inside a button.
+  const contentId = React.useId();
   return (
     <li
-      onClick={onOpen}
-      onKeyDown={handleKeyDown}
-      role={onOpen ? 'button' : undefined}
-      tabIndex={onOpen ? 0 : undefined}
       className={cn(
-        'flex items-center gap-2 border-b border-border py-2.5 transition-colors last:border-0',
-        onOpen &&
-          'cursor-pointer active:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring',
+        'relative flex items-center gap-2 border-b border-border py-2.5 transition-colors last:border-0',
+        onOpen && 'cursor-pointer active:bg-muted/50',
         leading ? 'pl-2' : 'pl-3',
         action ? 'pr-1.5' : 'pr-3',
         className,
       )}
     >
+      {onOpen ? (
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-labelledby={contentId}
+          className="absolute inset-0 cursor-pointer focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
+        />
+      ) : null}
       {leading ? (
-        <div
-          className="flex flex-none items-center"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="relative z-10 flex flex-none items-center">
           {leading}
         </div>
       ) : null}
-      <div className="min-w-0 flex-1">{children}</div>
-      {action ? (
-        <div className="flex-none" onClick={(e) => e.stopPropagation()}>
-          {action}
-        </div>
-      ) : null}
+      <div id={contentId} className="min-w-0 flex-1">
+        {children}
+      </div>
+      {action ? <div className="relative z-10 flex-none">{action}</div> : null}
     </li>
   );
 }

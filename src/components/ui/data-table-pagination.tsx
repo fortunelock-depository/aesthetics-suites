@@ -57,7 +57,12 @@ export function DataTablePagination<TData>({
           <SelectTrigger
             id={pageSizeId}
             aria-label="Rows per page"
-            className="h-8 w-auto min-w-15"
+            // The 32px box is the design; the tappable area is not. A
+            // transparent pseudo-element grows the hit target past 44px
+            // without moving anything, vertically only here since the
+            // trigger is already wider than 44px. The 8px reaches into the
+            // bar's own 10px of padding, so nothing outside is covered.
+            className="relative h-8 w-auto min-w-15 before:absolute before:-inset-y-2 before:inset-x-0 before:content-['']"
           >
             <SelectValue placeholder={pageSize} />
           </SelectTrigger>
@@ -82,10 +87,15 @@ export function DataTablePagination<TData>({
         className="flex flex-none items-center gap-1"
         aria-label="Pagination navigation"
       >
+        {/* Same trick, but grown away from the neighbour rather than
+            evenly: the pair sits 4px apart, so even growth would make the
+            two targets overlap and steal each other's taps. Each takes 2px
+            towards its neighbour - meeting exactly in the gap, never past
+            it - and the remaining 14px outwards, into padding. */}
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="relative h-8 w-8 before:absolute before:-inset-y-2 before:-left-3.5 before:-right-0.5 before:content-['']"
           onClick={() => onPageChange?.(Math.max(1, page - 1))}
           disabled={page <= 1}
           aria-label="Previous page"
@@ -95,7 +105,7 @@ export function DataTablePagination<TData>({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="relative h-8 w-8 before:absolute before:-inset-y-2 before:-left-0.5 before:-right-3.5 before:content-['']"
           onClick={() => onPageChange?.(page + 1)}
           disabled={page >= totalPages}
           aria-label="Next page"

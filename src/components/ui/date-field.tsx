@@ -44,8 +44,15 @@ export interface DateFieldProps {
   labelClassName?: string;
   /** Wired to the field's error text by the caller. */
   'aria-describedby'?: string;
-  'aria-invalid'?: boolean;
+  /** Id of the visible label, so the trigger is named by it. */
+  'aria-labelledby'?: string;
   'aria-label'?: string;
+  /**
+   * Styling hook for the invalid state. The trigger is a button, a role that
+   * does not support aria-invalid, so invalidity reaches assistive tech
+   * through the error text linked by aria-describedby instead.
+   */
+  invalid?: boolean;
   /** Hide the leading calendar icon where the caller draws its own. */
   hideIcon?: boolean;
   name?: string;
@@ -66,6 +73,7 @@ export function DateField({
   labelClassName,
   hideIcon = false,
   name,
+  invalid,
   ...aria
 }: DateFieldProps) {
   const [open, setOpen] = React.useState(false);
@@ -89,8 +97,9 @@ export function DateField({
             id={id}
             type="button"
             disabled={disabled}
-            aria-invalid={aria['aria-invalid']}
+            data-invalid={invalid ? 'true' : undefined}
             aria-describedby={aria['aria-describedby']}
+            aria-labelledby={aria['aria-labelledby']}
             aria-label={aria['aria-label']}
             className={cn(
               'flex w-full min-w-0 items-center gap-2 text-left text-base text-foreground outline-none',

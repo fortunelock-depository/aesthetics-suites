@@ -65,26 +65,34 @@ export function AdminSidebar({ role }: { role: UserRoleValue }) {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarMenu className="px-2">
-          {links.map((link) => {
-            const active = isActiveLink(link.href, pathname);
-            const Icon = link.icon;
-            return (
-              <SidebarMenuItem key={link.href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={active}
-                  tooltip={link.label}
-                >
-                  <Link href={link.href} onClick={closeOnMobile}>
-                    <Icon className="h-4 w-4" />
-                    <span>{link.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
+        {/* The sidebar primitive renders a plain <ul>, so the console's main
+            navigation only becomes a named landmark once it is wrapped. */}
+        <nav aria-label="Console sections">
+          <SidebarMenu className="px-2">
+            {links.map((link) => {
+              const active = isActiveLink(link.href, pathname);
+              const Icon = link.icon;
+              return (
+                <SidebarMenuItem key={link.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={active}
+                    tooltip={link.label}
+                  >
+                    <Link
+                      href={link.href}
+                      onClick={closeOnMobile}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{link.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </nav>
       </SidebarContent>
 
       <SidebarFooter>

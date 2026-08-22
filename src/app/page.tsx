@@ -37,7 +37,7 @@ export default async function HomePage() {
     <>
       <JsonLd data={lodgingBusinessJsonLd()} />
       <SiteHeader variant="overlay" />
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <Hero />
         <WelcomeSection />
         {rooms.length > 0 && <RoomsSection rooms={rooms} />}

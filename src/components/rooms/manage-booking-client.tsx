@@ -49,6 +49,9 @@ function StayRow({
   );
 }
 
+/** The lookup form's own error, announced and tied to both fields. */
+const LOOKUP_ERROR_ID = 'manage-lookup-error';
+
 const STATUS_COPY: Record<IGuestBooking['status'], string> = {
   PENDING:
     'Your suite is held - complete payment before the hold expires to confirm your stay.',
@@ -155,6 +158,7 @@ export function ManageBookingClient({
               placeholder="e.g. ASB-20260810-4F2A"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
+              aria-describedby={formError ? LOOKUP_ERROR_ID : undefined}
               className={FIELD}
               maxLength={30}
             />
@@ -172,13 +176,20 @@ export function ManageBookingClient({
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              aria-describedby={formError ? LOOKUP_ERROR_ID : undefined}
               className={FIELD}
               maxLength={255}
             />
           </div>
         </div>
         {formError && (
-          <p className="text-sm text-destructive">{formError}</p>
+          <p
+            id={LOOKUP_ERROR_ID}
+            role="alert"
+            className="text-sm text-destructive"
+          >
+            {formError}
+          </p>
         )}
         <button
           type="submit"
@@ -197,119 +208,124 @@ export function ManageBookingClient({
         </button>
       </form>
 
-      {isError && (
-        <p className="mt-6 border border-border bg-card px-5 py-4 text-center text-sm text-muted-foreground">
-          {extractApiError(error).message}
-        </p>
-      )}
-
-      {booking && !isFetching && (
-        <div className="mt-8 border border-border bg-card p-6">
-          <div className="flex flex-col gap-2 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between">
-            <p className="min-w-0 font-heading text-[20px] leading-[1.3] font-normal tracking-[-0.01em] text-foreground [overflow-wrap:anywhere]">
-              {booking.roomType.name}
-            </p>
-            <StatusBadge
-              tone={BOOKING_STATUS_TONE[booking.status] ?? 'neutral'}
-              className="self-start min-[480px]:self-auto"
-            >
-              {BOOKING_STATUS_LABEL[booking.status] ?? booking.status}
-            </StatusBadge>
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {STATUS_COPY[booking.status] ?? ''}
+      {/* The lookup swaps this region in place with no focus or view
+          change, so what came back is announced rather than left for the
+          guest to discover. */}
+      <div aria-live="polite" aria-busy={isFetching}>
+        {isError && (
+          <p className="mt-6 border border-border bg-card px-5 py-4 text-center text-sm text-muted-foreground">
+            {extractApiError(error).message}
           </p>
+        )}
 
-          <div className="mt-4 divide-y divide-border border-t border-border">
-            <StayRow label="Booking code">{booking.code}</StayRow>
-            <StayRow label="Guest">{booking.guestName}</StayRow>
-            <StayRow label="Check-in">
-              <span className="inline-flex items-center gap-1.5">
-                <CalendarRange
-                  className="h-3.5 w-3.5 flex-none text-brand"
-                  aria-hidden
-                />
-                {formatDate(booking.checkIn)} · from {STAY_TIMES.checkInFrom}
-              </span>
-            </StayRow>
-            <StayRow label="Check-out">
-              {formatDate(booking.checkOut)} · by {STAY_TIMES.checkOutBy}
-            </StayRow>
-            <StayRow label="Guests">
-              <span className="inline-flex items-center gap-1.5">
-                <Users
-                  className="h-3.5 w-3.5 flex-none text-brand"
-                  aria-hidden
-                />
-                {booking.adults} adult{booking.adults === 1 ? '' : 's'}
-                {booking.children > 0 && ` + ${booking.children} children`}
-              </span>
-            </StayRow>
-            <StayRow label="Total">
-              <span className="font-medium">
-                {formatMoney(booking.totalAmount, booking.currency)}
-              </span>
-            </StayRow>
-            {holdActive && booking.holdExpiresAt && (
-              <StayRow label="Hold expires">
-                {formatDateTime(booking.holdExpiresAt)}
+        {booking && !isFetching && (
+          <div className="mt-8 border border-border bg-card p-6">
+            <div className="flex flex-col gap-2 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between">
+              <p className="min-w-0 font-heading text-[20px] leading-[1.3] font-normal tracking-[-0.01em] text-foreground [overflow-wrap:anywhere]">
+                {booking.roomType.name}
+              </p>
+              <StatusBadge
+                tone={BOOKING_STATUS_TONE[booking.status] ?? 'neutral'}
+                className="self-start min-[480px]:self-auto"
+              >
+                {BOOKING_STATUS_LABEL[booking.status] ?? booking.status}
+              </StatusBadge>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {STATUS_COPY[booking.status] ?? ''}
+            </p>
+
+            <div className="mt-4 divide-y divide-border border-t border-border">
+              <StayRow label="Booking code">{booking.code}</StayRow>
+              <StayRow label="Guest">{booking.guestName}</StayRow>
+              <StayRow label="Check-in">
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarRange
+                    className="h-3.5 w-3.5 flex-none text-brand"
+                    aria-hidden
+                  />
+                  {formatDate(booking.checkIn)} · from {STAY_TIMES.checkInFrom}
+                </span>
               </StayRow>
-            )}
-          </div>
-
-          {(holdActive || canCancel) && (
-            <div
-              className={cn(
-                'mt-5 flex flex-col gap-2',
-                holdActive && 'min-[480px]:flex-row',
-              )}
-            >
-              {holdActive && (
-                <button
-                  type="button"
-                  onClick={handlePay}
-                  disabled={isPaying}
-                  className={cn(
-                    CTA_BUTTON,
-                    'btn-sweep-dark flex-1 bg-brand px-6 text-brand-foreground disabled:pointer-events-none disabled:opacity-60',
-                  )}
-                >
-                  {isPaying ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <CreditCard className="h-4 w-4" />
-                  )}
-                  {isPaying ? 'Starting payment…' : 'Complete payment'}
-                </button>
-              )}
-              {canCancel && (
-                <button
-                  type="button"
-                  onClick={() => setCancelOpen(true)}
-                  disabled={isCancelling}
-                  className={cn(
-                    CTA_BUTTON,
-                    'flex-1 border border-border px-6 text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:pointer-events-none disabled:opacity-60',
-                  )}
-                >
-                  <Ban className="h-4 w-4" />
-                  Cancel booking
-                </button>
+              <StayRow label="Check-out">
+                {formatDate(booking.checkOut)} · by {STAY_TIMES.checkOutBy}
+              </StayRow>
+              <StayRow label="Guests">
+                <span className="inline-flex items-center gap-1.5">
+                  <Users
+                    className="h-3.5 w-3.5 flex-none text-brand"
+                    aria-hidden
+                  />
+                  {booking.adults} adult{booking.adults === 1 ? '' : 's'}
+                  {booking.children > 0 && ` + ${booking.children} children`}
+                </span>
+              </StayRow>
+              <StayRow label="Total">
+                <span className="font-medium">
+                  {formatMoney(booking.totalAmount, booking.currency)}
+                </span>
+              </StayRow>
+              {holdActive && booking.holdExpiresAt && (
+                <StayRow label="Hold expires">
+                  {formatDateTime(booking.holdExpiresAt)}
+                </StayRow>
               )}
             </div>
-          )}
 
-          {booking.status === 'EXPIRED' && (
-            <a
-              href={bookRoom(booking.roomType.slug)}
-              className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-brand-text underline-offset-4 hover:underline"
-            >
-              Book this suite again
-              <ArrowRight className="h-4 w-4" />
-            </a>
-          )}
-        </div>
-      )}
+            {(holdActive || canCancel) && (
+              <div
+                className={cn(
+                  'mt-5 flex flex-col gap-2',
+                  holdActive && 'min-[480px]:flex-row',
+                )}
+              >
+                {holdActive && (
+                  <button
+                    type="button"
+                    onClick={handlePay}
+                    disabled={isPaying}
+                    className={cn(
+                      CTA_BUTTON,
+                      'btn-sweep-dark flex-1 bg-brand px-6 text-brand-foreground disabled:pointer-events-none disabled:opacity-60',
+                    )}
+                  >
+                    {isPaying ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CreditCard className="h-4 w-4" />
+                    )}
+                    {isPaying ? 'Starting payment…' : 'Complete payment'}
+                  </button>
+                )}
+                {canCancel && (
+                  <button
+                    type="button"
+                    onClick={() => setCancelOpen(true)}
+                    disabled={isCancelling}
+                    className={cn(
+                      CTA_BUTTON,
+                      'flex-1 border border-border px-6 text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:pointer-events-none disabled:opacity-60',
+                    )}
+                  >
+                    <Ban className="h-4 w-4" />
+                    Cancel booking
+                  </button>
+                )}
+              </div>
+            )}
+
+            {booking.status === 'EXPIRED' && (
+              <a
+                href={bookRoom(booking.roomType.slug)}
+                className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-brand-text underline-offset-4 hover:underline"
+              >
+                Book this suite again
+                <ArrowRight className="h-4 w-4" />
+              </a>
+            )}
+          </div>
+        )}
+      </div>
 
       <ConfirmDialog
         open={cancelOpen}

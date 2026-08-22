@@ -23,7 +23,7 @@ export default async function RoomsPage() {
   const rooms = await getPublicRoomCards();
 
   return (
-    <main className="flex-1">
+    <main id="main" className="flex-1">
       <PageBanner title="Rooms & Suites" image={SECTION_BANNERS.rooms} />
 
       {rooms.length === 0 ? (

@@ -18,13 +18,23 @@ export function MobileMenu() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   // Standard disclosure dismissal: Escape closes, and so does a tap on the
   // page below the panel (pointerdown outside the component's subtree).
+  //
+  // Closing unmounts the panel, so whatever held focus disappears with it
+  // and focus would fall to <body> - a keyboard user would restart from the
+  // top of the document. Both paths hand focus back to the toggle, the
+  // outside tap only when focus was inside the panel to begin with (a tap
+  // elsewhere gets its own focus target from the browser).
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        setOpen(false);
+        toggleRef.current?.focus();
+      }
     };
     const onPointerDown = (e: PointerEvent) => {
       if (
@@ -32,7 +42,9 @@ export function MobileMenu() {
         e.target instanceof Node &&
         !rootRef.current.contains(e.target)
       ) {
+        const hadFocus = rootRef.current.contains(document.activeElement);
         setOpen(false);
+        if (hadFocus) toggleRef.current?.focus();
       }
     };
     document.addEventListener('keydown', onKeyDown);
@@ -46,6 +58,7 @@ export function MobileMenu() {
   return (
     <div ref={rootRef} className="lg:hidden">
       <button
+        ref={toggleRef}
         type="button"
         aria-label={open ? 'Close menu' : 'Open menu'}
         aria-expanded={open}

@@ -86,73 +86,112 @@ export function RevenueTrendChart({
     );
   }
 
+  // The chart itself is pointer-only (recharts puts every figure behind a
+  // hover tooltip), so the same numbers are carried by a summarising label
+  // and a hidden table - the pattern the other charts here follow.
+  const totalRevenue = rows.reduce((sum, row) => sum + row.revenue, 0);
+  const totalBookings = rows.reduce((sum, row) => sum + row.bookings, 0);
+  const peak = rows.reduce((best, row) =>
+    row.revenue > best.revenue ? row : best,
+  );
+  const summary =
+    `Bar and line chart of revenue and bookings by month, ` +
+    `${rows[0].label} to ${rows[rows.length - 1].label}. ` +
+    `${formatMoney(totalRevenue)} in total across ` +
+    `${totalBookings.toLocaleString()} bookings, highest in ${peak.label} at ` +
+    `${formatMoney(peak.revenue)}. Every month's figures follow in a table.`;
+
   return (
     // 12 months can't squeeze into a fold's ~250px of card - the chart
     // keeps a readable minimum and scrolls INSIDE this container, so the
     // page itself never grows sideways.
     <div className="w-full overflow-x-auto overflow-y-hidden">
-      <div className="h-72 min-w-[420px]">
-        <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart
-          data={rows}
-          margin={{ top: 8, right: 4, bottom: 0, left: 4 }}
-        >
-          <CartesianGrid
-            stroke={COLORS.grid}
-            strokeDasharray="3 3"
-            vertical={false}
-          />
-          <XAxis
-            dataKey="label"
-            tick={{ fill: COLORS.tick, fontSize: 11 }}
-            tickLine={false}
-            axisLine={{ stroke: COLORS.grid }}
-          />
-          <YAxis
-            yAxisId="revenue"
-            tick={{ fill: COLORS.tick, fontSize: 11 }}
-            tickLine={false}
-            axisLine={false}
-            width={52}
-            tickFormatter={(value: number) => formatMoneyCompact(value)}
-          />
-          <YAxis
-            yAxisId="bookings"
-            orientation="right"
-            allowDecimals={false}
-            tick={{ fill: COLORS.tick, fontSize: 11 }}
-            tickLine={false}
-            axisLine={false}
-            width={28}
-          />
-          <Tooltip
-            contentStyle={tooltipStyle}
-            cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
-            formatter={(value, name) =>
-              name === 'Revenue'
-                ? [formatMoney(Number(value)), 'Revenue']
-                : [String(value), 'Bookings']
-            }
-          />
-          <Bar
-            yAxisId="revenue"
-            dataKey="revenue"
-            name="Revenue"
-            fill={COLORS.revenue}
-            maxBarSize={28}
-          />
-          <Line
-            yAxisId="bookings"
-            dataKey="bookings"
-            name="Bookings"
-            stroke={COLORS.bookings}
-            strokeWidth={2}
-            dot={{ r: 2.5, fill: COLORS.bookings }}
-          />
-        </ComposedChart>
-        </ResponsiveContainer>
+      <div className="h-72 min-w-[420px]" role="img" aria-label={summary}>
+        <div className="h-full w-full" aria-hidden="true">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={rows}
+              margin={{ top: 8, right: 4, bottom: 0, left: 4 }}
+            >
+              <CartesianGrid
+                stroke={COLORS.grid}
+                strokeDasharray="3 3"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: COLORS.tick, fontSize: 11 }}
+                tickLine={false}
+                axisLine={{ stroke: COLORS.grid }}
+              />
+              <YAxis
+                yAxisId="revenue"
+                tick={{ fill: COLORS.tick, fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                width={52}
+                tickFormatter={(value: number) => formatMoneyCompact(value)}
+              />
+              <YAxis
+                yAxisId="bookings"
+                orientation="right"
+                allowDecimals={false}
+                tick={{ fill: COLORS.tick, fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                width={28}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
+                formatter={(value, name) =>
+                  name === 'Revenue'
+                    ? [formatMoney(Number(value)), 'Revenue']
+                    : [String(value), 'Bookings']
+                }
+              />
+              <Bar
+                yAxisId="revenue"
+                dataKey="revenue"
+                name="Revenue"
+                fill={COLORS.revenue}
+                maxBarSize={28}
+              />
+              <Line
+                yAxisId="bookings"
+                dataKey="bookings"
+                name="Bookings"
+                stroke={COLORS.bookings}
+                strokeWidth={2}
+                dot={{ r: 2.5, fill: COLORS.bookings }}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-      <p className="mt-2 flex min-w-[420px] items-center justify-center gap-4 text-xs text-muted-foreground">
+      <table className="sr-only">
+        <caption>Revenue and bookings by month</caption>
+        <thead>
+          <tr>
+            <th scope="col">Month</th>
+            <th scope="col">Revenue</th>
+            <th scope="col">Bookings</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.month}>
+              <th scope="row">{row.label}</th>
+              <td>{formatMoney(row.revenue)}</td>
+              <td>{row.bookings.toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p
+        aria-hidden="true"
+        className="mt-2 flex min-w-[420px] items-center justify-center gap-4 text-xs text-muted-foreground"
+      >
         <span className="flex items-center gap-1.5">
           <span
             className="h-2.5 w-2.5"

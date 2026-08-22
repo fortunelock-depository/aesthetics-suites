@@ -76,7 +76,10 @@ function Field({
   const errorId = error ? `${id}-error` : undefined;
   return (
     <div>
+      {/* The id lets a child that is a button rather than an input name
+          itself from this label: `for` names inputs, not buttons. */}
       <label
+        id={`${id}-label`}
         htmlFor={id}
         className="mb-1.5 block text-sm font-medium text-muted-foreground"
       >
@@ -308,8 +311,9 @@ export function BookingCheckout({
                 }}
                 min={today}
                 placeholder="Add check-in date"
+                aria-labelledby={`${CHECK_IN_ID}-label`}
                 aria-describedby={stayError ? STAY_ERROR_ID : undefined}
-                aria-invalid={stayError ? true : undefined}
+                invalid={stayError ? true : undefined}
                 className={FIELD}
               />
             </Field>
@@ -323,8 +327,9 @@ export function BookingCheckout({
                 }}
                 min={checkIn || today}
                 placeholder="Add check-out date"
+                aria-labelledby="book-check-out-label"
                 aria-describedby={stayError ? STAY_ERROR_ID : undefined}
-                aria-invalid={stayError ? true : undefined}
+                invalid={stayError ? true : undefined}
                 className={FIELD}
               />
             </Field>

@@ -302,8 +302,20 @@ function Lightbox({
 
           {/* Top bar: counter left, close right. */}
           <div className="flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-2 sm:px-6">
-            <p className="text-sm font-medium tabular-nums text-white/80">
-              {open ? `${index + 1} / ${count}` : ''}
+            {/* Paging is otherwise silent: the counter and the caption
+                change with nothing to announce them. One atomic status
+                carries both, so a page reads as "Photo 3 of 9: ...". */}
+            <p
+              role="status"
+              aria-atomic="true"
+              className="text-sm font-medium tabular-nums text-white/80"
+            >
+              <span aria-hidden>{open ? `${index + 1} / ${count}` : ''}</span>
+              <span className="sr-only">
+                {open
+                  ? `Photo ${index + 1} of ${count}: ${current?.alt ?? name}`
+                  : ''}
+              </span>
             </p>
             <DialogPrimitive.Close
               className={cn(navButton, 'h-10 w-10')}

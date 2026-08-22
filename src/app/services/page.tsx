@@ -20,7 +20,7 @@ export default async function ServicesPage() {
   const services = await getPublicServices();
 
   return (
-    <main className="flex-1">
+    <main id="main" className="flex-1">
       <PageBanner title="Services" image={SECTION_BANNERS.services} />
       <div className="pt-16 lg:pt-[120px]">
         {services.length === 0 ? (

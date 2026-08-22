@@ -16,7 +16,7 @@ export default function PaymentVerifyPage() {
   return (
     <>
       <SiteHeader />
-      <main className="flex flex-1 items-center justify-center px-4 py-16">
+      <main id="main" className="flex flex-1 items-center justify-center px-4 py-16">
         <Suspense
           fallback={
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

@@ -18,7 +18,7 @@ export default function ContactPage() {
   return (
     <>
       <SiteHeader />
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <PageBanner title="Contact" image="/images/contact-bg.webp" />
 
         {/* How to reach us beside the message form. */}

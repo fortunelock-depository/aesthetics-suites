@@ -23,10 +23,12 @@ export function Accordion({ items }: { items: AccordionItem[] }) {
       {items.map((item, index) => {
         const open = index === openIndex;
         const panelId = `accordion-panel-${index}`;
+        const triggerId = `accordion-trigger-${index}`;
         return (
           <div key={item.question} className="bg-muted/50">
             <button
               type="button"
+              id={triggerId}
               aria-expanded={open}
               aria-controls={panelId}
               onClick={() => setOpenIndex(open ? -1 : index)}
@@ -46,12 +48,18 @@ export function Accordion({ items }: { items: AccordionItem[] }) {
             </button>
             <div
               id={panelId}
+              role="region"
+              aria-labelledby={triggerId}
               className={cn(
                 'grid transition-[grid-template-rows] duration-400 ease-in-out',
                 open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
               )}
             >
-              <div className="overflow-hidden">
+              {/* A collapsed panel is only visually clipped, so it stays in
+                  the accessibility tree unless it is made inert - which also
+                  keeps the answer out of tab order while the grid-rows
+                  transition still runs. */}
+              <div className="overflow-hidden" inert={!open}>
                 <p className="px-6 pb-6 text-[15px] leading-[26px] text-foreground/80 lg:px-9">
                   {item.answer}
                 </p>

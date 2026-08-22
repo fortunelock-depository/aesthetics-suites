@@ -23,7 +23,7 @@ export default async function ManageBookingPage({
   return (
     <>
       <SiteHeader />
-      <main className="flex-1">
+      <main id="main" className="flex-1">
       <PageBanner title="Manage your booking" image={SECTION_BANNERS.rooms} />
       <div className="mx-auto w-full max-w-[1320px] px-4 py-16 lg:px-3 lg:py-[120px]">
         <p className="mx-auto max-w-xl pb-8 text-center text-[15px] leading-[26px] text-muted-foreground">

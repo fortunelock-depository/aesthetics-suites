@@ -48,6 +48,7 @@ export function SidebarBookingCard({
     <form onSubmit={handleSubmit} aria-label="Check availability" className="space-y-4">
       <div>
         <label
+          id="sidebar-check-in-label"
           htmlFor="sidebar-check-in"
           className="mb-1.5 block text-sm font-medium text-muted-foreground"
         >
@@ -55,6 +56,7 @@ export function SidebarBookingCard({
         </label>
         <DateField
           id="sidebar-check-in"
+          aria-labelledby="sidebar-check-in-label"
           value={checkIn}
           onChange={setCheckIn}
           min={today}
@@ -65,6 +67,7 @@ export function SidebarBookingCard({
 
       <div>
         <label
+          id="sidebar-check-out-label"
           htmlFor="sidebar-check-out"
           className="mb-1.5 block text-sm font-medium text-muted-foreground"
         >
@@ -72,6 +75,7 @@ export function SidebarBookingCard({
         </label>
         <DateField
           id="sidebar-check-out"
+          aria-labelledby="sidebar-check-out-label"
           value={checkOut}
           onChange={setCheckOut}
           min={checkIn || today}

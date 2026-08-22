@@ -39,6 +39,10 @@ type FormOutput = z.output<typeof contactSchema>;
 const FIELD_BOX =
   'w-full border border-border bg-card py-5 pr-5 pl-[52px] text-base text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-foreground aria-[invalid=true]:border-destructive';
 
+// The same label treatment the booking funnel uses, so a guest meets one
+// field style across the site.
+const FIELD_LABEL = 'mb-1.5 block text-sm font-medium text-muted-foreground';
+
 // The CtaLink treatment carried on a <button>: submitting posts the form,
 // so this action cannot be a link.
 const SUBMIT_BUTTON = ctaClasses({ sweep: 'dark' });
@@ -123,12 +127,15 @@ export function ContactForm() {
         className="mt-8 grid gap-5 sm:grid-cols-2"
       >
         <div>
+          <label htmlFor="contact-name" className={FIELD_LABEL}>
+            Full name
+          </label>
           <div className="relative">
             <FieldIcon icon={User} />
             <input
+              id="contact-name"
               type="text"
-              placeholder="Full name"
-              aria-label="Full name"
+              autoComplete="name"
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? 'contact-name-error' : undefined}
               className={FIELD_BOX}
@@ -139,12 +146,15 @@ export function ContactForm() {
         </div>
 
         <div>
+          <label htmlFor="contact-email" className={FIELD_LABEL}>
+            Email address
+          </label>
           <div className="relative">
             <FieldIcon icon={Mail} />
             <input
+              id="contact-email"
               type="email"
-              placeholder="Email address"
-              aria-label="Email address"
+              autoComplete="email"
               aria-invalid={!!errors.email}
               aria-describedby={errors.email ? 'contact-email-error' : undefined}
               className={FIELD_BOX}
@@ -155,12 +165,15 @@ export function ContactForm() {
         </div>
 
         <div>
+          <label htmlFor="contact-phone" className={FIELD_LABEL}>
+            Phone (optional)
+          </label>
           <div className="relative">
             <FieldIcon icon={Phone} />
             <input
+              id="contact-phone"
               type="tel"
-              placeholder="Phone (optional)"
-              aria-label="Phone"
+              autoComplete="tel"
               aria-invalid={!!errors.phone}
               aria-describedby={errors.phone ? 'contact-phone-error' : undefined}
               className={FIELD_BOX}
@@ -171,12 +184,15 @@ export function ContactForm() {
         </div>
 
         <div>
+          <label htmlFor="contact-subject" className={FIELD_LABEL}>
+            Subject (optional)
+          </label>
           <div className="relative">
             <FieldIcon icon={BookText} />
             <input
+              id="contact-subject"
               type="text"
-              placeholder="Subject (optional)"
-              aria-label="Subject"
+              autoComplete="off"
               aria-invalid={!!errors.subject}
               aria-describedby={errors.subject ? 'contact-subject-error' : undefined}
               className={FIELD_BOX}
@@ -187,15 +203,18 @@ export function ContactForm() {
         </div>
 
         <div className="sm:col-span-2">
+          <label htmlFor="contact-message" className={FIELD_LABEL}>
+            Message
+          </label>
           <div className="relative">
             <MessageSquare
               aria-hidden
               className="pointer-events-none absolute top-6 left-5 h-4.5 w-4.5 text-brand"
             />
             <textarea
+              id="contact-message"
               rows={7}
-              placeholder="Type your message…"
-              aria-label="Message"
+              autoComplete="off"
               aria-invalid={!!errors.message}
               aria-describedby={errors.message ? 'contact-message-error' : undefined}
               className={cn(FIELD_BOX, 'resize-y pt-5')}

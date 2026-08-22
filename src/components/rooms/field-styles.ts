@@ -6,7 +6,12 @@
  * dialog so a guest meets one field treatment across the whole flow.
  */
 export const FIELD =
-  'w-full min-w-0 border border-border bg-card px-4 py-3.5 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand aria-[invalid=true]:border-destructive';
+  'w-full min-w-0 border border-border bg-card px-4 py-3.5 text-base text-foreground transition-colors placeholder:text-muted-foreground focus:border-brand ' +
+  // A tinted border alone is not a focus indicator: it is a colour change of
+  // an existing boundary, and clay on cream barely registers. Keyboard focus
+  // gets a real ring; pointer focus keeps the quiet border tint.
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ' +
+  'aria-[invalid=true]:border-destructive data-[invalid=true]:border-destructive';
 
 /**
  * The submit/press treatment that matches CtaLink for real buttons, which
