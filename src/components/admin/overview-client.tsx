@@ -164,9 +164,15 @@ export function OverviewClient() {
 
   return (
     <div className="space-y-6">
-      {/* Range picker: presets, or a custom from/to. */}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="w-full max-w-[220px] min-[480px]:w-[180px]">
+      {/* Range picker: presets, or a custom from/to.
+
+          Below sm this is a two-column grid rather than a wrapping flex row:
+          two date boxes need about 330px side by side, which a phone does not
+          have, so the flex row used to drop each date onto a line of its own.
+          The period select and the apply button span both columns, leaving the
+          two dates paired on the row between them. */}
+      <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
+        <div className="col-span-2 sm:w-[180px]">
           <LabeledSelect
             label="Period"
             options={PRESET_OPTIONS}
@@ -191,7 +197,7 @@ export function OverviewClient() {
                 max={customTo || undefined}
                 onChange={setCustomFrom}
                 placeholder="Start date"
-                className={`${DATE_FIELD_BOX} w-40`}
+                className={`${DATE_FIELD_BOX} w-full sm:w-40`}
               />
             </div>
             <div className="space-y-1.5">
@@ -207,10 +213,14 @@ export function OverviewClient() {
                 min={customFrom || undefined}
                 onChange={setCustomTo}
                 placeholder="End date"
-                className={`${DATE_FIELD_BOX} w-40`}
+                className={`${DATE_FIELD_BOX} w-full sm:w-40`}
               />
             </div>
-            <Button onClick={applyCustom} disabled={!customValid}>
+            <Button
+              onClick={applyCustom}
+              disabled={!customValid}
+              className="col-span-2 w-full sm:col-span-1 sm:w-auto"
+            >
               Apply
             </Button>
           </>
