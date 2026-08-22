@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ResponsiveFormDialog } from '@/components/ui/responsive-form-dialog';
 import { SectionCard } from '@/components/admin/detail-bits';
+import { DateFormField } from '@/components/forms/date-form-field';
 import { TextField } from '@/components/forms/text-field';
 import { useConfirm } from '@/hooks/use-confirm';
 import {
@@ -144,7 +145,7 @@ function RateFormDialog({
     }
   };
 
-  const { register, formState } = form;
+  const { control, register, formState } = form;
 
   return (
     <ResponsiveFormDialog
@@ -167,18 +168,32 @@ function RateFormDialog({
               {...register('name')}
             />
           </div>
-          <TextField
-            label="Start date"
-            type="date"
-            error={formState.errors.startDate?.message}
-            {...register('startDate')}
+          <Controller
+            name="startDate"
+            control={control}
+            render={({ field }) => (
+              <DateFormField
+                id="season-start-date"
+                label="Start date"
+                value={field.value}
+                onChange={field.onChange}
+                error={formState.errors.startDate?.message}
+              />
+            )}
           />
-          <TextField
-            label="End date"
-            type="date"
-            hint="Exclusive - the night before this date is the last one covered."
-            error={formState.errors.endDate?.message}
-            {...register('endDate')}
+          <Controller
+            name="endDate"
+            control={control}
+            render={({ field }) => (
+              <DateFormField
+                id="season-end-date"
+                label="End date"
+                value={field.value}
+                onChange={field.onChange}
+                hint="Exclusive - the night before this date is the last one covered."
+                error={formState.errors.endDate?.message}
+              />
+            )}
           />
           <TextField
             label="Nightly price (GHS)"

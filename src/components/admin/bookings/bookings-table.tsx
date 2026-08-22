@@ -29,14 +29,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { DatePlaceholder } from '@/components/ui/date-placeholder';
-import { Label } from '@/components/ui/label';
 import { DataTableToolbar } from '@/components/filters/data-table-toolbar';
 import {
   ActiveFilters,
   FilterChip,
 } from '@/components/filters/active-filters';
+import { DateFormField } from '@/components/forms/date-form-field';
 import { LabeledSelect } from '@/components/forms/labeled-select';
 import { useTableQueryState } from '@/hooks/use-table-query-state';
 import type { TableFiltersSpec } from '@/hooks/table-query-state-logic';
@@ -70,38 +68,6 @@ const STATUS_OPTIONS = [
     label: BOOKING_STATUS_LABEL[status],
   })),
 ];
-
-/** Label-over-input date filter, matching LabeledSelect's shape. */
-function DateFilter({
-  id,
-  label,
-  value,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <DatePlaceholder
-        value={value}
-        placeholder="Any date"
-        pad="px-2.5"
-        hintClassName="text-base md:text-sm"
-      >
-        <Input
-          id={id}
-          type="date"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      </DatePlaceholder>
-    </div>
-  );
-}
 
 function createColumns({
   renderActions,
@@ -343,17 +309,19 @@ export function BookingsTable() {
                     })
                   }
                 />
-                <DateFilter
+                <DateFormField
                   id="bookings-from-filter"
                   label="Staying from"
+                  placeholder="Any date"
                   value={filters.from ?? ''}
                   onChange={(value) =>
                     patchFilters({ from: value || undefined })
                   }
                 />
-                <DateFilter
+                <DateFormField
                   id="bookings-to-filter"
                   label="Staying until"
+                  placeholder="Any date"
                   value={filters.to ?? ''}
                   onChange={(value) =>
                     patchFilters({ to: value || undefined })

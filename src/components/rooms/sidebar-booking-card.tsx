@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toDateOnlyString } from '@/lib/hotel/dates';
-import { DatePlaceholder } from '@/components/ui/date-placeholder';
+import { DateField } from '@/components/ui/date-field';
 import { CTA_BUTTON, FIELD } from './field-styles';
 
 /**
@@ -53,16 +53,14 @@ export function SidebarBookingCard({
         >
           Check in
         </label>
-        <DatePlaceholder value={checkIn} placeholder="Add check-in date">
-          <input
-            id="sidebar-check-in"
-            type="date"
-            min={today}
-            value={checkIn}
-            onChange={(e) => setCheckIn(e.target.value)}
-            className={FIELD}
-          />
-        </DatePlaceholder>
+        <DateField
+          id="sidebar-check-in"
+          value={checkIn}
+          onChange={setCheckIn}
+          min={today}
+          placeholder="Add check-in date"
+          className={FIELD}
+        />
       </div>
 
       <div>
@@ -72,16 +70,14 @@ export function SidebarBookingCard({
         >
           Check out
         </label>
-        <DatePlaceholder value={checkOut} placeholder="Add check-out date">
-          <input
-            id="sidebar-check-out"
-            type="date"
-            min={checkIn || today}
-            value={checkOut}
-            onChange={(e) => setCheckOut(e.target.value)}
-            className={FIELD}
-          />
-        </DatePlaceholder>
+        <DateField
+          id="sidebar-check-out"
+          value={checkOut}
+          onChange={setCheckOut}
+          min={checkIn || today}
+          placeholder="Add check-out date"
+          className={FIELD}
+        />
       </div>
 
       <div>

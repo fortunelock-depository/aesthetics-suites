@@ -9,8 +9,8 @@ import { ErrorState } from '@/components/ui/error-state';
 import { OverviewSkeleton } from '@/components/admin/skeletons';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LabeledSelect } from '@/components/forms/labeled-select';
-import { Input } from '@/components/ui/input';
-import { DatePlaceholder } from '@/components/ui/date-placeholder';
+import { DateField } from '@/components/ui/date-field';
+import { DATE_FIELD_BOX } from '@/components/forms/date-form-field';
 import { Button } from '@/components/ui/button';
 import { formatMoney, formatMoneyCompact } from '@/lib/format-money';
 import { formatDate } from '@/lib/format-date';
@@ -185,21 +185,14 @@ export function OverviewClient() {
               >
                 From
               </label>
-              <DatePlaceholder
+              <DateField
+                id="overview-from"
                 value={customFrom}
+                max={customTo || undefined}
+                onChange={setCustomFrom}
                 placeholder="Start date"
-                pad="px-2.5"
-                hintClassName="text-base md:text-sm"
-                className="w-40"
-              >
-                <Input
-                  id="overview-from"
-                  type="date"
-                  value={customFrom}
-                  max={customTo || undefined}
-                  onChange={(e) => setCustomFrom(e.target.value)}
-                />
-              </DatePlaceholder>
+                className={`${DATE_FIELD_BOX} w-40`}
+              />
             </div>
             <div className="space-y-1.5">
               <label
@@ -208,21 +201,14 @@ export function OverviewClient() {
               >
                 To
               </label>
-              <DatePlaceholder
+              <DateField
+                id="overview-to"
                 value={customTo}
+                min={customFrom || undefined}
+                onChange={setCustomTo}
                 placeholder="End date"
-                pad="px-2.5"
-                hintClassName="text-base md:text-sm"
-                className="w-40"
-              >
-                <Input
-                  id="overview-to"
-                  type="date"
-                  value={customTo}
-                  min={customFrom || undefined}
-                  onChange={(e) => setCustomTo(e.target.value)}
-                />
-              </DatePlaceholder>
+                className={`${DATE_FIELD_BOX} w-40`}
+              />
             </div>
             <Button onClick={applyCustom} disabled={!customValid}>
               Apply

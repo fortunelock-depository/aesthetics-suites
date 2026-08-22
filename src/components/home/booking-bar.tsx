@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { toDateOnlyString } from '@/lib/hotel/dates';
-import { DatePlaceholder } from '@/components/ui/date-placeholder';
+import { DateField } from '@/components/ui/date-field';
 
 /**
  * The hero's check-in / check-out / guests bar: flat joined cells, light.
@@ -35,7 +35,8 @@ export function BookingBar() {
     'flex flex-col gap-1 border-b border-border px-5 py-4 sm:border-r sm:border-b-0 sm:py-5';
   const label =
     'text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase';
-  // 16px font so iOS doesn't zoom the page on focus.
+  // 16px font so iOS doesn't zoom the page on focus. Shared by the guests
+  // select and the two date triggers so all three cells read as one strip.
   const field =
     'w-full min-w-0 bg-transparent text-base text-foreground outline-none';
 
@@ -49,32 +50,30 @@ export function BookingBar() {
         <label htmlFor="hero-check-in" className={label}>
           Check in
         </label>
-        <DatePlaceholder value={checkIn} placeholder="Add date" pad="px-0">
-          <input
-            id="hero-check-in"
-            type="date"
-            min={today}
-            value={checkIn}
-            onChange={(e) => setCheckIn(e.target.value)}
-            className={field}
-          />
-        </DatePlaceholder>
+        <DateField
+          id="hero-check-in"
+          value={checkIn}
+          onChange={setCheckIn}
+          min={today}
+          placeholder="Add date"
+          hideIcon
+          className={field}
+        />
       </div>
 
       <div className={cell}>
         <label htmlFor="hero-check-out" className={label}>
           Check out
         </label>
-        <DatePlaceholder value={checkOut} placeholder="Add date" pad="px-0">
-          <input
-            id="hero-check-out"
-            type="date"
-            min={checkIn || today}
-            value={checkOut}
-            onChange={(e) => setCheckOut(e.target.value)}
-            className={field}
-          />
-        </DatePlaceholder>
+        <DateField
+          id="hero-check-out"
+          value={checkOut}
+          onChange={setCheckOut}
+          min={checkIn || today}
+          placeholder="Add date"
+          hideIcon
+          className={field}
+        />
       </div>
 
       <div className={cell}>

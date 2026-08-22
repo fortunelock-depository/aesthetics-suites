@@ -40,6 +40,7 @@ import {
   ActiveFilters,
   FilterChip,
 } from '@/components/filters/active-filters';
+import { DateFormField } from '@/components/forms/date-form-field';
 import { TextField } from '@/components/forms/text-field';
 import { LabeledSelect } from '@/components/forms/labeled-select';
 import {
@@ -361,18 +362,32 @@ function DiscountFormDialog({
               />
             )}
           />
-          <TextField
-            label="Starts (optional)"
-            type="date"
-            error={errors.startsAt?.message}
-            {...register('startsAt')}
+          <Controller
+            name="startsAt"
+            control={control}
+            render={({ field }) => (
+              <DateFormField
+                id="discount-starts-at"
+                label="Starts (optional)"
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.startsAt?.message}
+              />
+            )}
           />
-          <TextField
-            label="Ends (optional)"
-            type="date"
-            hint="Exclusive - the day before this date is the last one covered."
-            error={errors.endsAt?.message}
-            {...register('endsAt')}
+          <Controller
+            name="endsAt"
+            control={control}
+            render={({ field }) => (
+              <DateFormField
+                id="discount-ends-at"
+                label="Ends (optional)"
+                value={field.value}
+                onChange={field.onChange}
+                hint="Exclusive - the day before this date is the last one covered."
+                error={errors.endsAt?.message}
+              />
+            )}
           />
           <TextField
             label="Minimum nights (optional)"

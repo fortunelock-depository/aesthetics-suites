@@ -23,7 +23,7 @@ import { extractApiError } from '@/lib/extract-api-error';
 import { formatDate } from '@/lib/format-date';
 import { formatMoney } from '@/lib/format-money';
 import { toDateOnlyString } from '@/lib/hotel/dates';
-import { DatePlaceholder } from '@/components/ui/date-placeholder';
+import { DateField } from '@/components/ui/date-field';
 import { CTA_BUTTON, FIELD } from './field-styles';
 import { cn } from '@/lib/utils';
 import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
@@ -44,6 +44,9 @@ type GuestOutput = z.output<typeof guestSchema>;
 
 /** Stay-level errors ("pick your dates", "not available") announce here. */
 const STAY_ERROR_ID = 'book-stay-error';
+
+/** The field a submit without dates sends the guest back to. */
+const CHECK_IN_ID = 'book-check-in';
 
 /**
  * The room's free-cancellation window. Zero means the room has no free
@@ -66,7 +69,10 @@ function Field({
 }) {
   // The error is programmatically tied to the input: aria-describedby is
   // injected onto the child so screen readers announce WHY it is invalid,
-  // and role="alert" announces the message the moment it appears.
+  // and role="alert" announces the message the moment it appears. The
+  // injection only happens when there IS an error, because cloning with
+  // `undefined` would strip a describedby the child sets for itself - which
+  // is how the date fields reach the stay-level error.
   const errorId = error ? `${id}-error` : undefined;
   return (
     <div>
@@ -76,7 +82,9 @@ function Field({
       >
         {label}
       </label>
-      {React.cloneElement(children, { 'aria-describedby': errorId })}
+      {errorId
+        ? React.cloneElement(children, { 'aria-describedby': errorId })
+        : children}
       {error && (
         <p id={errorId} role="alert" className="mt-1.5 text-sm text-destructive">
           {error}
@@ -158,8 +166,6 @@ export function BookingCheckout({
   const [discountInput, setDiscountInput] = React.useState('');
   const [discountCode, setDiscountCode] = React.useState<string>();
   const [stayError, setStayError] = React.useState<string | null>(null);
-  // Missing dates park the guest here rather than greying the CTA out.
-  const checkInRef = React.useRef<HTMLInputElement>(null);
 
   const [createBooking, { isLoading: isBooking }] =
     useCreatePublicBookingMutation();
@@ -214,7 +220,9 @@ export function BookingCheckout({
   const onSubmit = async (guest: GuestOutput) => {
     if (!datesValid) {
       setStayError('Pick your check-in and check-out dates first.');
-      checkInRef.current?.focus();
+      // Missing dates park the guest on the check-in trigger rather than
+      // greying the CTA out.
+      document.getElementById(CHECK_IN_ID)?.focus();
       return;
     }
     if (!quote?.available) {
@@ -277,9 +285,7 @@ export function BookingCheckout({
 
   return (
     <form
-      // Bound on submit rather than during render: onSubmit reaches for
-      // the check-in field's ref, which render must never touch.
-      onSubmit={(event) => handleSubmit(onSubmit, onInvalid)(event)}
+      onSubmit={handleSubmit(onSubmit, onInvalid)}
       noValidate
       className="grid gap-10 lg:grid-cols-[1fr_400px] lg:gap-8"
     >
@@ -290,42 +296,37 @@ export function BookingCheckout({
             Your stay
           </h2>
           <div className="mt-5 grid grid-cols-1 gap-4 min-[480px]:grid-cols-2">
-            <Field id="book-check-in" label="Check in">
-              <DatePlaceholder value={checkIn} placeholder="Add check-in date">
-                <input
-                  id="book-check-in"
-                  ref={checkInRef}
-                  type="date"
-                  aria-describedby={stayError ? STAY_ERROR_ID : undefined}
-                  aria-invalid={stayError ? true : undefined}
-                  min={today}
-                  value={checkIn}
-                  onChange={(e) => {
-                    setCheckIn(e.target.value);
-                    // A stale "pick your dates" complaint must not outlive
-                    // its fix; the fresh quote speaks next.
-                    setStayError(null);
-                  }}
-                  className={FIELD}
-                />
-              </DatePlaceholder>
+            <Field id={CHECK_IN_ID} label="Check in">
+              <DateField
+                id={CHECK_IN_ID}
+                value={checkIn}
+                onChange={(value) => {
+                  setCheckIn(value);
+                  // A stale "pick your dates" complaint must not outlive
+                  // its fix; the fresh quote speaks next.
+                  setStayError(null);
+                }}
+                min={today}
+                placeholder="Add check-in date"
+                aria-describedby={stayError ? STAY_ERROR_ID : undefined}
+                aria-invalid={stayError ? true : undefined}
+                className={FIELD}
+              />
             </Field>
             <Field id="book-check-out" label="Check out">
-              <DatePlaceholder value={checkOut} placeholder="Add check-out date">
-                <input
-                  id="book-check-out"
-                  type="date"
-                  aria-describedby={stayError ? STAY_ERROR_ID : undefined}
-                  aria-invalid={stayError ? true : undefined}
-                  min={checkIn || today}
-                  value={checkOut}
-                  onChange={(e) => {
-                    setCheckOut(e.target.value);
-                    setStayError(null);
-                  }}
-                  className={FIELD}
-                />
-              </DatePlaceholder>
+              <DateField
+                id="book-check-out"
+                value={checkOut}
+                onChange={(value) => {
+                  setCheckOut(value);
+                  setStayError(null);
+                }}
+                min={checkIn || today}
+                placeholder="Add check-out date"
+                aria-describedby={stayError ? STAY_ERROR_ID : undefined}
+                aria-invalid={stayError ? true : undefined}
+                className={FIELD}
+              />
             </Field>
             <Field id="book-adults" label="Adults">
               <select

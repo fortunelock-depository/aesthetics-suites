@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { BrandLogo } from './brand-logo';
+import { SocialCircles } from './social-circles';
 import { SITE, CONTACT } from '@/config/constants';
 import { OPENING_HOURS } from '@/static-data/home';
 import { siteNavLinks } from './nav-links';
@@ -21,14 +22,18 @@ export function SiteFooter() {
 
   return (
     <footer id="contact" className="border-t border-border bg-muted/50">
-      <div className="mx-auto grid w-full max-w-[1320px] gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-3 lg:py-[90px]">
+      {/* Four equal columns left the brand column exactly as wide as its row
+          of social marks, so they wrapped, while the short link lists sat in
+          300px columns with a dead gutter beside them. The brand column takes
+          the slack and the link columns tighten toward the contact details. */}
+      <div className="mx-auto grid w-full max-w-[1320px] gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-[1.7fr_0.8fr_1.05fr_1.05fr] lg:px-3 lg:py-[90px]">
         {/* Brand */}
         <div>
           <BrandLogo withTagline />
           <p className="mt-4 max-w-xs text-[15px] leading-[26px] text-foreground/80">
             {SITE.description}
           </p>
-          {/* The social circles return here once the profiles exist. */}
+          <SocialCircles className="mt-5 flex flex-nowrap items-center gap-3" />
         </div>
 
         {/* Quick links; on phones the legal/support links stack beside

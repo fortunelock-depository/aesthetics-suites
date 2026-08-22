@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { CalendarPlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DateFormField } from '@/components/forms/date-form-field';
 import { TextField, TextAreaField } from '@/components/forms/text-field';
 import { LabeledSelect } from '@/components/forms/labeled-select';
 import { optionalPhoneField } from '@/validations/phone-validation';
@@ -141,17 +142,31 @@ export function ManualBookingForm({
               )}
             />
           </div>
-          <TextField
-            label="Check-in"
-            type="date"
-            error={errors.checkIn?.message}
-            {...register('checkIn')}
+          <Controller
+            name="checkIn"
+            control={control}
+            render={({ field }) => (
+              <DateFormField
+                id="manual-check-in"
+                label="Check-in"
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.checkIn?.message}
+              />
+            )}
           />
-          <TextField
-            label="Check-out"
-            type="date"
-            error={errors.checkOut?.message}
-            {...register('checkOut')}
+          <Controller
+            name="checkOut"
+            control={control}
+            render={({ field }) => (
+              <DateFormField
+                id="manual-check-out"
+                label="Check-out"
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.checkOut?.message}
+              />
+            )}
           />
           <TextField
             label="Adults"

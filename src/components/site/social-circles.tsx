@@ -67,34 +67,50 @@ const SOCIALS: SocialLink[] = [
  * cannot be opened is an affordance the site cannot honour.
  */
 export function SocialCircles({ className }: { className?: string }) {
-  const linked = SOCIALS.filter(
-    (social): social is SocialLink & { href: string } => Boolean(social.href),
-  );
-  if (linked.length === 0) return null;
-
   return (
     <ul
       aria-label="Social media"
       className={className ?? 'flex items-center gap-3'}
     >
-      {linked.map(({ icon: Icon, label, href }) => (
-        <li key={label}>
-          <a
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="social-ring grid h-10 w-10 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:text-brand"
-          >
+      {SOCIALS.map(({ icon: Icon, label, href }) => {
+        const marks = (
+          <>
             <ArcRing
               color="var(--brand)"
               strokeWidth={3}
               className="social-arc"
             />
             <Icon className="h-4 w-4" aria-hidden />
-            <span className="sr-only">{label}</span>
-          </a>
-        </li>
-      ))}
+          </>
+        );
+        const shell =
+          'social-ring grid h-10 w-10 flex-none place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:text-brand';
+
+        // A profile with no URL yet still shows its mark, but as plain text
+        // rather than a link: a control that looks clickable and goes nowhere
+        // is worse than one that plainly is not one. Add the href and it
+        // becomes a link with no other change.
+        return (
+          <li key={label} className="flex-none">
+            {href ? (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={shell}
+              >
+                {marks}
+                <span className="sr-only">{label}</span>
+              </a>
+            ) : (
+              <span className={shell} title={label}>
+                {marks}
+                <span className="sr-only">{label}</span>
+              </span>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
