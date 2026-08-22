@@ -1,6 +1,14 @@
 // src/components/site/section-heading.tsx
 import { cn } from '@/lib/utils';
 
+/**
+ * The one eyebrow treatment. Small tracked caps in clay: the site had three
+ * competing versions of this label, which read as three different systems on
+ * one page. Import this rather than restating the classes.
+ */
+export const EYEBROW =
+  'text-[12px] font-medium tracking-[0.2em] text-brand-text uppercase';
+
 interface SectionHeadingProps {
   /** Small gold kicker above the title, e.g. "Deluxe And Luxury". */
   eyebrow: string;
@@ -21,10 +29,8 @@ export function SectionHeading({
 }: SectionHeadingProps) {
   return (
     <div className={cn(align === 'center' && 'text-center', className)}>
-      <p className="text-[15px] font-semibold text-brand-text capitalize">
-        {eyebrow}
-      </p>
-      <h2 className="mt-2.5 font-heading text-[32px] leading-[1.3] font-medium text-foreground [overflow-wrap:anywhere] lg:text-[45px] lg:leading-[60px]">
+      <p className={EYEBROW}>{eyebrow}</p>
+      <h2 className="mt-4 font-heading text-[34px] leading-[1.15] font-light tracking-[-0.01em] text-foreground [overflow-wrap:anywhere] lg:text-[52px]">
         {title}
       </h2>
     </div>

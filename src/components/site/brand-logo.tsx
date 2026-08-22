@@ -7,7 +7,10 @@ import { cn } from '@/lib/utils';
 
 /**
  * The brand lockup for site chrome: the "A" mark beside the wordmark, the
- * icon-plus-name navbar arrangement. The mark is theme-aware: the
+ * icon-plus-name navbar arrangement. The wordmark is set in the sans face,
+ * which is the geometric sans the logo art itself is drawn in - the display
+ * serif beside that art read as two different brands. The mark is
+ * theme-aware: the
  * dark variant sits on light surfaces and swaps for the light variant in dark
  * mode, where the dark mark would vanish into the background. `withTagline`
  * adds the logo's tagline underneath (footer).
@@ -41,7 +44,7 @@ export function BrandLogo({
         priority
       />
       <span className="min-w-0">
-        <span className="block truncate font-heading text-xl font-semibold tracking-tight text-foreground lg:text-2xl">
+        <span className="block truncate text-lg font-medium tracking-[0.01em] text-foreground lg:text-xl">
           {SITE.name}
         </span>
         {withTagline && (

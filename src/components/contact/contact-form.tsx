@@ -23,7 +23,9 @@ import {
   TurnstileWidget,
   TURNSTILE_ENABLED,
 } from '@/components/ui/turnstile-widget';
+import { EYEBROW } from '@/components/site/section-heading';
 import { cn } from '@/lib/utils';
+import { ctaClasses } from '@/components/site/cta-link';
 
 // The SAME schema the API enforces (validations/hotel-validation.ts), so
 // client and server can never disagree; transforms (phone -> E.164) run on
@@ -31,8 +33,15 @@ import { cn } from '@/lib/utils';
 type FormInput = z.input<typeof contactSchema>;
 type FormOutput = z.output<typeof contactSchema>;
 
+// A 1px clay border does not read as focus against the cream field, so the
+// focused box takes the ink border AND a 2px outline drawn inside its own
+// edge - visible on any of the surfaces this form sits on.
 const FIELD_BOX =
-  'w-full border border-border bg-card py-5 pr-5 pl-[52px] text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand aria-[invalid=true]:border-destructive';
+  'w-full border border-border bg-card py-5 pr-5 pl-[52px] text-base text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-foreground aria-[invalid=true]:border-destructive';
+
+// The CtaLink treatment carried on a <button>: submitting posts the form,
+// so this action cannot be a link.
+const SUBMIT_BUTTON = ctaClasses({ sweep: 'dark' });
 
 function FieldIcon({ icon: Icon }: { icon: LucideIcon }) {
   return (
@@ -53,10 +62,10 @@ function FieldErrorText({ message, id }: { message?: string; id?: string }) {
 }
 
 /**
- * The "Send Message" form (icon-in-field boxes, gold submit), wired end
- * to end: react-hook-form + the shared zod schema for inline
- * client errors (native validation disabled), Turnstile when configured,
- * and server field errors mapped back inline via setError.
+ * The message form (icon-in-field boxes, clay submit), wired end to end:
+ * react-hook-form + the shared zod schema for inline client errors (native
+ * validation disabled), Turnstile when configured, and server field errors
+ * mapped back inline via setError.
  */
 export function ContactForm() {
   const [send, { isLoading }] = useSendContactMessageMutation();
@@ -103,8 +112,9 @@ export function ContactForm() {
 
   return (
     <div>
-      <h2 className="font-heading text-[32px] leading-[1.3] font-medium text-foreground lg:text-[45px] lg:leading-[60px]">
-        Send Message
+      <p className={EYEBROW}>Message</p>
+      <h2 className="mt-4 font-heading text-[32px] leading-[1.15] font-light tracking-[-0.01em] text-foreground lg:text-[45px]">
+        Send a message
       </h2>
 
       <form
@@ -117,7 +127,7 @@ export function ContactForm() {
             <FieldIcon icon={User} />
             <input
               type="text"
-              placeholder="Full Name"
+              placeholder="Full name"
               aria-label="Full name"
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? 'contact-name-error' : undefined}
@@ -133,7 +143,7 @@ export function ContactForm() {
             <FieldIcon icon={Mail} />
             <input
               type="email"
-              placeholder="Email Address"
+              placeholder="Email address"
               aria-label="Email address"
               aria-invalid={!!errors.email}
               aria-describedby={errors.email ? 'contact-email-error' : undefined}
@@ -220,7 +230,7 @@ export function ContactForm() {
           <button
             type="submit"
             disabled={isLoading || (TURNSTILE_ENABLED && !turnstileToken)}
-            className="btn-sweep btn-sweep-dark inline-flex items-center gap-2.5 bg-brand px-[43px] py-4 font-heading text-base font-bold text-brand-foreground uppercase disabled:cursor-not-allowed disabled:opacity-60"
+            className={SUBMIT_BUTTON}
           >
             {isLoading ? (
               <>
@@ -229,7 +239,7 @@ export function ContactForm() {
               </>
             ) : (
               <>
-                Submit Now
+                Send
                 <ArrowRight className="h-4 w-4" />
               </>
             )}

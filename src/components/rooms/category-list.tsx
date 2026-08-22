@@ -5,9 +5,9 @@ import type { IPublicRoomCard } from '@/lib/hotel/public-rooms';
 import { roomDetail } from '@/lib/routes';
 
 /**
- * The Category widget's row list: chevron, name, dashed dividers,
- * zero-padded unit count. Shared by the desktop sidebar card
- * and the mobile bottom drawer (`onNavigate` closes the drawer on tap).
+ * The suites widget's row list: chevron and name. Shared by the desktop
+ * sidebar card and the mobile bottom drawer (`onNavigate` closes the
+ * drawer on tap).
  */
 export function CategoryList({
   rooms,
@@ -31,10 +31,6 @@ export function CategoryList({
             <ChevronsRight className="h-4 w-4 flex-none self-center text-brand transition-transform group-hover:translate-x-0.5" />
             <span className="min-w-0 truncate" title={room.name}>
               {room.name}
-            </span>
-            <span className="min-w-2 flex-1" aria-hidden />
-            <span className="flex-none text-muted-foreground">
-              ({String(room.unitCount).padStart(2, '0')})
             </span>
           </Link>
         </li>

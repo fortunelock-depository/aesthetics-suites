@@ -41,6 +41,8 @@
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-text: var(--brand-text);
+  --color-peach: var(--peach);
+  --color-scrim: var(--scrim);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -81,10 +83,15 @@
      was used on (prices, eyebrows, the low-stock nudge). Same hue, taken
      dark enough to pass; keep --brand for fills and large display use. */
   --brand-text: oklch(0.5 0.089 56.8);
+  /* Peach, the palette's hover warmth, and the ink wash used over photography.
+     Both were literals scattered through the components; they are the same
+     colours, named once so a surface cannot drift. */
+  --peach: oklch(0.95 0.042 79);
+  --scrim: oklch(0.241 0.017 122.7);
   --chart-1: oklch(0.853 0.046 115.5); /* eucalyptus */
   --chart-2: oklch(0.757 0.089 56.8); /* clay */
   --chart-3: oklch(0.762 0.053 115); /* deep eucalyptus */
-  --chart-4: oklch(0.95 0.042 79); /* peach */
+  --chart-4: var(--peach);
   --chart-5: oklch(0.531 0.039 114.9);
   /* The design system is SQUARE: every radius-scale utility resolves to
      0 (rounded-full circles/pills stay intentional shapes). */
@@ -125,10 +132,12 @@
      the dark surface that same value drops to ~2.65:1, so it inverts here
      to the lightened clay that already passes against this background. */
   --brand-text: oklch(0.85 0.076 57.1);
+  --peach: oklch(0.95 0.042 79);
+  --scrim: oklch(0.18 0.014 122.7);
   --chart-1: oklch(0.853 0.046 115.5);
   --chart-2: oklch(0.794 0.076 57.1);
   --chart-3: oklch(0.762 0.053 115);
-  --chart-4: oklch(0.95 0.042 79);
+  --chart-4: var(--peach);
   --chart-5: oklch(0.784 0.039 113.9);
   --sidebar: oklch(0.277 0.022 122.8);
   --sidebar-foreground: oklch(0.955 0.028 100.3);
@@ -187,7 +196,7 @@
   position: relative;
   z-index: 3;
   overflow: hidden;
-  transition: all 0.4s ease-out 0s;
+  transition: color 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .btn-sweep::before,
 .btn-sweep::after {
@@ -197,7 +206,9 @@
   height: 100%;
   background: var(--sweep-bg);
   opacity: 0;
-  transition: all 0.5s ease-out 0s;
+  transition:
+    width 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
   z-index: -1;
 }
 .btn-sweep::before {
@@ -219,33 +230,18 @@
 
 /* Clay button that sweeps to PEACH with ink text (navbar, hero bar). */
 .btn-sweep-light {
-  --sweep-bg: #feecd0;
-  --sweep-fg: #252a1c;
+  --sweep-bg: var(--peach);
+  --sweep-fg: var(--foreground);
 }
 /* Clay button that sweeps to the olive INK with ivory text (welcome CTA). */
 .btn-sweep-dark {
-  --sweep-bg: #252a1c;
-  --sweep-fg: #fff9e2;
+  --sweep-bg: var(--foreground);
+  --sweep-fg: var(--background);
 }
 /* Outlined clay button that sweeps to solid clay with ink text. */
 .btn-sweep-gold {
   --sweep-bg: var(--brand);
-  --sweep-fg: #252a1c;
-}
-
-/* The play medallion (.video__play): a faint static ring, plus a ring that
-   paints ONLY its top border - which on a circle reads as a soft quarter
-   arc - rotating continuously. Everything turns gold on hover. */
-@keyframes rotation {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(359deg);
-  }
-}
-.play-arc {
-  animation: rotation 2s infinite linear;
+  --sweep-fg: var(--foreground);
 }
 
 /* Social circles: the same tapered arc runs ONE full lap on hover, in
@@ -271,7 +267,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .play-arc,
   .social-ring:hover .social-arc {
     animation: none !important;
   }

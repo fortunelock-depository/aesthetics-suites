@@ -9,6 +9,5 @@ export default function Image() {
     eyebrow: 'Legal',
     title: 'Terms of Service',
     subtitle: 'Bookings, payments, cancellations, and guest conduct.',
-    cta: 'Read the terms →',
   });
 }

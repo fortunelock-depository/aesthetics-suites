@@ -10,7 +10,7 @@ import { BOOK_NOW_HREF } from '@/components/site/nav-links';
 
 /**
  * The "Welcome" section: heading + blurb left, two overlapping photos
- * right (offset frames), gold CTA.
+ * right (offset frames), clay CTA.
  */
 export function WelcomeSection() {
   return (
@@ -18,16 +18,16 @@ export function WelcomeSection() {
       <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <Reveal from="left">
           <SectionHeading
-            eyebrow="Accommodations"
+            eyebrow="About the suites"
             title={`Welcome to ${SITE.name}`}
           />
-          <p className="mt-5 max-w-md text-[15px] leading-[26px] text-muted-foreground">
+          <p className="mt-5 max-w-md text-[15px] leading-[26px] text-foreground/80">
             Every suite is designed around rest: natural light, quiet
             materials, and the small comforts that make a stay feel like a
             retreat rather than a stopover.
           </p>
           <CtaLink href={BOOK_NOW_HREF} sweep="dark" className="mt-9">
-            Read More
+            Explore the rooms
           </CtaLink>
         </Reveal>
 

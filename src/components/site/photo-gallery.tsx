@@ -138,7 +138,7 @@ function GalleryTile({
       />
       <span
         aria-hidden
-        className="absolute right-3 bottom-3 grid h-8 w-8 place-items-center bg-black/55 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+        className="absolute right-3 bottom-3 grid h-8 w-8 place-items-center bg-scrim/70 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
       >
         <Expand className="h-4 w-4" />
       </span>
@@ -224,7 +224,7 @@ export function GalleryGrid({
 const SWIPE_THRESHOLD_PX = 40;
 
 /**
- * Full-view photo viewer: near-black stage, the photo contained (never
+ * Full-view photo viewer: a deep ink stage, the photo contained (never
  * cropped), previous/next, a counter, the caption, and close. Arrow keys
  * page, Escape closes (radix), and a horizontal swipe pages on touch.
  */
@@ -277,7 +277,7 @@ function Lightbox({
   };
 
   const navButton =
-    'grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/40 text-white transition-colors hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none';
+    'grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-scrim/50 text-white transition-colors hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none';
 
   return (
     <DialogPrimitive.Root
@@ -287,7 +287,7 @@ function Lightbox({
       }}
     >
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/95" />
+        <DialogPrimitive.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-scrim/95" />
         <DialogPrimitive.Content
           onKeyDown={onKeyDown}
           className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 flex flex-col text-white outline-none"

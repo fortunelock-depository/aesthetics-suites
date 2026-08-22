@@ -24,10 +24,21 @@ interface ConfirmDialogProps {
 }
 
 /**
+ * Both actions, on top of the shared button variants: a 44px target,
+ * because confirming is as often done on a phone as at a desk.
+ */
+const ACTION = 'h-11 px-6';
+
+/**
  * Reusable confirmation dialog (Radix AlertDialog) with an optional
  * type-to-confirm guard for destructive actions. Controlled via `open`.
  * The title/description carry overflow-wrap hardening because they often
  * interpolate user-authored names.
+ *
+ * One treatment serves both the console and the public site: the ink scrim
+ * over a square, shadowless panel, titled in the display face, with the
+ * console's button variants underneath so it still reads as admin chrome
+ * inside a table page.
  */
 export function ConfirmDialog({
   open,
@@ -55,16 +66,19 @@ export function ConfirmDialog({
   return (
     <AlertDialog.Root open={open} onOpenChange={handleOpenChange}>
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[1px] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+        <AlertDialog.Overlay className="fixed inset-0 z-50 bg-scrim/60 backdrop-blur-[1px] duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
         <AlertDialog.Content
           className={cn(
             'fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2',
             'max-h-[calc(100dvh-2rem)] overflow-y-auto',
-            'rounded-2xl border border-border bg-card p-6 shadow-xl',
-            'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+            'border border-border bg-card p-6',
+            // Rises a few pixels rather than scaling up: the site's panels
+            // settle into place, they don't pop.
+            'duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-2',
+            'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-bottom-2',
           )}
         >
-          <AlertDialog.Title className="min-w-0 max-w-full text-lg font-semibold text-foreground [overflow-wrap:anywhere]">
+          <AlertDialog.Title className="min-w-0 max-w-full font-heading text-2xl font-light tracking-[-0.01em] text-foreground [overflow-wrap:anywhere]">
             {title}
           </AlertDialog.Title>
           <AlertDialog.Description className="mt-2 min-w-0 max-w-full text-sm text-muted-foreground leading-relaxed [overflow-wrap:anywhere]">
@@ -93,7 +107,7 @@ export function ConfirmDialog({
 
           <div className="mt-6 flex flex-wrap justify-end gap-2">
             <AlertDialog.Cancel
-              className={cn(buttonVariants({ variant: 'outline' }))}
+              className={cn(buttonVariants({ variant: 'outline' }), ACTION)}
               disabled={loading}
             >
               {cancelText}
@@ -106,6 +120,7 @@ export function ConfirmDialog({
                 buttonVariants({
                   variant: isDestructive ? 'destructive' : 'default',
                 }),
+                ACTION,
                 'gap-2',
               )}
             >

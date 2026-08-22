@@ -10,6 +10,7 @@ import { z } from 'zod';
 import {
   ArrowRight,
   BadgeCheck,
+  CalendarCheck,
   CalendarRange,
   Loader2,
   ShieldCheck,
@@ -23,6 +24,7 @@ import { formatDate } from '@/lib/format-date';
 import { formatMoney } from '@/lib/format-money';
 import { toDateOnlyString } from '@/lib/hotel/dates';
 import { DatePlaceholder } from '@/components/ui/date-placeholder';
+import { CTA_BUTTON, FIELD } from './field-styles';
 import { cn } from '@/lib/utils';
 import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 
@@ -43,8 +45,13 @@ type GuestOutput = z.output<typeof guestSchema>;
 /** Stay-level errors ("pick your dates", "not available") announce here. */
 const STAY_ERROR_ID = 'book-stay-error';
 
-const FIELD =
-  'w-full min-w-0 border border-border bg-card px-4 py-3.5 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand aria-[invalid=true]:border-destructive';
+/**
+ * The room's free-cancellation window. Zero means the room has no free
+ * window, so the line is left off rather than promising nothing.
+ */
+function freeCancellationDays(room: IPublicRoomDetail): number | null {
+  return room.freeCancellationDays > 0 ? room.freeCancellationDays : null;
+}
 
 function Field({
   id,
@@ -83,17 +90,26 @@ function QuoteRow({
   label,
   value,
   strong,
+  className,
 }: {
   label: string;
   value: string;
+  /** The total: the one figure the guest is deciding on. */
   strong?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-2">
+    <div
+      className={cn(
+        'flex items-center justify-between gap-3 py-2',
+        strong && 'items-baseline pt-3',
+        className,
+      )}
+    >
       <span
         className={cn(
           'min-w-0 text-sm',
-          strong ? 'font-semibold text-foreground' : 'text-muted-foreground',
+          strong ? 'font-medium text-foreground' : 'text-muted-foreground',
         )}
       >
         {label}
@@ -102,7 +118,7 @@ function QuoteRow({
         className={cn(
           'flex-none text-sm whitespace-nowrap',
           strong
-            ? 'font-heading text-lg font-semibold text-foreground'
+            ? 'font-heading text-2xl leading-none font-light tracking-[-0.01em] text-foreground'
             : 'text-foreground',
         )}
       >
@@ -142,6 +158,8 @@ export function BookingCheckout({
   const [discountInput, setDiscountInput] = React.useState('');
   const [discountCode, setDiscountCode] = React.useState<string>();
   const [stayError, setStayError] = React.useState<string | null>(null);
+  // Missing dates park the guest here rather than greying the CTA out.
+  const checkInRef = React.useRef<HTMLInputElement>(null);
 
   const [createBooking, { isLoading: isBooking }] =
     useCreatePublicBookingMutation();
@@ -181,6 +199,14 @@ export function BookingCheckout({
     },
   });
 
+  // Guest-field errors are reported by react-hook-form; a missing stay is
+  // not one of its fields, so it says its piece here too.
+  const onInvalid = () => {
+    if (!datesValid) {
+      setStayError('Pick your check-in and check-out dates first.');
+    }
+  };
+
   const applyDiscount = () => {
     setDiscountCode(discountInput.trim() || undefined);
   };
@@ -188,6 +214,7 @@ export function BookingCheckout({
   const onSubmit = async (guest: GuestOutput) => {
     if (!datesValid) {
       setStayError('Pick your check-in and check-out dates first.');
+      checkInRef.current?.focus();
       return;
     }
     if (!quote?.available) {
@@ -236,6 +263,7 @@ export function BookingCheckout({
   };
 
   const cover = room.photos[0];
+  const freeDays = freeCancellationDays(room);
   // Options end at the room's actual capacity - offering 8 adults on a
   // 2-adult room just walks the guest into a failed quote.
   const adultOptions = Array.from(
@@ -249,21 +277,24 @@ export function BookingCheckout({
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      // Bound on submit rather than during render: onSubmit reaches for
+      // the check-in field's ref, which render must never touch.
+      onSubmit={(event) => handleSubmit(onSubmit, onInvalid)(event)}
       noValidate
       className="grid gap-10 lg:grid-cols-[1fr_400px] lg:gap-8"
     >
       <div className="min-w-0 space-y-10">
         {/* ---- Stay ---- */}
         <section aria-label="Your stay">
-          <h2 className="font-heading text-2xl font-medium text-foreground">
-            Your Stay
+          <h2 className="font-heading text-2xl font-light tracking-[-0.01em] text-foreground">
+            Your stay
           </h2>
           <div className="mt-5 grid grid-cols-1 gap-4 min-[480px]:grid-cols-2">
-            <Field id="book-check-in" label="Check In">
+            <Field id="book-check-in" label="Check in">
               <DatePlaceholder value={checkIn} placeholder="Add check-in date">
                 <input
                   id="book-check-in"
+                  ref={checkInRef}
                   type="date"
                   aria-describedby={stayError ? STAY_ERROR_ID : undefined}
                   aria-invalid={stayError ? true : undefined}
@@ -279,7 +310,7 @@ export function BookingCheckout({
                 />
               </DatePlaceholder>
             </Field>
-            <Field id="book-check-out" label="Check Out">
+            <Field id="book-check-out" label="Check out">
               <DatePlaceholder value={checkOut} placeholder="Add check-out date">
                 <input
                   id="book-check-out"
@@ -346,7 +377,7 @@ export function BookingCheckout({
             <button
               type="button"
               onClick={applyDiscount}
-              className="flex-none border border-brand px-5 font-heading text-sm font-bold text-brand-text uppercase transition-colors hover:bg-brand hover:text-brand-foreground"
+              className="flex-none border border-brand px-5 text-[13px] font-medium tracking-[0.14em] text-brand-text uppercase transition-colors hover:bg-brand hover:text-brand-foreground"
             >
               Apply
             </button>
@@ -364,13 +395,13 @@ export function BookingCheckout({
 
         {/* ---- Guest details ---- */}
         <section aria-label="Guest details">
-          <h2 className="font-heading text-2xl font-medium text-foreground">
-            Guest Details
+          <h2 className="font-heading text-2xl font-light tracking-[-0.01em] text-foreground">
+            Guest details
           </h2>
           <div className="mt-5 grid grid-cols-1 gap-4 min-[480px]:grid-cols-2">
             <Field
               id="book-name"
-              label="Full Name"
+              label="Full name"
               error={errors.guestName?.message}
             >
               <input
@@ -417,7 +448,7 @@ export function BookingCheckout({
             <div className="min-[480px]:col-span-2">
               <Field
                 id="book-requests"
-                label="Special Requests (optional)"
+                label="Special requests (optional)"
                 error={errors.specialRequests?.message}
               >
                 <textarea
@@ -461,7 +492,7 @@ export function BookingCheckout({
             )}
           </div>
           <div className="p-6">
-            <h3 className="font-heading text-xl font-medium text-foreground [overflow-wrap:anywhere]">
+            <h3 className="font-heading text-xl font-normal tracking-[-0.01em] text-foreground [overflow-wrap:anywhere]">
               {room.name}
             </h3>
             <p className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
@@ -472,9 +503,8 @@ export function BookingCheckout({
             </p>
 
             {/* Live region: this panel swaps between loading, unavailable,
-                quote-failed and priced as the dates change, and the submit
-                button silently flips to disabled with it. Without an
-                announcement a screen-reader guest can watch a room become
+                quote-failed and priced as the dates change. Without an
+                announcement a screen-reader guest can watch a suite become
                 unavailable and hear nothing. */}
             <div
               className="mt-4 border-t border-border"
@@ -507,7 +537,7 @@ export function BookingCheckout({
               ) : (
                 <div className="divide-y divide-border/60">
                   <QuoteRow
-                    label={`Room x ${quote.nights} night${quote.nights === 1 ? '' : 's'}`}
+                    label={`${quote.nights} night${quote.nights === 1 ? '' : 's'}`}
                     value={formatMoney(quote.baseAmount, room.currency)}
                   />
                   {quote.occupancyAmount > 0 && (
@@ -538,10 +568,11 @@ export function BookingCheckout({
                     label="Total"
                     value={formatMoney(quote.totalAmount, room.currency)}
                     strong
+                    className="border-t border-brand"
                   />
                   {quote.availableUnits <= 2 && (
                     <p className="py-2 text-xs text-brand-text">
-                      Only {quote.availableUnits} unit
+                      Only {quote.availableUnits} suite
                       {quote.availableUnits === 1 ? '' : 's'} left for these
                       dates.
                     </p>
@@ -550,17 +581,23 @@ export function BookingCheckout({
               )}
             </div>
 
+            {/* Never greyed out for missing dates: a dead button explains
+                nothing. Pressing without a stay sends the guest back to the
+                check-in field with the reason spoken aloud. */}
             <button
               type="submit"
-              disabled={isBooking || !datesValid || !quote?.available}
-              className="btn-sweep btn-sweep-dark mt-4 flex w-full items-center justify-center gap-2.5 bg-brand px-[43px] py-4 font-heading text-base font-bold text-brand-foreground uppercase disabled:pointer-events-none disabled:opacity-50"
+              disabled={isBooking}
+              className={cn(
+                CTA_BUTTON,
+                'btn-sweep-dark mt-4 w-full bg-brand text-brand-foreground disabled:pointer-events-none',
+              )}
             >
               {isBooking ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <ArrowRight className="h-4 w-4" />
               )}
-              {isBooking ? 'Holding your room…' : 'Book & Pay'}
+              {isBooking ? 'Holding your suite…' : 'Reserve and pay'}
             </button>
 
             <ul className="mt-4 space-y-1.5 text-xs text-muted-foreground">
@@ -570,8 +607,15 @@ export function BookingCheckout({
               </li>
               <li className="flex items-center gap-1.5">
                 <BadgeCheck className="h-3.5 w-3.5 flex-none text-brand" />
-                Your room is held for 30 minutes while you pay.
+                Your suite is held for 30 minutes while you pay.
               </li>
+              {freeDays !== null && (
+                <li className="flex items-center gap-1.5">
+                  <CalendarCheck className="h-3.5 w-3.5 flex-none text-brand" />
+                  Free cancellation until {freeDays} day
+                  {freeDays === 1 ? '' : 's'} before check-in.
+                </li>
+              )}
             </ul>
           </div>
         </div>

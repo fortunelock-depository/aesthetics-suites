@@ -34,11 +34,11 @@ export function RoomReviews({
     >
       <Reveal>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading eyebrow="Testimonials" title="Guest Reviews" />
+          <SectionHeading eyebrow="Testimonials" title="Guest reviews" />
           {rating && (
             <p className="flex flex-none items-center gap-2 text-sm text-muted-foreground sm:pb-2">
               <Star className="h-4 w-4 fill-brand text-brand" />
-              <span className="font-heading text-lg font-semibold text-foreground">
+              <span className="text-base font-medium text-foreground">
                 {rating.average}
               </span>
               · {rating.count} review{rating.count === 1 ? '' : 's'}
@@ -49,7 +49,7 @@ export function RoomReviews({
 
       {reviews.length === 0 ? (
         <EmptyState
-              variant="site"
+          variant="site"
           icon={MessageSquareText}
           title="No reviews yet"
           description="Be the first to stay in this suite and tell us how it was."

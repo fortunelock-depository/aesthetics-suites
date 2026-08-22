@@ -11,7 +11,7 @@ export interface AccordionItem {
 }
 
 /**
- * The FAQ accordion for room details: light-gray item cards, the first
+ * The FAQ accordion for room details: soft item cards, the first
  * open by default, a circular arrow toggle on the right that flips when
  * open, and a smooth grid-rows slide for the answer.
  */
@@ -32,7 +32,7 @@ export function Accordion({ items }: { items: AccordionItem[] }) {
               onClick={() => setOpenIndex(open ? -1 : index)}
               className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left lg:px-9"
             >
-              <span className="min-w-0 font-heading text-lg font-medium text-foreground [overflow-wrap:anywhere] lg:text-xl">
+              <span className="min-w-0 text-[17px] font-medium text-foreground [overflow-wrap:anywhere] lg:text-lg">
                 {item.question}
               </span>
               <span
@@ -52,7 +52,7 @@ export function Accordion({ items }: { items: AccordionItem[] }) {
               )}
             >
               <div className="overflow-hidden">
-                <p className="px-6 pb-6 text-[15px] leading-[26px] text-muted-foreground lg:px-9">
+                <p className="px-6 pb-6 text-[15px] leading-[26px] text-foreground/80 lg:px-9">
                   {item.answer}
                 </p>
               </div>

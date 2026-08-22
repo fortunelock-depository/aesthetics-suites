@@ -10,7 +10,12 @@ import {
   RoomPriceWidget,
 } from '@/components/rooms/room-price-widget';
 import { RoomReviews } from '@/components/rooms/room-reviews';
-import { RoomsSidebarWidgets } from '@/components/rooms/rooms-sidebar';
+import { RoomStickyCta } from '@/components/rooms/room-sticky-cta';
+import {
+  RoomsSidebarWidgets,
+  SidebarWidget,
+} from '@/components/rooms/rooms-sidebar';
+import { EYEBROW } from '@/components/site/section-heading';
 import { getPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 import { getPublicRoomCards } from '@/lib/hotel/public-rooms';
 import { ROOM_DETAILS_CONTENT, SECTION_BANNERS } from '@/static-data/home';
@@ -51,7 +56,11 @@ export default async function RoomDetailPage({ params }: PageProps) {
   const room = await getPublicRoomDetail(slug);
   if (!room) notFound();
 
-  const allRooms = await getPublicRoomCards();
+  // The sidebar lists the OTHER suites: a link back to the page you are
+  // already reading is noise.
+  const otherRooms = (await getPublicRoomCards()).filter(
+    (card) => card.slug !== room.slug,
+  );
 
   return (
     <>
@@ -59,7 +68,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
       <JsonLd
         data={breadcrumbJsonLd([
           { name: 'Home', path: '/' },
-          { name: 'Rooms', path: '/rooms' },
+          { name: 'Rooms & Suites', path: '/rooms' },
           { name: room.name, path: roomDetail(room.slug) },
         ])}
       />
@@ -67,44 +76,36 @@ export default async function RoomDetailPage({ params }: PageProps) {
         <PageBanner
           title={room.name}
           image={SECTION_BANNERS.rooms}
-          trail={[{ label: 'Room List', href: '/rooms' }]}
+          trail={[{ label: 'Rooms & Suites', href: '/rooms' }]}
         />
 
         <section className="mx-auto grid w-full max-w-[1320px] gap-8 px-4 py-16 lg:grid-cols-[305px_1fr] lg:px-3 lg:py-[120px]">
-          {/* Sidebar: Your Price, then Category and Booking Now. */}
+          {/* Sidebar: the rate, then the other suites and availability. */}
           <aside className="order-2 space-y-8 lg:order-1 lg:sticky lg:top-[137px] lg:self-start">
-            <div className="border border-border bg-card p-7">
-              <h2 className="font-heading text-[22px] font-medium text-foreground">
-                Your Price
-              </h2>
-              <span aria-hidden className="mt-2 block h-0.5 w-10 bg-brand" />
-              <div className="mt-5">
-                <RoomPriceWidget room={room} />
-              </div>
-            </div>
+            <SidebarWidget title="Rate">
+              <RoomPriceWidget room={room} />
+            </SidebarWidget>
             <RoomsSidebarWidgets
-              rooms={allRooms}
+              rooms={otherRooms}
               bookPath={bookRoom(room.slug)}
             />
           </aside>
 
           {/* Content column. */}
           <article className="order-1 min-w-0 lg:order-2">
-            {/* Booking is the point of the page: below lg the sidebar's price
-                widget lands after everything else, so a compact price +
-                Book Now strip leads the content instead. */}
+            {/* Booking is the point of the page: below lg the sidebar's
+                rate widget lands after everything else, so a compact rate
+                and Book now strip leads the content instead. */}
             <div className="mb-8 lg:hidden">
               <RoomBookStrip room={room} />
             </div>
 
-            {/* h2: the banner's h1 already carries the room name - two
-                competing h1s made the generic one win in outlines. */}
-            {/* Name + a summary of up to 300 characters: never display
-                type. Description-sized bold ink on phones, a restrained
-                heading from sm. */}
-            <h2 className="font-heading text-[15px] leading-[26px] font-bold text-foreground [overflow-wrap:anywhere] sm:text-[22px] sm:leading-[1.4] sm:font-semibold lg:text-[26px]">
-              {room.name} - {room.summary}
-            </h2>
+            {/* The lede, not a heading: the banner's h1 already names the
+                suite, and the summary runs long enough that heading type
+                would swamp the page on a phone. */}
+            <p className="text-[17px] leading-[1.7] text-foreground [overflow-wrap:anywhere] lg:text-[19px] lg:leading-[1.65]">
+              {room.summary}
+            </p>
             {room.description.map((paragraph) => (
               <p
                 key={paragraph.slice(0, 40)}
@@ -122,15 +123,13 @@ export default async function RoomDetailPage({ params }: PageProps) {
                 aria-label="Other ways to book this apartment"
                 className="mt-[35px] border border-border bg-card p-5 sm:p-6"
               >
-                <p className="text-[15px] font-semibold text-brand-text capitalize">
-                  Also available as
-                </p>
+                <p className={EYEBROW}>Also available as</p>
                 <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5">
                   {room.alsoSoldAs.map((sibling) => (
                     <li key={sibling.slug}>
                       <StayLink
                         href={roomDetail(sibling.slug)}
-                        className="font-heading text-lg font-medium text-foreground underline-offset-4 transition-colors hover:text-brand-text hover:underline"
+                        className="font-heading text-xl font-normal text-foreground underline-offset-4 transition-colors hover:text-brand-text hover:underline"
                       >
                         {sibling.name}
                       </StayLink>
@@ -159,7 +158,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
             )}
 
             {/* Special check-in instructions. */}
-            <h3 className="mt-[45px] font-heading text-[26px] font-medium text-foreground lg:text-[32px]">
+            <h3 className="mt-[45px] font-heading text-[26px] leading-[1.2] font-light tracking-[-0.01em] text-foreground lg:text-[32px]">
               {ROOM_DETAILS_CONTENT.checkInTitle}
             </h3>
             {ROOM_DETAILS_CONTENT.checkInParagraphs.map((paragraph) => (
@@ -171,31 +170,35 @@ export default async function RoomDetailPage({ params }: PageProps) {
               </p>
             ))}
 
-            <hr className="mt-[45px] border-border" />
+            {room.amenities.length > 0 && (
+              <>
+                <hr className="mt-[45px] border-border" />
 
-            {/* Amenities grid: 3-column icon rows. */}
-            <h3 className="mt-[45px] font-heading text-[26px] font-medium text-foreground lg:text-[32px]">
-              Amenities
-            </h3>
-            <ul className="mt-6 grid gap-x-8 gap-y-5 min-[480px]:grid-cols-2 lg:grid-cols-3">
-              {room.amenities.map((amenity) => {
-                const Icon = amenityIcon(amenity);
-                return (
-                  <li
-                    key={amenity}
-                    className="flex min-w-0 items-center gap-4 text-[15px] text-foreground"
-                  >
-                    <Icon
-                      className="h-7 w-7 flex-none text-brand"
-                      strokeWidth={1.25}
-                    />
-                    <span className="min-w-0 [overflow-wrap:anywhere]">
-                      {amenity}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+                {/* Amenities grid: 3-column icon rows. */}
+                <h3 className="mt-[45px] font-heading text-[26px] leading-[1.2] font-light tracking-[-0.01em] text-foreground lg:text-[32px]">
+                  Amenities
+                </h3>
+                <ul className="mt-6 grid gap-x-8 gap-y-5 min-[480px]:grid-cols-2 lg:grid-cols-3">
+                  {room.amenities.map((amenity) => {
+                    const Icon = amenityIcon(amenity);
+                    return (
+                      <li
+                        key={amenity}
+                        className="flex min-w-0 items-center gap-4 text-[15px] text-foreground"
+                      >
+                        <Icon
+                          className="h-7 w-7 flex-none text-brand"
+                          strokeWidth={1.25}
+                        />
+                        <span className="min-w-0 [overflow-wrap:anywhere]">
+                          {amenity}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
 
             {/* FAQ accordion, first item open. */}
             <div className="mt-[50px]">
@@ -222,6 +225,14 @@ export default async function RoomDetailPage({ params }: PageProps) {
           reviews={room.reviews}
           reviewsTotal={room.reviewsTotal}
           rating={room.rating}
+        />
+
+        {/* Phones only: the rate and Book now follow the guest down the
+            page once the top strip is out of sight. */}
+        <RoomStickyCta
+          slug={room.slug}
+          basePrice={room.basePrice}
+          currency={room.currency}
         />
       </main>
     </>

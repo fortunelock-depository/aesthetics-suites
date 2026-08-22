@@ -9,10 +9,11 @@ export interface BreadcrumbEntry {
 }
 
 /**
- * The inner-page breadcrumb banner: dark room photography with a centered
- * white display title and the trail "Home - [ancestors] - {page}" (current
- * page in gold). Detail pages pass their list page via `trail` so
- * the crumb reads Home - Room List - {room}.
+ * The inner-page breadcrumb banner: room photography under an ink wash,
+ * with a centered white display title and the trail
+ * "Home - [ancestors] - {page}" (current page in clay). Detail pages pass
+ * their list page via `trail`, so the crumb reads
+ * Home - Rooms & Suites - {room}.
  */
 export function PageBanner({
   title,
@@ -34,10 +35,16 @@ export function PageBanner({
         sizes="100vw"
         priority
       />
-      <div aria-hidden className="absolute inset-0 -z-10 bg-[#0E1317]/70" />
+      {/* An even wash light enough to keep the photograph, plus a deeper
+          gradient from the base where the title and trail sit. */}
+      <div aria-hidden className="absolute inset-0 -z-10 bg-scrim/40" />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 -z-10 h-3/4 bg-linear-to-t from-scrim/60 to-transparent"
+      />
 
       <div className="mx-auto flex min-h-[280px] w-full max-w-[1320px] flex-col items-center justify-center px-4 py-16 text-center lg:min-h-[330px] lg:px-3">
-        <h1 className="font-heading text-[36px] leading-[1.2] font-medium text-white [overflow-wrap:anywhere] lg:text-[55px]">
+        <h1 className="font-heading text-[38px] leading-[1.15] font-light tracking-[-0.01em] text-white [overflow-wrap:anywhere] lg:text-[58px]">
           {title}
         </h1>
         <nav aria-label="Breadcrumb" className="mt-3">

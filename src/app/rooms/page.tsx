@@ -24,14 +24,14 @@ export default async function RoomsPage() {
 
   return (
     <main className="flex-1">
-      <PageBanner title="Room List" image={SECTION_BANNERS.rooms} />
+      <PageBanner title="Rooms & Suites" image={SECTION_BANNERS.rooms} />
 
       {rooms.length === 0 ? (
         <section className="mx-auto w-full max-w-[1320px] px-4 py-16 lg:px-3 lg:py-[120px]">
           <EmptyState
             variant="site"
-            title="No rooms available right now"
-            description="We are refreshing our listings - please check back soon or contact us directly."
+            title="No suites available right now"
+            description="We are refreshing our listings - please check back soon, or contact us directly."
           />
         </section>
       ) : (

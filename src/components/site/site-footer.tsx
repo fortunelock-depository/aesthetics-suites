@@ -2,22 +2,19 @@
 import Link from 'next/link';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { BrandLogo } from './brand-logo';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { SocialCircles } from './social-circles';
 import { SITE, CONTACT } from '@/config/constants';
 import { OPENING_HOURS } from '@/static-data/home';
 import { siteNavLinks } from './nav-links';
 import { routes } from '@/lib/routes';
 
 /**
- * Public footer, light-toned: brand lockup + blurb + social circles, quick
- * links, contact column, opening-hours rows with dotted leaders, then the
- * bottom bar with legal links and the developer credit. `id="contact"`
- * anchors the navbar's Contact link.
+ * Public footer, light-toned: brand lockup + blurb, quick links, contact
+ * column, opening-hours rows, then the bottom bar with legal links and the
+ * developer credit. `id="contact"` anchors the navbar's Contact link.
  */
 export function SiteFooter() {
   const legalLinks = [
-    { href: routes.bookings, label: 'Manage Booking' },
+    { href: routes.bookings, label: 'Manage booking' },
     { href: routes.privacy, label: 'Privacy Policy' },
     { href: routes.terms, label: 'Terms of Service' },
   ];
@@ -28,18 +25,18 @@ export function SiteFooter() {
         {/* Brand */}
         <div>
           <BrandLogo withTagline />
-          <p className="mt-4 max-w-xs text-[15px] leading-[26px] text-muted-foreground">
+          <p className="mt-4 max-w-xs text-[15px] leading-[26px] text-foreground/80">
             {SITE.description}
           </p>
-          <SocialCircles className="mt-5 flex items-center gap-3" />
+          {/* The social circles return here once the profiles exist. */}
         </div>
 
         {/* Quick links; on phones the legal/support links stack beside
             them (they live in the bottom bar from sm up). */}
         <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:block">
           <div>
-            <h2 className="font-heading text-xl font-medium text-foreground">
-              Quick Links
+            <h2 className="font-heading text-xl font-normal text-foreground">
+              Quick links
             </h2>
             <ul className="mt-5 space-y-3">
               {siteNavLinks.map((link) => (
@@ -55,7 +52,7 @@ export function SiteFooter() {
             </ul>
           </div>
           <div className="sm:hidden">
-            <h2 className="font-heading text-xl font-medium text-foreground">
+            <h2 className="font-heading text-xl font-normal text-foreground">
               Support
             </h2>
             <ul className="mt-5 space-y-3">
@@ -75,7 +72,7 @@ export function SiteFooter() {
 
         {/* Contact */}
         <div>
-          <h2 className="font-heading text-xl font-medium text-foreground">
+          <h2 className="font-heading text-xl font-normal text-foreground">
             Contact
           </h2>
           <ul className="mt-5 space-y-3.5 text-[15px] text-muted-foreground">
@@ -104,16 +101,16 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        {/* Opening hours - dotted-leader rows. */}
+        {/* Opening hours - hairline-separated rows. */}
         <div>
-          <h2 className="font-heading text-xl font-medium text-foreground">
-            Opening Hours
+          <h2 className="font-heading text-xl font-normal text-foreground">
+            Opening hours
           </h2>
           <ul className="mt-5 space-y-3.5">
             {OPENING_HOURS.map((row) => (
               <li
                 key={row.label}
-                className="flex items-baseline gap-2 border-b border-dashed border-border pb-2.5 text-[15px] last:border-0"
+                className="flex items-baseline gap-2 border-b border-border/60 pb-2.5 text-[15px] last:border-0"
               >
                 <span className="text-muted-foreground">{row.label}</span>
                 <span className="min-w-4 flex-1" aria-hidden />
@@ -140,30 +137,23 @@ export function SiteFooter() {
                 href="https://manuru.dev"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-foreground transition-colors hover:text-brand-text hover:underline"
+                className="text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-brand-text"
               >
                 manuru
               </a>
             </span>
           </p>
-          <div className="flex items-center gap-5">
-            <nav
-              aria-label="Legal"
-              className="hidden items-center gap-5 sm:flex"
-            >
-              {legalLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="transition-colors hover:text-brand-text"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-            {/* Desktop-only here; phones/tablets use the navbar toggle. */}
-            <ThemeToggle className="hidden h-8 w-8 border border-border text-foreground hover:bg-muted lg:inline-flex" />
-          </div>
+          <nav aria-label="Legal" className="hidden items-center gap-5 sm:flex">
+            {legalLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="transition-colors hover:text-brand-text"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </div>
     </footer>

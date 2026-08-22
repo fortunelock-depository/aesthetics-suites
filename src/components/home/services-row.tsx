@@ -27,7 +27,7 @@ export function ServicesRow({ services }: { services: IPublicService[] }) {
                   <Icon className="h-8 w-8" strokeWidth={1.25} />
                 </span>
                 <div className="min-w-0">
-                  <h3 className="font-heading text-[22px] font-medium">
+                  <h3 className="font-heading text-2xl font-normal tracking-[-0.01em]">
                     <Link
                       href={serviceDetail(service.slug)}
                       className="text-foreground transition-colors hover:text-brand-text [overflow-wrap:anywhere]"
@@ -35,7 +35,7 @@ export function ServicesRow({ services }: { services: IPublicService[] }) {
                       {service.name}
                     </Link>
                   </h3>
-                  <p className="mt-2 text-[15px] leading-[26px] text-muted-foreground">
+                  <p className="mt-2 text-[15px] leading-[26px] text-foreground/80">
                     {service.summary}
                   </p>
                 </div>

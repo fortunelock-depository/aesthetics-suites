@@ -2,12 +2,14 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CircleCheck, CircleX, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { CtaLink, ctaClasses } from '@/components/site/cta-link';
+import { EYEBROW } from '@/components/site/section-heading';
 import { useVerifyPaymentMutation } from '@/redux/payments-api';
 import { extractApiError } from '@/lib/extract-api-error';
+import { formatMoney } from '@/lib/format-money';
+import { formatDateTime } from '@/lib/format-date';
 import { routes } from '@/lib/routes';
 
 type State =
@@ -17,6 +19,66 @@ type State =
   | 'refunded'
   | 'refund_pending'
   | 'failed';
+
+/** What the verified payment tells the guest about their stay. */
+interface Receipt {
+  code: string;
+  guestEmail: string;
+  /** Minor units (pesewas). */
+  amount: number;
+  currency: string;
+  paidAt: string | null;
+}
+
+// The CtaLink treatment carried on a <button>: re-verifying stays on this
+// page, so these actions cannot be links.
+const RETRY_BUTTON = ctaClasses({ sweep: 'light' });
+
+const HEADING =
+  'font-heading text-[26px] leading-[1.2] font-light tracking-[-0.01em] text-foreground sm:text-[30px]';
+const BODY = 'mx-auto mt-3 max-w-sm text-[15px] leading-[26px] text-muted-foreground';
+const ACTIONS = 'mt-8 flex flex-wrap items-center justify-center gap-3';
+
+function bookingHref({ code, guestEmail }: Receipt) {
+  return `${routes.bookings}?code=${encodeURIComponent(code)}&email=${encodeURIComponent(guestEmail)}`;
+}
+
+/** The stay's paper trail: what the guest should keep or quote back to us. */
+function ReceiptSummary({
+  receipt,
+  reference,
+}: {
+  receipt: Receipt;
+  reference: string;
+}) {
+  const rows: { label: string; value: string }[] = [
+    { label: 'Booking code', value: receipt.code },
+    {
+      label: 'Amount paid',
+      value: formatMoney(receipt.amount, receipt.currency),
+    },
+    ...(receipt.paidAt
+      ? [{ label: 'Paid', value: formatDateTime(receipt.paidAt) }]
+      : []),
+    { label: 'Reference', value: reference },
+  ];
+
+  return (
+    <dl className="mt-8 border-t border-border text-left">
+      {rows.map(({ label, value }) => (
+        <div
+          key={label}
+          className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-border py-3"
+        >
+          <dt className="text-sm text-muted-foreground">{label}</dt>
+          <dd className="text-[15px] font-medium text-foreground [overflow-wrap:anywhere]">
+            {value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 /**
  * The Paystack return page body. Paystack appends BOTH `reference` and
@@ -39,10 +101,7 @@ export function PaymentVerifyClient({
   const [message, setMessage] = useState(
     reference ? '' : 'This link is missing its payment reference.',
   );
-  const [booking, setBooking] = useState<{
-    code: string;
-    guestEmail: string;
-  } | null>(null);
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
   const ran = useRef(false);
 
   const runVerify = useCallback(() => {
@@ -51,6 +110,15 @@ export function PaymentVerifyClient({
       .unwrap()
       .then((res) => {
         const paidBooking = res.data.booking;
+        const paid: Receipt | null = paidBooking
+          ? {
+              code: paidBooking.code,
+              guestEmail: paidBooking.guestEmail,
+              amount: res.data.amount,
+              currency: res.data.currency,
+              paidAt: res.data.paidAt,
+            }
+          : null;
         // Branch on the server-resolved outcome, never on the raw payment
         // status: an auto-refunded charge arrives here already REVERSED,
         // so a status check would call it "not confirmed" while a refund
@@ -67,12 +135,7 @@ export function PaymentVerifyClient({
         // this as failed (they paid) or as confirmed (the stay is not
         // secured); "Try again" re-verifies and usually resolves it.
         if (res.data.outcome === 'processing') {
-          if (paidBooking) {
-            setBooking({
-              code: paidBooking.code,
-              guestEmail: paidBooking.guestEmail,
-            });
-          }
+          if (paid) setReceipt(paid);
           setState('processing');
           return;
         }
@@ -81,12 +144,7 @@ export function PaymentVerifyClient({
           setMessage("This payment hasn't been confirmed yet.");
           return;
         }
-        if (paidBooking) {
-          setBooking({
-            code: paidBooking.code,
-            guestEmail: paidBooking.guestEmail,
-          });
-        }
+        if (paid) setReceipt(paid);
         setState('success');
         onConfirmed?.();
       })
@@ -103,66 +161,74 @@ export function PaymentVerifyClient({
   }, [reference, runVerify]);
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-card px-6 py-10 text-center">
+    <div className="mx-auto w-full max-w-lg border border-border bg-card px-6 py-10 text-center sm:px-10">
       {state === 'verifying' && (
         <>
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-          <h1 className="mt-4 text-lg font-semibold">Confirming your payment…</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            This usually takes a few seconds.
-          </p>
+          <Loader2 className="mx-auto h-9 w-9 animate-spin text-brand" />
+          <h1 className={`mt-6 ${HEADING}`}>Confirming your payment</h1>
+          <p className={BODY}>This usually takes a few seconds.</p>
         </>
       )}
 
       {state === 'success' && (
         <>
-          <CircleCheck className="mx-auto h-10 w-10 text-brand" />
-          <h1 className="mt-4 text-lg font-semibold">Payment confirmed</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Thank you - your payment went through successfully.
+          <CircleCheck
+            className="mx-auto h-11 w-11 text-brand"
+            strokeWidth={1.25}
+          />
+          <p className={`mt-6 ${EYEBROW}`}>Paid</p>
+          <h1 className={`mt-3 ${HEADING}`}>Booking confirmed</h1>
+          <p className={BODY}>
+            {receipt
+              ? `Your suite is held. The confirmation is on its way to ${receipt.guestEmail}.`
+              : 'Your payment went through. The confirmation is on its way to you by email.'}
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            {booking && (
-              <Button asChild>
-                <Link
-                  href={`${routes.bookings}?code=${encodeURIComponent(booking.code)}&email=${encodeURIComponent(booking.guestEmail)}`}
-                >
-                  View my booking
-                </Link>
-              </Button>
+          {receipt && (
+            <ReceiptSummary receipt={receipt} reference={reference} />
+          )}
+          <div className={ACTIONS}>
+            {receipt && (
+              <CtaLink href={bookingHref(receipt)}>View my booking</CtaLink>
             )}
-            <Button asChild variant={booking ? 'outline' : 'default'}>
-              <Link href={routes.home}>Back to home</Link>
-            </Button>
+            <CtaLink
+              href={routes.home}
+              variant={receipt ? 'outline' : 'solid'}
+              sweep={receipt ? 'gold' : 'light'}
+            >
+              Back to home
+            </CtaLink>
           </div>
         </>
       )}
 
       {state === 'processing' && (
         <>
-          <Loader2 className="mx-auto h-10 w-10 animate-spin text-brand" />
-          <h1 className="mt-4 text-lg font-semibold">
-            Payment received - finalising your booking
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            We have your payment and are still confirming the reservation.
-            This normally settles within a few minutes and you will get a
+          <Loader2
+            className="mx-auto h-11 w-11 animate-spin text-brand"
+            strokeWidth={1.25}
+          />
+          <h1 className={`mt-6 ${HEADING}`}>Payment received</h1>
+          <p className={BODY}>
+            We have your money and are still confirming the reservation. This
+            normally settles within a few minutes and you will get a
             confirmation email. If anything needs attention our team is
             alerted automatically.
           </p>
-          <p className="mt-3 text-xs text-muted-foreground [overflow-wrap:anywhere]">
+          <p className="mt-4 text-sm text-muted-foreground [overflow-wrap:anywhere]">
             Reference: {reference}
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button onClick={runVerify}>Check again</Button>
-            {booking && (
-              <Button asChild variant="outline">
-                <Link
-                  href={`${routes.bookings}?code=${encodeURIComponent(booking.code)}&email=${encodeURIComponent(booking.guestEmail)}`}
-                >
-                  View my booking
-                </Link>
-              </Button>
+          <div className={ACTIONS}>
+            <button type="button" onClick={runVerify} className={RETRY_BUTTON}>
+              Check again
+            </button>
+            {receipt && (
+              <CtaLink
+                href={bookingHref(receipt)}
+                variant="outline"
+                sweep="gold"
+              >
+                View my booking
+              </CtaLink>
             )}
           </div>
         </>
@@ -170,61 +236,72 @@ export function PaymentVerifyClient({
 
       {state === 'refunded' && (
         <>
-          <CircleX className="mx-auto h-10 w-10 text-destructive" />
-          <h1 className="mt-4 text-lg font-semibold">
-            Payment received - room no longer available
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <CircleX
+            className="mx-auto h-11 w-11 text-destructive"
+            strokeWidth={1.25}
+          />
+          <h1 className={`mt-6 ${HEADING}`}>The suite was taken</h1>
+          <p className={BODY}>
             Your payment arrived after the reservation hold expired and the
-            room has since been taken. A refund has been initiated to your
+            room has since been booked. A refund has been sent back to your
             payment method, and our team has been notified.
           </p>
-          <Button asChild variant="outline" className="mt-6">
-            <Link href={routes.rooms}>Browse other rooms</Link>
-          </Button>
+          <div className={ACTIONS}>
+            <CtaLink href={routes.rooms}>View other suites</CtaLink>
+          </div>
         </>
       )}
 
       {state === 'refund_pending' && (
         <>
-          <CircleX className="mx-auto h-10 w-10 text-destructive" />
-          <h1 className="mt-4 text-lg font-semibold">
-            Payment received - room no longer available
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <CircleX
+            className="mx-auto h-11 w-11 text-destructive"
+            strokeWidth={1.25}
+          />
+          <h1 className={`mt-6 ${HEADING}`}>The suite was taken</h1>
+          <p className={BODY}>
             Your payment arrived after the reservation hold expired and the
-            room has since been taken. We could not return the money
+            room has since been booked. We could not return the money
             automatically, so our team has been alerted and will sort out
-            your refund. Please keep your payment reference.
+            your refund. Please keep the reference below.
           </p>
-          <p className="mt-3 text-xs text-muted-foreground [overflow-wrap:anywhere]">
+          <p className="mt-4 text-sm text-muted-foreground [overflow-wrap:anywhere]">
             Reference: {reference}
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button asChild variant="outline">
-              <Link href={routes.contact}>Contact us</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={routes.rooms}>Browse other rooms</Link>
-            </Button>
+          <div className={ACTIONS}>
+            <CtaLink href={routes.contact}>Reach us</CtaLink>
+            <CtaLink href={routes.rooms} variant="outline" sweep="gold">
+              View other suites
+            </CtaLink>
           </div>
         </>
       )}
 
       {state === 'failed' && (
         <>
-          <CircleX className="mx-auto h-10 w-10 text-destructive" />
-          <h1 className="mt-4 text-lg font-semibold">
-            Payment not confirmed
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground [overflow-wrap:anywhere]">
-            {message}
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            {reference && <Button onClick={runVerify}>Try again</Button>}
-            <Button asChild variant="outline">
-              <Link href={routes.home}>Back to home</Link>
-            </Button>
+          <CircleX
+            className="mx-auto h-11 w-11 text-destructive"
+            strokeWidth={1.25}
+          />
+          <h1 className={`mt-6 ${HEADING}`}>Payment not confirmed</h1>
+          <p className={`${BODY} [overflow-wrap:anywhere]`}>{message}</p>
+          <div className={ACTIONS}>
+            {reference && (
+              <button
+                type="button"
+                onClick={runVerify}
+                className={RETRY_BUTTON}
+              >
+                Try again
+              </button>
+            )}
+            <CtaLink
+              href={routes.home}
+              variant={reference ? 'outline' : 'solid'}
+              sweep={reference ? 'gold' : 'light'}
+            >
+              Back to home
+            </CtaLink>
           </div>
         </>
       )}

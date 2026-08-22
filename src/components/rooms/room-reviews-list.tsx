@@ -18,14 +18,14 @@ function ReviewCard({ review }: { review: IPublicReviewItem }) {
         </span>
       </div>
       {review.title && (
-        <p className="mt-3 font-heading text-lg font-medium text-foreground [overflow-wrap:anywhere]">
+        <p className="mt-3 font-heading text-[20px] leading-[1.3] font-normal tracking-[-0.01em] text-foreground [overflow-wrap:anywhere]">
           {review.title}
         </p>
       )}
       <p className="mt-2 flex-1 text-[15px] leading-[26px] text-muted-foreground [overflow-wrap:anywhere]">
         {review.body}
       </p>
-      <p className="mt-4 border-t border-dashed border-border pt-3.5 text-sm font-semibold text-foreground [overflow-wrap:anywhere]">
+      <p className="mt-4 border-t border-border pt-3.5 text-sm font-medium text-foreground [overflow-wrap:anywhere]">
         {review.guestName}
         {review.verifiedStay && (
           <span className="ml-2 inline-flex items-center gap-1 align-middle text-xs font-normal text-brand-text">
@@ -118,7 +118,7 @@ export function RoomReviewsList({
           </button>
           <span className="text-sm text-muted-foreground">
             Page{' '}
-            <span className="font-semibold text-foreground">{page}</span> of{' '}
+            <span className="font-medium text-foreground">{page}</span> of{' '}
             {totalPages}
           </span>
           <button

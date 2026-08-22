@@ -14,7 +14,7 @@ export function SidebarWidget({
 }) {
   return (
     <div className="border border-border bg-card p-7">
-      <h2 className="font-heading text-[22px] font-medium text-foreground">
+      <h2 className="font-heading text-[22px] font-normal tracking-[-0.01em] text-foreground">
         {title}
       </h2>
       <span aria-hidden className="mt-2 block h-0.5 w-10 bg-brand" />
@@ -24,30 +24,41 @@ export function SidebarWidget({
 }
 
 /**
- * Category + Booking Now (shared by the room list and room detail
- * sidebars). Desktop: inline widget cards. Phones: two
- * side-by-side buttons lifting each card up as a bottom drawer, so the
- * widgets never stretch the page.
+ * The suite list + availability form (shared by the room list and room
+ * detail sidebars). Desktop: inline widget cards. Phones: two side-by-side
+ * buttons lifting each card up as a bottom drawer, so the widgets never
+ * stretch the page.
  */
 export function RoomsSidebarWidgets({
   rooms,
   bookPath,
 }: {
+  /** May be empty (a detail page for the only published suite). */
   rooms: IPublicRoomCard[];
   /** Set on the room detail page: its own /book route, so the widget goes
    * straight to checkout with the chosen dates. */
   bookPath?: string;
 }) {
+  // On a room's own page the list is everything BUT the room being read;
+  // on the room list it is simply the suites.
+  const suitesTitle = bookPath ? 'Other suites' : 'Suites';
+
   return (
     <>
-      <MobileSidebarDrawers rooms={rooms} bookPath={bookPath} />
+      <MobileSidebarDrawers
+        rooms={rooms}
+        bookPath={bookPath}
+        suitesTitle={suitesTitle}
+      />
 
       <div className="hidden space-y-8 lg:block">
-        <SidebarWidget title="Category">
-          <CategoryList rooms={rooms} />
-        </SidebarWidget>
+        {rooms.length > 0 && (
+          <SidebarWidget title={suitesTitle}>
+            <CategoryList rooms={rooms} />
+          </SidebarWidget>
+        )}
 
-        <SidebarWidget title="Booking Now">
+        <SidebarWidget title="Check availability">
           <SidebarBookingCard bookPath={bookPath} />
         </SidebarWidget>
       </div>

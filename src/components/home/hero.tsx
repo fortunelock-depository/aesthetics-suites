@@ -1,47 +1,43 @@
 // src/components/home/hero.tsx
 import { Reveal } from '@/components/site/reveal';
+import { EYEBROW } from '@/components/site/section-heading';
 import { HERO } from '@/static-data/home';
-import { PlayCircle } from '@/components/site/play-circle';
 import { BookingBar } from './booking-bar';
 import { HeroSlideshow } from './hero-slideshow';
 
 /**
  * The landing hero: full-bleed imagery, a two-line staircase headline and
  * the booking bar riding the bottom edge, toned light - ivory field, dark
- * display type, gold accents.
+ * display type, clay accents.
  */
 export function Hero() {
   return (
     <section aria-label="Welcome" className="relative">
-      {/* Backdrop: cross-dissolving stills with a light scrim over them so
-          the headline stays dark-on-light through every frame. */}
+      {/* Backdrop: cross-dissolving stills under an ivory wash that is
+          left-weighted and gone by the midpoint, so the headline keeps its
+          contrast while the photography still reads. The phone layout runs
+          the copy across the full width, so it holds a lighter wash all the
+          way over; from lg the right half is the photograph alone. */}
       <div className="absolute inset-0 -z-10">
         <HeroSlideshow />
         <div
           aria-hidden
-          className="absolute inset-0 bg-[linear-gradient(90deg,var(--background)_15%,color-mix(in_oklch,var(--background),transparent_35%)_55%,color-mix(in_oklch,var(--background),transparent_70%)_100%)]"
+          className="absolute inset-0 bg-[linear-gradient(90deg,color-mix(in_oklch,var(--background),transparent_8%)_0%,color-mix(in_oklch,var(--background),transparent_28%)_45%,color-mix(in_oklch,var(--background),transparent_55%)_100%)] lg:bg-[linear-gradient(90deg,color-mix(in_oklch,var(--background),transparent_12%)_0%,color-mix(in_oklch,var(--background),transparent_45%)_32%,transparent_62%)]"
         />
       </div>
 
       <div className="mx-auto w-full max-w-[1320px] px-4 lg:px-3">
-        <div className="flex min-h-[70vh] items-center justify-between gap-10 pt-36 pb-16 sm:pb-24 lg:min-h-[750px] lg:pt-[161px]">
-          <Reveal>
-            <p className="text-sm font-medium tracking-[0.2em] text-brand-text uppercase">
-              {HERO.eyebrow}
-            </p>
+        <div className="flex min-h-[70vh] flex-col justify-center pt-36 pb-16 sm:pb-24 lg:min-h-[750px] lg:pt-[161px]">
+          <Reveal className="max-w-3xl">
+            <p className={EYEBROW}>{HERO.eyebrow}</p>
             {/* Staircase headline: line two steps inward. */}
-            <h1 className="mt-4 font-heading text-[44px] leading-[1.2] font-bold text-foreground sm:text-6xl lg:text-[80px] lg:leading-[100px]">
+            <h1 className="mt-5 font-heading text-[46px] leading-[1.1] font-light tracking-[-0.01em] text-foreground sm:text-[68px] lg:text-[92px]">
               {HERO.titleLine1}
               <span className="block sm:pl-[12%]">{HERO.titleLine2}</span>
             </h1>
-            <p className="mt-5 max-w-md text-[15px] leading-[26px] text-muted-foreground sm:text-lg sm:leading-relaxed">
+            <p className="mt-6 max-w-lg text-[15px] leading-[26px] text-foreground/80 sm:text-lg sm:leading-relaxed">
               {HERO.blurb}
             </p>
-          </Reveal>
-
-          {/* Animated play medallion, right of the headline. */}
-          <Reveal delay={0.25} from="right" className="hidden md:block">
-            <PlayCircle tone="dark" />
           </Reveal>
         </div>
 

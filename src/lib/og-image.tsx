@@ -1,15 +1,13 @@
 // src/lib/og-image.tsx
 //
-// Shared Open Graph card template used by every opengraph-image.tsx file
-// convention. Mirrors the site's visual language: warm charcoal field, dot
-// grid, soft bronze glow, monogram badge (logo fallback), and a
-// call-to-action pill so shares invite a click.
+// Shared Open Graph card used by every opengraph-image.tsx file convention:
+// the ivory field, the logo lockup, the page's line set large in the display
+// face, and the property's location along the foot.
 //
-// Satori (behind ImageResponse) supports flexbox + a CSS subset only - no
-// grid - so the layout is flex-based, and the ambient glows are positioned
-// divs with radial gradients rather than layered backgrounds. OG file
-// conventions run on the Node runtime, so the logo (when present in
-// public/logo.png) is read from disk and embedded as a data URI.
+// Satori (behind ImageResponse) supports flexbox and a CSS subset only, so
+// the layout is flex-based. It also cannot read the CSS custom properties in
+// globals.css or parse the oklch() they are declared in, so the palette is
+// repeated here as the hex each token resolves to.
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { ImageResponse } from 'next/og';
@@ -18,17 +16,18 @@ import { SITE, CONTACT } from '@/config/constants';
 export const OG_SIZE = { width: 1200, height: 630 } as const;
 export const OG_CONTENT_TYPE = 'image/png';
 
-// Dark-theme palette from globals.css, as hex for Satori.
-const BG = '#1E2118'; // --background (dark olive)
-const FG = '#F4F1DC'; // --foreground (dark)
-const MUTED = '#B8BCA0'; // --muted-foreground (dark)
-const BRAND = '#DCA278'; // --brand (clay)
-const BRAND_INK = '#252A1C';
-const BORDER = 'rgba(255,255,255,0.14)';
+const IVORY = '#FFF9E2'; // --background
+const INK = '#252A1C'; // --foreground
+const MUTED_INK = '#6B6F55'; // --muted-foreground
+const CLAY_TEXT = '#89552C'; // --brand-text
+const HAIRLINE = '#DBDEC2'; // --border
 
-/** The white logo mark as a data URI; null falls back to the monogram. */
+const DISPLAY = 'Cormorant Garamond';
+const SANS = 'Jost';
+
+/** The dark logo mark as a data URI; null drops the mark from the lockup. */
 async function logoSrc(): Promise<string | null> {
-  for (const file of ['logo-mark.png', 'logo.png']) {
+  for (const file of ['logo-mark-dark.png', 'logo.png']) {
     try {
       const logo = await readFile(path.join(process.cwd(), 'public', file));
       return `data:image/png;base64,${logo.toString('base64')}`;
@@ -39,23 +38,46 @@ async function logoSrc(): Promise<string | null> {
   return null;
 }
 
+// 'wOF2' as a big-endian uint32. Satori reads ttf, otf and woff; handed a
+// woff2 payload it throws on the signature, which would fail the build, so a
+// face that arrives compressed is dropped and the card renders in the
+// bundled fallback face instead.
+const WOFF2_SIGNATURE = 0x774f4632;
+
+async function loadFont(url: URL, name: string) {
+  try {
+    const data = await fetch(url).then((res) => res.arrayBuffer());
+    if (data.byteLength < 4) return null;
+    if (new DataView(data).getUint32(0) === WOFF2_SIGNATURE) return null;
+    return { name, data, weight: 400 as const, style: 'normal' as const };
+  } catch {
+    return null;
+  }
+}
+
 export async function brandOgImage({
   eyebrow,
   title,
   subtitle,
-  cta,
 }: {
   eyebrow: string;
   title: string;
   subtitle: string;
-  /** The conversion line on the card - tailor it per page. */
-  cta?: string;
 }) {
   // Long titles scale down so they never overflow the card.
-  const titleSize = title.length > 60 ? 50 : title.length > 32 ? 60 : 78;
+  const titleSize = title.length > 60 ? 56 : title.length > 32 ? 68 : 84;
   const host = new URL(SITE.url).host;
-  const ctaText = cta ?? 'Visit the suites →';
-  const logo = await logoSrc();
+  const [logo, display, sans] = await Promise.all([
+    logoSrc(),
+    // TTF rather than the woff2 the browser gets: satori cannot decompress
+    // woff2, so the display face ships in both formats.
+    loadFont(
+      new URL('../app/fonts/cormorant-garamond-400.ttf', import.meta.url),
+      DISPLAY,
+    ),
+    loadFont(new URL('../app/fonts/jost-400.woff2', import.meta.url), SANS),
+  ]);
+  const fonts = [display, sans].filter((font) => font !== null);
 
   return new ImageResponse(
     (
@@ -66,102 +88,47 @@ export async function brandOgImage({
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          padding: '52px 72px',
-          background: BG,
-          color: FG,
-          fontFamily: 'sans-serif',
-          backgroundImage:
-            'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.10) 1.5px, transparent 0)',
-          backgroundSize: '28px 28px',
+          padding: '64px 80px',
+          background: IVORY,
+          color: INK,
+          fontFamily: SANS,
         }}
       >
-        {/* Ambient brand glows */}
-        <div
-          style={{
-            position: 'absolute',
-            top: -180,
-            right: -120,
-            width: 560,
-            height: 560,
-            borderRadius: 560,
-            background:
-              'radial-gradient(circle, rgba(220,162,120,0.26) 0%, rgba(220,162,120,0) 70%)',
-            display: 'flex',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: -220,
-            left: -140,
-            width: 520,
-            height: 520,
-            borderRadius: 520,
-            background:
-              'radial-gradient(circle, rgba(220,162,120,0.16) 0%, rgba(220,162,120,0) 70%)',
-            display: 'flex',
-          }}
-        />
-
-        {/* Header: logo (or monogram) + brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          {logo ? (
+        {/* Brand lockup */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          {logo && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={logo}
               alt=""
-              width={80}
-              height={64}
-              style={{ width: 80, height: 64, objectFit: 'contain' }}
+              width={72}
+              height={58}
+              style={{ width: 72, height: 58, objectFit: 'contain' }}
             />
-          ) : (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 72,
-                height: 72,
-                borderRadius: 18,
-                background: BRAND,
-                color: BRAND_INK,
-                fontSize: 34,
-                fontWeight: 700,
-                letterSpacing: -1,
-              }}
-            >
-              AS
-            </div>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 28, fontWeight: 600 }}>{SITE.name}</div>
-            <div style={{ fontSize: 20, color: MUTED }}>
-              {SITE.tagline}
-            </div>
-          </div>
+          <div style={{ fontSize: 30, letterSpacing: 1 }}>{SITE.name}</div>
         </div>
 
-        {/* Body */}
+        {/* The page's line */}
         <div
-          style={{ display: 'flex', flexDirection: 'column', maxWidth: 1000 }}
+          style={{ display: 'flex', flexDirection: 'column', maxWidth: 940 }}
         >
           <div
             style={{
-              fontSize: 22,
-              letterSpacing: 7,
+              fontSize: 21,
+              letterSpacing: 5,
               textTransform: 'uppercase',
-              color: BRAND,
-              fontWeight: 600,
+              color: CLAY_TEXT,
             }}
           >
             {eyebrow}
           </div>
           <div
             style={{
-              marginTop: 12,
+              marginTop: 18,
+              fontFamily: DISPLAY,
               fontSize: titleSize,
-              fontWeight: 700,
-              lineHeight: 1.08,
+              lineHeight: 1.05,
               letterSpacing: -1.5,
             }}
           >
@@ -169,48 +136,33 @@ export async function brandOgImage({
           </div>
           <div
             style={{
-              marginTop: 14,
+              marginTop: 18,
               fontSize: 26,
-              color: MUTED,
-              lineHeight: 1.4,
+              lineHeight: 1.45,
+              color: MUTED_INK,
             }}
           >
             {subtitle}
           </div>
-          <div
-            style={{
-              display: 'flex',
-              alignSelf: 'flex-start',
-              marginTop: 26,
-              background: BRAND,
-              color: BRAND_INK,
-              borderRadius: 999,
-              padding: '14px 30px',
-              fontSize: 24,
-              fontWeight: 600,
-            }}
-          >
-            {ctaText}
-          </div>
         </div>
 
-        {/* Footer */}
+        {/* Foot */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingTop: 24,
-            borderTop: `1px solid ${BORDER}`,
+            paddingTop: 26,
+            borderTop: `1px solid ${HAIRLINE}`,
             fontSize: 22,
-            color: MUTED,
+            color: MUTED_INK,
           }}
         >
-          <span style={{ color: FG }}>{host}</span>
-          <span>Suites · Comfort · {CONTACT.location}</span>
+          <span style={{ color: INK }}>{host}</span>
+          <span>{CONTACT.location}</span>
         </div>
       </div>
     ),
-    OG_SIZE,
+    { ...OG_SIZE, ...(fonts.length > 0 && { fonts }) },
   );
 }

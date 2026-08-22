@@ -23,6 +23,7 @@ import { extractApiError } from '@/lib/extract-api-error';
 import { formatDate, formatDateTime } from '@/lib/format-date';
 import { formatMoney } from '@/lib/format-money';
 import { STAY_TIMES } from '@/config/constants';
+import { CTA_BUTTON, FIELD } from './field-styles';
 import { cn } from '@/lib/utils';
 import {
   BOOKING_STATUS_LABEL,
@@ -30,9 +31,6 @@ import {
   type IGuestBooking,
 } from '@/types/booking.types';
 import { bookRoom } from '@/lib/routes';
-
-const FIELD =
-  'w-full min-w-0 border border-border bg-card px-4 py-3.5 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand';
 
 function StayRow({
   label,
@@ -53,14 +51,14 @@ function StayRow({
 
 const STATUS_COPY: Record<IGuestBooking['status'], string> = {
   PENDING:
-    'Your room is held - complete payment before the hold expires to confirm your stay.',
+    'Your suite is held - complete payment before the hold expires to confirm your stay.',
   CONFIRMED: 'You are all set - we look forward to hosting you.',
   CHECKED_IN: 'Enjoy your stay! The front desk is available around the clock.',
   CHECKED_OUT: 'Thanks for staying with us - we hope to see you again.',
   CANCELLED: 'This booking was cancelled.',
   NO_SHOW: 'This booking was marked as a no-show.',
   EXPIRED:
-    'The payment hold expired, so this booking was released. You can book the room again.',
+    'The payment hold expired, so this booking was released. You can book the suite again.',
 };
 
 /**
@@ -150,7 +148,7 @@ export function ManageBookingClient({
               htmlFor="manage-code"
               className="mb-1.5 block text-sm font-medium text-muted-foreground"
             >
-              Booking Code
+              Booking code
             </label>
             <input
               id="manage-code"
@@ -185,19 +183,22 @@ export function ManageBookingClient({
         <button
           type="submit"
           disabled={isFetching}
-          className="btn-sweep btn-sweep-dark flex w-full items-center justify-center gap-2.5 bg-brand px-[43px] py-4 font-heading text-base font-bold text-brand-foreground uppercase disabled:pointer-events-none disabled:opacity-50"
+          className={cn(
+            CTA_BUTTON,
+            'btn-sweep-dark w-full bg-brand text-brand-foreground disabled:pointer-events-none',
+          )}
         >
           {isFetching ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Search className="h-4 w-4" />
           )}
-          {isFetching ? 'Looking up…' : 'Find My Booking'}
+          {isFetching ? 'Looking up…' : 'Find my booking'}
         </button>
       </form>
 
       {isError && (
-        <p className="mt-6 border border-dashed border-border bg-card px-5 py-4 text-center text-sm text-muted-foreground">
+        <p className="mt-6 border border-border bg-card px-5 py-4 text-center text-sm text-muted-foreground">
           {extractApiError(error).message}
         </p>
       )}
@@ -205,7 +206,7 @@ export function ManageBookingClient({
       {booking && !isFetching && (
         <div className="mt-8 border border-border bg-card p-6">
           <div className="flex flex-col gap-2 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between">
-            <p className="min-w-0 font-heading text-lg font-medium text-foreground [overflow-wrap:anywhere]">
+            <p className="min-w-0 font-heading text-[20px] leading-[1.3] font-normal tracking-[-0.01em] text-foreground [overflow-wrap:anywhere]">
               {booking.roomType.name}
             </p>
             <StatusBadge
@@ -245,7 +246,7 @@ export function ManageBookingClient({
               </span>
             </StayRow>
             <StayRow label="Total">
-              <span className="font-semibold">
+              <span className="font-medium">
                 {formatMoney(booking.totalAmount, booking.currency)}
               </span>
             </StayRow>
@@ -268,14 +269,17 @@ export function ManageBookingClient({
                   type="button"
                   onClick={handlePay}
                   disabled={isPaying}
-                  className="btn-sweep btn-sweep-dark flex flex-1 items-center justify-center gap-2.5 bg-brand px-6 py-3.5 font-heading text-sm font-bold text-brand-foreground uppercase disabled:pointer-events-none disabled:opacity-50"
+                  className={cn(
+                    CTA_BUTTON,
+                    'btn-sweep-dark flex-1 bg-brand px-6 text-brand-foreground disabled:pointer-events-none disabled:opacity-60',
+                  )}
                 >
                   {isPaying ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <CreditCard className="h-4 w-4" />
                   )}
-                  {isPaying ? 'Starting payment…' : 'Complete Payment'}
+                  {isPaying ? 'Starting payment…' : 'Complete payment'}
                 </button>
               )}
               {canCancel && (
@@ -283,10 +287,13 @@ export function ManageBookingClient({
                   type="button"
                   onClick={() => setCancelOpen(true)}
                   disabled={isCancelling}
-                  className="flex flex-1 items-center justify-center gap-2 border border-border px-6 py-3.5 font-heading text-sm font-bold text-muted-foreground uppercase transition-colors hover:border-destructive hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
+                  className={cn(
+                    CTA_BUTTON,
+                    'flex-1 border border-border px-6 text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:pointer-events-none disabled:opacity-60',
+                  )}
                 >
                   <Ban className="h-4 w-4" />
-                  Cancel Booking
+                  Cancel booking
                 </button>
               )}
             </div>
@@ -295,9 +302,9 @@ export function ManageBookingClient({
           {booking.status === 'EXPIRED' && (
             <a
               href={bookRoom(booking.roomType.slug)}
-              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-text hover:underline"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-brand-text underline-offset-4 hover:underline"
             >
-              Book this room again
+              Book this suite again
               <ArrowRight className="h-4 w-4" />
             </a>
           )}

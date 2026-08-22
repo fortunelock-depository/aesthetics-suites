@@ -14,23 +14,30 @@ import './globals.css';
 // call that can fail for reasons unrelated to the code. These are the same
 // files Google would have served.
 
-// Body face (Lato ships 400/700 only).
-const lato = localFont({
+// Body and interface face. Geometric, so it sits with the logo wordmark, and
+// carried at 300-600 because the UI leans on 500 for labels and 600 for
+// figures. Every weight the markup asks for is loaded here: a missing weight
+// is silently synthesised by the browser at the nearest one it does have.
+const jost = localFont({
   src: [
-    { path: './fonts/lato-400.woff2', weight: '400', style: 'normal' },
-    { path: './fonts/lato-700.woff2', weight: '700', style: 'normal' },
+    { path: './fonts/jost-300.woff2', weight: '300', style: 'normal' },
+    { path: './fonts/jost-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/jost-500.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/jost-600.woff2', weight: '600', style: 'normal' },
   ],
   variable: '--font-sans',
   display: 'swap',
 });
 
-// Display face for headings.
-const baiJamjuree = localFont({
+// Display face for headings, the hero and rates. High-contrast old-style
+// serif, set light and large: the contrast is what reads as considered at
+// display sizes, and it would muddy body copy, so it never runs below ~20px.
+const cormorant = localFont({
   src: [
-    { path: './fonts/bai-jamjuree-400.woff2', weight: '400', style: 'normal' },
-    { path: './fonts/bai-jamjuree-500.woff2', weight: '500', style: 'normal' },
-    { path: './fonts/bai-jamjuree-600.woff2', weight: '600', style: 'normal' },
-    { path: './fonts/bai-jamjuree-700.woff2', weight: '700', style: 'normal' },
+    { path: './fonts/cormorant-garamond-300.woff2', weight: '300', style: 'normal' },
+    { path: './fonts/cormorant-garamond-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/cormorant-garamond-500.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/cormorant-garamond-600.woff2', weight: '600', style: 'normal' },
   ],
   variable: '--font-heading',
   display: 'swap',
@@ -76,15 +83,22 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${lato.variable} ${baiJamjuree.variable}`}
+      className={`${jost.variable} ${cormorant.variable}`}
       suppressHydrationWarning
     >
       <body>
         <StoreProvider>
+          {/*
+            The public site ships one look: the brand palette is light, and
+            with the marketing pages carrying no theme control a visitor whose
+            OS is dark would otherwise be stuck in a theme they cannot leave.
+            Staff can still switch the console from its own toggle, and that
+            choice persists, so only the automatic OS flip is off.
+          */}
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="light"
+            enableSystem={false}
             disableTransitionOnChange
           >
             <div className="flex min-h-dvh flex-col">{children}</div>

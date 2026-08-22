@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { CtaLink } from './cta-link';
 import { siteNavLinks, isActiveSiteLink, BOOK_NOW_HREF } from './nav-links';
 
 /**
@@ -83,14 +84,12 @@ export function MobileMenu() {
                 </li>
               );
             })}
-            <li className="py-3">
-              <Link
-                href={BOOK_NOW_HREF}
-                onClick={() => setOpen(false)}
-                className="block bg-brand px-5 py-3 text-center text-sm font-semibold tracking-wide text-brand-foreground uppercase"
-              >
-                Book Now
-              </Link>
+            {/* The tap lands on the button; the handler sits on the row
+                so the panel closes on the way out. */}
+            <li className="py-3" onClick={() => setOpen(false)}>
+              <CtaLink href={BOOK_NOW_HREF} className="w-full justify-center">
+                Book now
+              </CtaLink>
             </li>
           </ul>
         </nav>

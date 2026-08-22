@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CtaLink } from '@/components/site/cta-link';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { forgotPassword, type ForgotPasswordState } from '@/lib/auth';
@@ -25,9 +26,9 @@ export function ForgotPasswordForm() {
     return (
       <div className="space-y-5 text-center">
         <p className="text-sm text-muted-foreground">{state.message}</p>
-        <Button asChild variant="outline" className="w-full">
-          <Link href="/login">Back to sign in</Link>
-        </Button>
+        <CtaLink href="/login" sweep="gold">
+          Back to sign in
+        </CtaLink>
       </div>
     );
   }
@@ -40,7 +41,6 @@ export function ForgotPasswordForm() {
           id="email"
           name="email"
           type="email"
-          placeholder="you@example.com"
           autoComplete="email"
           aria-invalid={!!state.error}
         />

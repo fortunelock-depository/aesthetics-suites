@@ -9,6 +9,5 @@ export default function Image() {
     eyebrow: 'Contact',
     title: 'Get In Touch',
     subtitle: 'Questions about stays, bookings, or the suites - we reply fast.',
-    cta: 'Send a message →',
   });
 }

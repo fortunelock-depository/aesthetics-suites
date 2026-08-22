@@ -7,15 +7,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Loader2, PenLine, Send, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { ResponsiveFormDialog } from '@/components/ui/responsive-form-dialog';
 import { FieldError } from '@/components/forms/field-error';
 import { useCreateRoomReviewMutation } from '@/redux/reviews-api';
 import { extractApiError } from '@/lib/extract-api-error';
+import { CTA_BUTTON, FIELD } from './field-styles';
 import { cn } from '@/lib/utils';
+
+/** Matches the checkout's field labels, so one form voice runs the site. */
+const LABEL = 'block text-sm font-medium text-muted-foreground';
 
 // Mirrors validations/hotel-validation.ts (reviewCreateSchema).
 const reviewFormSchema = z.object({
@@ -155,7 +155,11 @@ function ReviewDialog({
     <ResponsiveFormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={`Review ${roomName}`}
+      title={
+        <span className="font-heading text-[26px] leading-[1.2] font-light tracking-[-0.01em] [overflow-wrap:anywhere]">
+          Review {roomName}
+        </span>
+      }
       description="Reviews are moderated before going live. Add your booking code to earn the verified-stay badge."
     >
       <form
@@ -164,28 +168,34 @@ function ReviewDialog({
         className="space-y-4"
       >
         <div className="space-y-1.5">
-          <Label>Your rating</Label>
+          <span className={LABEL}>Your rating</span>
           <StarPicker value={rating} onChange={setRating} />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="review-name">Name</Label>
-            <Input
+            <label htmlFor="review-name" className={LABEL}>
+              Name
+            </label>
+            <input
               id="review-name"
               placeholder="e.g. Ama M."
               aria-invalid={!!errors.guestName}
+              className={FIELD}
               {...register('guestName')}
             />
             <FieldError message={errors.guestName?.message} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="review-email">Email</Label>
-            <Input
+            <label htmlFor="review-email" className={LABEL}>
+              Email
+            </label>
+            <input
               id="review-email"
               type="email"
               placeholder="you@example.com"
               aria-invalid={!!errors.guestEmail}
+              className={FIELD}
               {...register('guestEmail')}
             />
             <p className="text-xs text-muted-foreground">
@@ -196,37 +206,43 @@ function ReviewDialog({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="review-title">Title (optional)</Label>
-          <Input
+          <label htmlFor="review-title" className={LABEL}>
+            Title (optional)
+          </label>
+          <input
             id="review-title"
             placeholder="e.g. Quiet and spotless"
             aria-invalid={!!errors.title}
+            className={FIELD}
             {...register('title')}
           />
           <FieldError message={errors.title?.message} />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="review-body">Your review</Label>
-          <Textarea
+          <label htmlFor="review-body" className={LABEL}>
+            Your review
+          </label>
+          <textarea
             id="review-body"
             rows={4}
             placeholder="How was your stay?"
             aria-invalid={!!errors.body}
+            className={FIELD}
             {...register('body')}
           />
           <FieldError message={errors.body?.message} />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="review-booking-code">
+          <label htmlFor="review-booking-code" className={LABEL}>
             Booking code (optional)
-          </Label>
-          <Input
+          </label>
+          <input
             id="review-booking-code"
             placeholder="e.g. ASB-20260810-4F2A"
             aria-invalid={!!errors.bookingCode}
-            className="max-w-64"
+            className={cn(FIELD, 'max-w-64')}
             {...register('bookingCode')}
           />
           <p className="text-xs text-muted-foreground">
@@ -248,19 +264,33 @@ function ReviewDialog({
         </div>
 
         {/* Side by side even on phones; stacks only when they can't fit. */}
-        <div className="flex flex-col-reverse gap-2 pt-1 min-[360px]:flex-row min-[360px]:justify-end">
-          <Button
+        <div className="flex flex-col-reverse gap-3 pt-1 min-[360px]:flex-row min-[360px]:justify-end">
+          <button
             type="button"
-            variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
+            className={cn(
+              CTA_BUTTON,
+              'border border-border px-6 text-muted-foreground transition-colors hover:border-brand hover:text-brand-text disabled:pointer-events-none disabled:opacity-60',
+            )}
           >
             Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? <Loader2 className="animate-spin" /> : <Send />}
-            {isLoading ? 'Sending…' : 'Send review'}
-          </Button>
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={cn(
+              CTA_BUTTON,
+              'btn-sweep-dark bg-brand px-6 text-brand-foreground disabled:pointer-events-none',
+            )}
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+            {isLoading ? 'Sending…' : 'Send'}
+          </button>
         </div>
       </form>
     </ResponsiveFormDialog>
@@ -281,10 +311,13 @@ export function WriteReviewButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="btn-sweep btn-sweep-gold inline-flex items-center gap-2.5 border border-brand bg-transparent px-[43px] py-4 font-heading text-base font-bold text-brand-text uppercase"
+        className={cn(
+          CTA_BUTTON,
+          'btn-sweep-gold border border-brand bg-transparent text-brand-text',
+        )}
       >
         <PenLine className="h-4 w-4" />
-        Write a Review
+        Write a review
       </button>
       {open && (
         <ReviewDialog

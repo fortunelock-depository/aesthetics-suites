@@ -9,6 +9,5 @@ export default function Image() {
     eyebrow: 'Legal',
     title: 'Privacy Policy',
     subtitle: 'How we collect, use, and protect your information.',
-    cta: 'Read the policy →',
   });
 }

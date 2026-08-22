@@ -4,7 +4,6 @@ import { normalizeFaqs } from '@/lib/hotel/faqs';
 import prisma, { ReviewStatus } from '@/lib/prisma';
 import logger from '@/utils/logger';
 import { activeUnitsByRoomType } from './units';
-import { DEFAULT_ROOM_AMENITIES } from '@/lib/amenity-icons';
 
 export interface IPublicRoomDetail {
   id: string;
@@ -20,6 +19,8 @@ export interface IPublicRoomDetail {
   unitCount: number;
   amenities: string[];
   minNights: number;
+  /** Days before check-in that a cancellation is still refunded in full. */
+  freeCancellationDays: number;
   airbnbUrl: string | null;
   photos: { url: string; alt: string | null }[];
   /**
@@ -128,12 +129,12 @@ export async function getPublicRoomDetail(
       capacityChildren: roomType.capacityChildren,
       sizeSqm: roomType.sizeSqm,
       unitCount: ownUnits.size,
-      // A room with no amenities listed still has the house basics.
-      amenities:
-        roomType.amenities.length > 0
-          ? roomType.amenities
-          : DEFAULT_ROOM_AMENITIES,
+      // No stand-in list: three generic lines under an Amenities heading read
+      // as filler and are indistinguishable from a room that genuinely has
+      // only those. An empty list omits the section on the page.
+      amenities: roomType.amenities,
       minNights: roomType.minNights,
+      freeCancellationDays: roomType.freeCancellationDays,
       airbnbUrl: roomType.airbnbUrl,
       photos: roomType.photos.map((photo) => ({
         url: photo.url,

@@ -3,10 +3,10 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CtaLink } from '@/components/site/cta-link';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { resetPassword, type ResetPasswordState } from '@/lib/auth';
@@ -35,9 +35,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
         <p className="text-sm text-destructive">
           This reset link is missing its token. Request a new one.
         </p>
-        <Button asChild variant="outline" className="w-full">
-          <Link href="/forgot-password">Request a new link</Link>
-        </Button>
+        <CtaLink href="/forgot-password" sweep="gold">
+          Request a new link
+        </CtaLink>
       </div>
     );
   }
@@ -53,7 +53,6 @@ export function ResetPasswordForm({ token }: { token: string }) {
             id="password"
             name="password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
             autoComplete="new-password"
             aria-invalid={!!state.errors?.password}
             className="pr-10"

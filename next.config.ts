@@ -50,13 +50,6 @@ const nextConfig: NextConfig = {
         hostname: 'res.cloudinary.com',
         pathname: '/*/image/**',
       },
-      {
-        // Free placeholder photography (landing sections + demo seed) until
-        // the hotel's own Cloudinary shots replace it.
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        pathname: '/**',
-      },
     ],
   },
 };

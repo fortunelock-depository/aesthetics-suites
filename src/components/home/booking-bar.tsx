@@ -47,7 +47,7 @@ export function BookingBar() {
     >
       <div className={cell}>
         <label htmlFor="hero-check-in" className={label}>
-          Check In
+          Check in
         </label>
         <DatePlaceholder value={checkIn} placeholder="Add date" pad="px-0">
           <input
@@ -63,7 +63,7 @@ export function BookingBar() {
 
       <div className={cell}>
         <label htmlFor="hero-check-out" className={label}>
-          Check Out
+          Check out
         </label>
         <DatePlaceholder value={checkOut} placeholder="Add date" pad="px-0">
           <input
@@ -97,9 +97,9 @@ export function BookingBar() {
 
       <button
         type="submit"
-        className="btn-sweep btn-sweep-light inline-flex items-center justify-center gap-2.5 bg-brand px-8 py-4 font-heading text-base font-bold text-brand-foreground uppercase sm:px-[43px] sm:py-0"
+        className="btn-sweep btn-sweep-light inline-flex items-center justify-center gap-2.5 bg-brand px-8 py-4 text-[13px] font-medium tracking-[0.14em] text-brand-foreground uppercase transition-[color,opacity] duration-200 active:opacity-90 sm:px-[43px] sm:py-0"
       >
-        Check Now
+        Check availability
         <ArrowRight className="h-4 w-4" />
       </button>
     </form>

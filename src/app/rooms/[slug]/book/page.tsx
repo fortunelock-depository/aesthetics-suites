@@ -54,10 +54,10 @@ export default async function BookRoomPage({
   return (
     <main className="flex-1">
       <PageBanner
-        title="Book Your Stay"
+        title="Book your stay"
         image={SECTION_BANNERS.rooms}
         trail={[
-          { label: 'Room List', href: '/rooms' },
+          { label: 'Rooms & Suites', href: '/rooms' },
           { label: room.name, href: roomDetail(room.slug) },
         ]}
       />

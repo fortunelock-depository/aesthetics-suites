@@ -32,7 +32,6 @@ export default async function HomePage() {
     getPublicFacilities(),
     getPublicServices(),
   ]);
-  // The DB is the only source of truth - unpublished means not shown.
 
   return (
     <>

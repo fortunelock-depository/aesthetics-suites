@@ -1,6 +1,6 @@
 // src/components/site/social-circles.tsx
 import { Facebook, Instagram, Youtube } from 'lucide-react';
-import type { SVGProps } from 'react';
+import type { ReactNode, SVGProps } from 'react';
 import { ArcRing } from './arc-ring';
 
 /**
@@ -40,8 +40,18 @@ const SnapchatIcon = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** Social presences: deliberately unlinked until the real profiles exist. */
-const SOCIALS = [
+interface SocialLink {
+  icon: (props: SVGProps<SVGSVGElement>) => ReactNode;
+  label: string;
+  /** The live profile URL. Entries without one are not rendered. */
+  href?: string;
+}
+
+/**
+ * The property's social presences. None of the profiles exist yet, so none
+ * of them carry a URL.
+ */
+const SOCIALS: SocialLink[] = [
   { icon: Facebook, label: 'Facebook' },
   { icon: Instagram, label: 'Instagram' },
   { icon: XIcon, label: 'X' },
@@ -51,23 +61,38 @@ const SOCIALS = [
 ];
 
 /**
- * The circle social icons (footer + contact page): each carries the
- * tapered gold arc that runs one full lap on hover (.social-ring CSS).
- * They become links when the profiles go live.
+ * The circle social icons (footer + contact page), each carrying the
+ * tapered clay arc that runs one full lap on hover (.social-ring CSS).
+ * Renders nothing until a profile has a real URL: a row of circles that
+ * cannot be opened is an affordance the site cannot honour.
  */
 export function SocialCircles({ className }: { className?: string }) {
+  const linked = SOCIALS.filter(
+    (social): social is SocialLink & { href: string } => Boolean(social.href),
+  );
+  if (linked.length === 0) return null;
+
   return (
-    <ul aria-label="Social media" className={className ?? 'flex items-center gap-3'}>
-      {SOCIALS.map(({ icon: Icon, label }) => (
+    <ul
+      aria-label="Social media"
+      className={className ?? 'flex items-center gap-3'}
+    >
+      {linked.map(({ icon: Icon, label, href }) => (
         <li key={label}>
-          <span
-            title={label}
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
             className="social-ring grid h-10 w-10 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:text-brand"
           >
-            <ArcRing color="#DCA278" strokeWidth={3} className="social-arc" />
+            <ArcRing
+              color="var(--brand)"
+              strokeWidth={3}
+              className="social-arc"
+            />
             <Icon className="h-4 w-4" aria-hidden />
             <span className="sr-only">{label}</span>
-          </span>
+          </a>
         </li>
       ))}
     </ul>

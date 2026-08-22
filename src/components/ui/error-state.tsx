@@ -18,7 +18,7 @@ export function ErrorState({
   onRetry,
 }: ErrorStateProps) {
   return (
-    <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-5 py-8 text-center">
+    <div className="border border-destructive/30 bg-destructive/5 px-5 py-8 text-center">
       <p className="text-sm font-semibold text-foreground">{title}</p>
       <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground [overflow-wrap:anywhere]">
         {description}

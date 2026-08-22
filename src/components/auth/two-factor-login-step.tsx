@@ -49,7 +49,7 @@ export function TwoFactorLoginStep({ maskedEmail }: TwoFactorLoginStepProps) {
   return (
     <div className="space-y-5">
       <div className="flex flex-col items-center text-center">
-        <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-border">
+        <span className="inline-flex h-12 w-12 items-center justify-center border border-border">
           <ShieldCheck className="h-5 w-5" />
         </span>
         <p className="mt-3 text-sm text-muted-foreground">
@@ -67,7 +67,6 @@ export function TwoFactorLoginStep({ maskedEmail }: TwoFactorLoginStepProps) {
             inputMode="numeric"
             autoComplete="one-time-code"
             maxLength={6}
-            placeholder="123456"
             aria-invalid={!!state.error}
             className="text-center text-lg tracking-[0.5em]"
           />

@@ -4,11 +4,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { toDateOnlyString } from '@/lib/hotel/dates';
 import { DatePlaceholder } from '@/components/ui/date-placeholder';
+import { CTA_BUTTON, FIELD } from './field-styles';
 
 /**
- * The sidebar's Booking Now widget: stacked bordered fields + gold CHECK.
+ * The sidebar's availability widget: stacked fields + the clay submit.
  * With a `bookPath` (the room detail page passes its own /book route)
  * submit goes straight to the checkout, dates prefilled;
  * without one (the rooms list) it stamps the stay onto the URL and scrolls
@@ -42,9 +44,6 @@ export function SidebarBookingCard({
       ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const field =
-    'w-full min-w-0 border border-border bg-card px-4 py-3.5 text-base text-foreground outline-none transition-colors focus:border-brand';
-
   return (
     <form onSubmit={handleSubmit} aria-label="Check availability" className="space-y-4">
       <div>
@@ -52,7 +51,7 @@ export function SidebarBookingCard({
           htmlFor="sidebar-check-in"
           className="mb-1.5 block text-sm font-medium text-muted-foreground"
         >
-          Check In
+          Check in
         </label>
         <DatePlaceholder value={checkIn} placeholder="Add check-in date">
           <input
@@ -61,7 +60,7 @@ export function SidebarBookingCard({
             min={today}
             value={checkIn}
             onChange={(e) => setCheckIn(e.target.value)}
-            className={field}
+            className={FIELD}
           />
         </DatePlaceholder>
       </div>
@@ -71,7 +70,7 @@ export function SidebarBookingCard({
           htmlFor="sidebar-check-out"
           className="mb-1.5 block text-sm font-medium text-muted-foreground"
         >
-          Check Out
+          Check out
         </label>
         <DatePlaceholder value={checkOut} placeholder="Add check-out date">
           <input
@@ -80,7 +79,7 @@ export function SidebarBookingCard({
             min={checkIn || today}
             value={checkOut}
             onChange={(e) => setCheckOut(e.target.value)}
-            className={field}
+            className={FIELD}
           />
         </DatePlaceholder>
       </div>
@@ -96,11 +95,11 @@ export function SidebarBookingCard({
           id="sidebar-guests"
           value={guests}
           onChange={(e) => setGuests(e.target.value)}
-          className={field}
+          className={FIELD}
         >
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <option key={n} value={n}>
-              {n} {n === 1 ? 'Guest' : 'Guests'}
+              {n} {n === 1 ? 'guest' : 'guests'}
             </option>
           ))}
         </select>
@@ -108,9 +107,12 @@ export function SidebarBookingCard({
 
       <button
         type="submit"
-        className="btn-sweep btn-sweep-light inline-flex items-center gap-2.5 bg-brand px-[43px] py-4 font-heading text-base font-bold text-brand-foreground uppercase"
+        className={cn(
+          CTA_BUTTON,
+          'btn-sweep-light w-full bg-brand text-brand-foreground',
+        )}
       >
-        Check
+        Check availability
         <ArrowRight className="h-4 w-4" />
       </button>
     </form>

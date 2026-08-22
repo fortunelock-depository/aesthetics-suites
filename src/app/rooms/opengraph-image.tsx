@@ -9,6 +9,5 @@ export default function Image() {
     eyebrow: 'Rooms',
     title: 'Our Luxury Rooms',
     subtitle: 'Nightly rates, capacity, and every comfort - pick your suite.',
-    cta: 'Browse the rooms →',
   });
 }

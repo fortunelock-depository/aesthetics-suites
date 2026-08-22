@@ -9,7 +9,7 @@ import { SITE } from '@/config/constants';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
-  title: 'Contact Us',
+  title: 'Contact',
   description: `Reach ${SITE.name} - questions about stays, bookings, or the suites. Call, email, or send a message and we'll get back to you shortly.`,
   path: '/contact',
 });
@@ -19,9 +19,9 @@ export default function ContactPage() {
     <>
       <SiteHeader />
       <main className="flex-1">
-        <PageBanner title="Contact Us" image={'/images/contact-bg.webp'} />
+        <PageBanner title="Contact" image="/images/contact-bg.webp" />
 
-        {/* Get In Touch + Send Message, two columns. */}
+        {/* How to reach us beside the message form. */}
         <section className="mx-auto grid w-full max-w-[1320px] gap-14 px-4 py-16 lg:grid-cols-[5fr_7fr] lg:gap-20 lg:px-3 lg:py-[120px]">
           <ContactInfo />
           <ContactForm />

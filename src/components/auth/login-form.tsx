@@ -59,7 +59,6 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
           id="email"
           name="email"
           type="email"
-          placeholder="you@example.com"
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -80,7 +79,6 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
             id="password"
             name="password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

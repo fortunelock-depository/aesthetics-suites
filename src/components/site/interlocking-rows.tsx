@@ -3,13 +3,14 @@ import { Sparkles } from 'lucide-react';
 import { PhotoFrame } from './photo-frame';
 import { Reveal } from './reveal';
 import { CtaLink } from './cta-link';
+import { EYEBROW } from './section-heading';
 import type { IEditorialRow } from '@/lib/hotel/editorial';
 import { cn } from '@/lib/utils';
 
 /**
- * Alternating feature rows: interlocking image/text with an offset
- * light-gray band bleeding past the content edge, shared by the
- * facilities and services surfaces. READ MORE leads to
+ * Alternating feature rows: interlocking image/text with an offset soft
+ * band bleeding past the content edge, shared by the facilities and
+ * services surfaces. The row's call to action leads to
  * `{hrefBase}/{slug}`.
  */
 export function InterlockingRows({
@@ -69,13 +70,11 @@ export function InterlockingRows({
                 from={flipped ? 'left' : 'right'}
                 className={cn(flipped && 'lg:order-1')}
               >
-                <p className="text-[15px] font-semibold text-brand-text capitalize">
-                  {item.eyebrow}
-                </p>
-                <h3 className="mt-2.5 font-heading text-[28px] leading-snug font-medium text-foreground [overflow-wrap:anywhere] lg:text-[38px]">
+                <p className={EYEBROW}>{item.eyebrow}</p>
+                <h3 className="mt-3 font-heading text-[30px] leading-[1.15] font-light tracking-[-0.01em] text-foreground [overflow-wrap:anywhere] lg:text-[42px]">
                   {item.name}
                 </h3>
-                <p className="mt-4 max-w-md text-[15px] leading-[26px] text-muted-foreground">
+                <p className="mt-4 max-w-md text-[15px] leading-[26px] text-foreground/80">
                   {item.summary}
                 </p>
                 <CtaLink
@@ -84,7 +83,7 @@ export function InterlockingRows({
                   sweep="gold"
                   className="mt-8"
                 >
-                  Read More
+                  Explore
                 </CtaLink>
               </Reveal>
             </div>

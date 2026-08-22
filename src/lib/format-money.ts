@@ -19,6 +19,23 @@ export const formatMoney = (minorUnits: number, currency = 'GHS'): string => {
 };
 
 /**
+ * Nightly rate for display: "GH₵1,200" rather than "GH₵1,200.00". A whole
+ * amount drops its cents, since trailing zeroes on a headline price read as
+ * an invoice; an amount with pesewas keeps them so the figure stays exact.
+ * Itemised quotes and receipts still use formatMoney.
+ */
+export const formatRate = (minorUnits: number, currency = 'GHS'): string => {
+  const whole = minorUnits % 100 === 0;
+  if (!whole) return formatMoney(minorUnits, currency);
+  return new Intl.NumberFormat('en-GH', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(minorUnits / 100);
+};
+
+/**
  * Compact form for cards/tiles at scale ("GH₵24.5M") - the exact figure
  * belongs in a `title` tooltip and on the detail view.
  */

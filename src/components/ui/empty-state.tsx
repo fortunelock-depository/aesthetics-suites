@@ -41,10 +41,12 @@ export function EmptyState({
 }: EmptyStateProps) {
   const site = variant === 'site';
   return (
+    // A hairline over a quiet tint, never a dashed outline: dashes read as
+    // a placeholder waiting to be built, and this state IS the finished UI.
     <div
       className={cn(
-        'border border-dashed border-border text-center',
-        site ? 'bg-card px-6 py-14' : 'rounded-xl px-5 py-12',
+        'border border-border text-center',
+        site ? 'bg-card px-6 py-14' : 'bg-muted/40 px-5 py-12',
         className,
       )}
     >
@@ -52,14 +54,14 @@ export function EmptyState({
         (site ? (
           <Icon aria-hidden className="mx-auto mb-3 h-6 w-6 text-brand" />
         ) : (
-          <span className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl border border-border text-muted-foreground">
+          <span className="mx-auto mb-4 grid h-12 w-12 place-items-center border border-border bg-card text-muted-foreground">
             <Icon className="h-5 w-5" />
           </span>
         ))}
       <p
         className={cn(
           site
-            ? 'font-heading text-xl font-medium text-foreground'
+            ? 'font-heading text-2xl font-light tracking-[-0.01em] text-foreground'
             : 'text-sm font-semibold text-foreground',
         )}
       >

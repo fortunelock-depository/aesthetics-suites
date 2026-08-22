@@ -13,7 +13,7 @@ import { SECTION_BANNERS } from '@/static-data/home';
 type Section = keyof typeof SECTION_BANNERS;
 
 const SECTION_LIST: Record<Section, { label: string; href: string }> = {
-  rooms: { label: 'Room List', href: routes.rooms },
+  rooms: { label: 'Rooms & Suites', href: routes.rooms },
   facilities: { label: 'Facilities', href: routes.facilities },
   services: { label: 'Services', href: routes.services },
 };
@@ -21,8 +21,8 @@ const SECTION_LIST: Record<Section, { label: string; href: string }> = {
 /**
  * The real PageBanner, minus what is not known yet. Every page of a section
  * shares the section's banner photo (SECTION_BANNERS), so the photo, the
- * scrim and the "Home - Room List" part of the breadcrumb are painted for
- * real; only the item's title and its crumb are placeholder bars. When the
+ * scrim and the "Home - Rooms & Suites" part of the breadcrumb are painted
+ * for real; only the item's title and its crumb are placeholder bars. When the
  * data lands the banner does not change - the bars simply become text.
  */
 export function BannerSkeleton({
@@ -31,9 +31,9 @@ export function BannerSkeleton({
   extraCrumb = false,
 }: {
   section: Section;
-  /** A title known before the data loads (e.g. "Book Your Stay"). */
+  /** A title known before the data loads (e.g. "Book your stay"). */
   title?: string;
-  /** Room checkout: Home - Room List - {room} - Book Your Stay. */
+  /** Room checkout: Home - Rooms & Suites - {room} - Book your stay. */
   extraCrumb?: boolean;
 }) {
   const list = SECTION_LIST[section];
@@ -51,10 +51,16 @@ export function BannerSkeleton({
         sizes="100vw"
         priority
       />
-      <div aria-hidden className="absolute inset-0 -z-10 bg-[#0E1317]/70" />
+      {/* The same two-layer wash as PageBanner, so the banner does not
+          change tone when the data lands. */}
+      <div aria-hidden className="absolute inset-0 -z-10 bg-scrim/40" />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 -z-10 h-3/4 bg-linear-to-t from-scrim/60 to-transparent"
+      />
       <div className="mx-auto flex min-h-[280px] w-full max-w-[1320px] flex-col items-center justify-center px-4 py-16 text-center lg:min-h-[330px] lg:px-3">
         {title ? (
-          <p className="font-heading text-[36px] leading-[1.2] font-medium text-white lg:text-[55px]">
+          <p className="font-heading text-[38px] leading-[1.15] font-light tracking-[-0.01em] text-white lg:text-[58px]">
             {title}
           </p>
         ) : (
@@ -177,7 +183,7 @@ export function EditorialDetailSkeleton({ section }: { section: Section }) {
 export function BookingCheckoutSkeleton() {
   return (
     <main className="flex-1">
-      <BannerSkeleton section="rooms" title="Book Your Stay" extraCrumb />
+      <BannerSkeleton section="rooms" title="Book your stay" extraCrumb />
       <section className="mx-auto grid w-full max-w-[1320px] gap-8 px-4 py-16 lg:grid-cols-[1fr_400px] lg:px-3 lg:py-[120px]">
         <div className="space-y-6">
           <Skeleton className="h-7 w-48" />

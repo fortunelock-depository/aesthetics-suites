@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { CtaLink } from './cta-link';
 import { BrandLogo } from './brand-logo';
 import { siteNavLinks, isActiveSiteLink, BOOK_NOW_HREF } from './nav-links';
@@ -13,8 +12,7 @@ import { MobileMenu } from './mobile-menu';
 
 /**
  * Public navbar, light-toned: logo + wordmark left, centered links, the
- * square gold BOOK NOW right (121px bar, 1320px container, 16px links,
- * 16x43px button).
+ * square clay Book now button right (121px bar, 1320px container).
  *
  * `variant="overlay"` blends the bar into the hero: it sits FIXED over the
  * hero with no background or border while the page is at the top (the
@@ -77,13 +75,12 @@ export function SiteHeader({
         </nav>
 
         <div className="flex flex-none items-center gap-3">
-          <ThemeToggle className="h-10 w-10 border border-border text-foreground hover:bg-muted" />
           <CtaLink
             href={BOOK_NOW_HREF}
             sweep="light"
             className="hidden lg:inline-flex"
           >
-            Book Now
+            Book now
           </CtaLink>
           <MobileMenu />
         </div>

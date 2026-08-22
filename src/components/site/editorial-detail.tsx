@@ -2,13 +2,14 @@
 import Link from 'next/link';
 import { Clock } from 'lucide-react';
 import { CtaLink } from './cta-link';
+import { EYEBROW } from './section-heading';
 import { GalleryCover, GalleryGrid, PhotoGallery } from './photo-gallery';
 import { amenityIcon } from '@/lib/amenity-icons';
 import type { IEditorialDetail } from '@/lib/hotel/editorial';
 
 /**
  * The shared detail-page body for editorial content (facilities and
- * services): eyebrow, summary headline, schedule chip, cover, paragraphs,
+ * services): eyebrow, summary lede, schedule chip, cover, paragraphs,
  * the "What you'll find" icon grid, gallery, CTAs, and cross-links so the
  * page never dead-ends. The cover and every gallery tile open the same
  * full-view photo viewer (PhotoGallery), which pages through the whole set.
@@ -29,13 +30,11 @@ export function EditorialDetail({
   return (
     <PhotoGallery photos={item.photos} name={item.name} placeholder="editorial">
       <article className="mx-auto w-full max-w-[966px] px-4 py-16 lg:px-3 lg:py-[120px]">
-        <p className="text-[15px] font-semibold text-brand-text capitalize">
-          {item.eyebrow}
-        </p>
-        {/* The summary can run to 300 characters, so it must not be
-            display type: on phones it is the description's size in bold
-            ink, and it only grows into a restrained heading from sm. */}
-        <h2 className="mt-2.5 font-heading text-[15px] leading-[26px] font-bold text-foreground [overflow-wrap:anywhere] sm:text-[22px] sm:leading-[1.4] sm:font-semibold lg:text-[26px]">
+        <p className={EYEBROW}>{item.eyebrow}</p>
+        {/* The summary can run to 300 characters, so it stays a lede
+            rather than a headline: light display type, tight leading, and
+            only a modest step up on the wider screens. */}
+        <h2 className="mt-3 font-heading text-[22px] leading-[1.35] font-light tracking-[-0.01em] text-foreground [overflow-wrap:anywhere] lg:text-[30px]">
           {item.summary}
         </h2>
 
@@ -54,7 +53,7 @@ export function EditorialDetail({
         {item.description.map((paragraph) => (
           <p
             key={paragraph.slice(0, 40)}
-            className="mt-5 text-[15px] leading-[26px] text-muted-foreground"
+            className="mt-5 text-[15px] leading-[26px] text-foreground/80"
           >
             {paragraph}
           </p>
@@ -63,7 +62,7 @@ export function EditorialDetail({
         {/* Highlights icon grid (same language as the room amenities). */}
         {item.highlights.length > 0 && (
           <>
-            <h3 className="mt-[45px] font-heading text-[26px] font-medium text-foreground lg:text-[32px]">
+            <h3 className="mt-[45px] font-heading text-[28px] font-light tracking-[-0.01em] text-foreground lg:text-[34px]">
               What you&apos;ll find
             </h3>
             <ul className="mt-6 grid gap-x-8 gap-y-5 min-[480px]:grid-cols-2 lg:grid-cols-3">
@@ -100,7 +99,7 @@ export function EditorialDetail({
 
         {moreLinks.length > 0 && (
           <nav aria-label={moreTitle} className="mt-[60px]">
-            <h3 className="font-heading text-[22px] font-medium text-foreground">
+            <h3 className="font-heading text-[24px] font-normal text-foreground">
               {moreTitle}
             </h3>
             <ul className="mt-4 grid gap-4 min-[480px]:grid-cols-2">
@@ -110,10 +109,8 @@ export function EditorialDetail({
                     href={link.href}
                     className="group block border border-border bg-card p-4 transition-colors hover:border-brand"
                   >
-                    <p className="text-xs font-semibold text-brand-text capitalize">
-                      {link.eyebrow}
-                    </p>
-                    <p className="mt-1 min-w-0 truncate font-heading text-base font-medium text-foreground group-hover:text-brand-text">
+                    <p className={EYEBROW}>{link.eyebrow}</p>
+                    <p className="mt-1.5 min-w-0 truncate text-[15px] font-medium text-foreground group-hover:text-brand-text">
                       {link.name}
                     </p>
                   </Link>
