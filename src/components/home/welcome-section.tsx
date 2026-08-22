@@ -9,8 +9,8 @@ import { WELCOME_PHOTOS } from '@/static-data/home';
 import { BOOK_NOW_HREF } from '@/components/site/nav-links';
 
 /**
- * The "Welcome" section: heading + blurb left, the template's two
- * overlapping photos right (offset frames), gold CTA.
+ * The "Welcome" section: heading + blurb left, two overlapping photos
+ * right (offset frames), gold CTA.
  */
 export function WelcomeSection() {
   return (
@@ -31,7 +31,7 @@ export function WelcomeSection() {
           </CtaLink>
         </Reveal>
 
-        {/* Overlapping photo pair (stacked collage from the template). */}
+        {/* Overlapping photo pair: stacked collage. */}
         <Reveal from="right" className="relative mx-auto w-full max-w-md lg:max-w-none">
           <PhotoFrame
             src={WELCOME_PHOTOS.main.src}

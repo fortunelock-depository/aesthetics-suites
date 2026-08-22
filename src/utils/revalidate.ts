@@ -3,8 +3,7 @@ import 'server-only';
 import { revalidatePath } from 'next/cache';
 import { facilityDetail, roomDetail, serviceDetail } from '@/lib/routes';
 
-// The portfolio cache pattern: public pages are server-rendered from the DB
-// and statically cached; admin mutations call these helpers so changes
+// Public pages are server-rendered from the DB and statically cached; admin mutations call these helpers so changes
 // appear without a redeploy (on-demand ISR). Add a helper per public
 // surface and call it from every mutation route that affects it.
 //
@@ -15,7 +14,7 @@ import { facilityDetail, roomDetail, serviceDetail } from '@/lib/routes';
 // There is deliberately NO helper for season rates or discounts. Cached
 // pages render only `basePrice`; every seasonal and discounted figure is
 // computed live by /api/rooms/[slug]/availability, so those mutations have
-// nothing static to purge. Please do not "fix" that into a bug.
+// nothing static to purge.
 
 const SITEMAP = '/sitemap.xml';
 

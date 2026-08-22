@@ -1,9 +1,9 @@
 // src/lib/turnstile.ts
 //
-// Cloudflare Turnstile server-side verification (khadys-kitchen pattern).
-// Env-gated: when TURNSTILE_SECRET_KEY is unset (dev), verification is
-// skipped so local flows aren't blocked. When configured it fails CLOSED -
-// a missing/invalid token or an unreachable Cloudflare is "not a human".
+// Cloudflare Turnstile server-side verification. Env-gated: when
+// TURNSTILE_SECRET_KEY is unset (dev), verification is skipped so local
+// flows aren't blocked. When configured it fails CLOSED - a missing or
+// invalid token, or an unreachable Cloudflare, is "not a human".
 import 'server-only';
 import { ENV } from '@/config/env';
 import logger from '@/utils/logger';

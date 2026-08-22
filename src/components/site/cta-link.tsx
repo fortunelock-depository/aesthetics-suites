@@ -21,8 +21,8 @@ interface CtaLinkProps {
   className?: string;
   /**
    * The hover fill (grows in from both ends to the center, retreats on
-   * unhover - the template's signature): 'light' -> white bg + dark text,
-   * 'dark' -> near-black bg + white text, 'gold' -> solid gold + white.
+   * unhover): 'light' -> white bg + dark text, 'dark' -> near-black bg +
+   * white text, 'gold' -> solid gold + white.
    */
   sweep?: Sweep;
   /** 'solid' gold block or the 'outline' gold-bordered variant. */
@@ -30,7 +30,7 @@ interface CtaLinkProps {
 }
 
 /**
- * The template's call-to-action: square, 16px uppercase, 16x43px padding,
+ * The call-to-action button: square, 16px uppercase, 16x43px padding,
  * trailing arrow, with the both-ends-to-center color sweep on hover.
  */
 export function CtaLink({

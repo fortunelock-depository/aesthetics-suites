@@ -10,7 +10,7 @@
 /** Which empty rendering (if any) a table should use. */
 export type TableEmptyMode = 'no-data' | 'filtered-empty' | null;
 
-/** True when a filter value would affect the query (mirrors the URL rule). */
+/** True when a filter value would affect the query (same test the URL sync uses). */
 export function isMeaningfulFilterValue(value: unknown): boolean {
   if (value === undefined || value === null) return false;
   if (typeof value === 'string') return value.trim() !== '';

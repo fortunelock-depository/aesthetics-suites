@@ -21,7 +21,7 @@ export default function ContactPage() {
       <main className="flex-1">
         <PageBanner title="Contact Us" image={'/images/contact-bg.webp'} />
 
-        {/* Get In Touch + Send Message (template's two-column layout). */}
+        {/* Get In Touch + Send Message, two columns. */}
         <section className="mx-auto grid w-full max-w-[1320px] gap-14 px-4 py-16 lg:grid-cols-[5fr_7fr] lg:gap-20 lg:px-3 lg:py-[120px]">
           <ContactInfo />
           <ContactForm />

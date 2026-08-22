@@ -24,8 +24,8 @@ const ALL: UserRoleValue[] = ['SUPER_ADMIN', 'ADMIN', 'FRONT_DESK'];
 const ADMINS: UserRoleValue[] = ['SUPER_ADMIN', 'ADMIN'];
 
 /**
- * Sidebar navigation, ordered by day-to-day centrality (the dms
- * convention): overview, then the operational core (bookings, rooms),
+ * Sidebar navigation, ordered by day-to-day centrality: overview, then
+ * the operational core (bookings, rooms),
  * then content (facilities, services, reviews), then pricing, and the
  * system tools last.
  */

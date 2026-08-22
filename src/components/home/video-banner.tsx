@@ -5,12 +5,11 @@ import { PlayCircle } from '@/components/site/play-circle';
 import { VIDEO_BANNER } from '@/static-data/home';
 
 /**
- * The template's parallax band below the rooms grid, measured: 510px tall,
- * white display heading left + circular play-style CTA right. The photo is
- * a next/image fill behind the scrim (responsive sizes + AVIF, unlike the
- * raw CSS background it replaced); the fixed-attachment parallax was
- * dropped with it - it was already disabled on phones (mobile Safari) and
- * a still cover image reads the same at this height.
+ * The band below the rooms grid: 510px tall, white display heading left +
+ * circular play-style CTA right. The photo is a next/image fill behind the
+ * scrim, so it gets responsive sizes and AVIF. No fixed-attachment
+ * parallax: mobile Safari ignores it anyway, and a still cover image reads
+ * the same at this height.
  */
 export function VideoBanner() {
   return (

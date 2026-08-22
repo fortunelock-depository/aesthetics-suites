@@ -8,9 +8,9 @@ import { toDateOnlyString } from '@/lib/hotel/dates';
 import { DatePlaceholder } from '@/components/ui/date-placeholder';
 
 /**
- * The sidebar's Booking Now widget (template style: stacked bordered
- * fields + gold CHECK). With a `bookPath` (the room detail page passes its
- * own /book route) submit goes straight to the checkout, dates prefilled;
+ * The sidebar's Booking Now widget: stacked bordered fields + gold CHECK.
+ * With a `bookPath` (the room detail page passes its own /book route)
+ * submit goes straight to the checkout, dates prefilled;
  * without one (the rooms list) it stamps the stay onto the URL and scrolls
  * to the list, whose StayLinks carry the params onward.
  */

@@ -11,10 +11,10 @@ import './globals.css';
 // Both faces are self-hosted (latin subset, woff2) rather than fetched from
 // Google at build time. `next/font/google` downloads the files during
 // `next build`, which makes every deploy depend on a third-party network
-// call - it has already failed a build once for reasons unrelated to the
-// code. These are the same files Google would have served.
+// call that can fail for reasons unrelated to the code. These are the same
+// files Google would have served.
 
-// Body face - matches the reference template (Lato ships 400/700 only).
+// Body face (Lato ships 400/700 only).
 const lato = localFont({
   src: [
     { path: './fonts/lato-400.woff2', weight: '400', style: 'normal' },
@@ -24,7 +24,7 @@ const lato = localFont({
   display: 'swap',
 });
 
-// Display face for headings (the Hostily-inspired landing look).
+// Display face for headings.
 const baiJamjuree = localFont({
   src: [
     { path: './fonts/bai-jamjuree-400.woff2', weight: '400', style: 'normal' },
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   authors: [{ name: SITE.name, url: SITE.url }],
   creator: SITE.name,
   publisher: SITE.name,
-  // No root-level canonical: Next metadata INHERITS it, which stamped
+  // No root-level canonical: Next metadata INHERITS it, which would stamp
   // every detail page as a duplicate of the homepage (deindex risk).
   // pageMetadata()/generateMetadata set per-path canonicals instead.
   // OG/Twitter images come from the opengraph-image.tsx file conventions,

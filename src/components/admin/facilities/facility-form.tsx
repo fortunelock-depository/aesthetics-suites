@@ -26,7 +26,7 @@ import type {
   IFacilityRow,
 } from '@/types/facility.types';
 
-/** dms input treatment: calm muted fill at rest, alive while editing. */
+/** Input treatment: calm muted fill at rest, alive while editing. */
 const inputCls = (active: boolean) =>
   cn(
     'transition-all duration-200',
@@ -128,7 +128,7 @@ function Field({
 }
 
 /**
- * The full facility field grid. `active` drives the dms muted-at-rest
+ * The full facility field grid. `active` drives the muted-at-rest
  * treatment; when false every control is disabled and the highlight
  * add/remove buttons hide.
  */

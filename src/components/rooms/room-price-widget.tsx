@@ -6,8 +6,8 @@ import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 import { bookRoom } from '@/lib/routes';
 
 /**
- * The detail sidebar's "Your Price" widget (template): capacity rows, the
- * big price/Night line, and the gold BOOK NOW into the checkout flow.
+ * The detail sidebar's "Your Price" widget: capacity rows, the big
+ * price/Night line, and the gold BOOK NOW into the checkout flow.
  */
 export function RoomPriceWidget({ room }: { room: IPublicRoomDetail }) {
   const guests = room.capacityAdults + room.capacityChildren;
@@ -46,10 +46,10 @@ export function RoomPriceWidget({ room }: { room: IPublicRoomDetail }) {
 
 /**
  * The phone/tablet answer to the sidebar: below lg the "Your Price" widget
- * only appears after the copy, gallery, amenities, FAQs and reviews, so
- * the single most important action was a long scroll away. This strip sits
- * at the top of the content column - price per night, capacity, and the
- * gold Book Now that carries any chosen dates into checkout.
+ * falls after the copy, gallery, amenities, FAQs and reviews, leaving the
+ * single most important action a long scroll away. This strip sits at the
+ * top of the content column - price per night, capacity, and the gold Book
+ * Now that carries any chosen dates into checkout.
  */
 export function RoomBookStrip({ room }: { room: IPublicRoomDetail }) {
   const guests = room.capacityAdults + room.capacityChildren;

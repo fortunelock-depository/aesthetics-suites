@@ -11,9 +11,9 @@ export interface AccordionItem {
 }
 
 /**
- * The template's FAQ accordion (room-details): light-gray item cards, the
- * first open by default, a circular arrow toggle on the right that flips
- * when open, and a smooth grid-rows slide for the answer.
+ * The FAQ accordion for room details: light-gray item cards, the first
+ * open by default, a circular arrow toggle on the right that flips when
+ * open, and a smooth grid-rows slide for the answer.
  */
 export function Accordion({ items }: { items: AccordionItem[] }) {
   const [openIndex, setOpenIndex] = useState(0);

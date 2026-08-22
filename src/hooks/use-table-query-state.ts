@@ -43,7 +43,7 @@ export interface IUseTableQueryStateOptions<
  * - page reset on filter/pageSize change, scroll-to-top on page change
  * - `queryParams` with empty values stripped, ready for the RTK Query hook
  * - session memory: re-entering the list through the nav (a bare URL, no
- *   table params) restores where you left it; an explicit URL always wins
+ *   table params) restores the state it was left in; an explicit URL wins
  *   and a fresh browser session starts clean
  */
 export const useTableQueryState = <

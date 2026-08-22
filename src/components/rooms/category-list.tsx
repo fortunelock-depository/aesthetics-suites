@@ -5,8 +5,8 @@ import type { IPublicRoomCard } from '@/lib/hotel/public-rooms';
 import { roomDetail } from '@/lib/routes';
 
 /**
- * The Category widget's row list (template style: chevron, name, dashed
- * dividers, zero-padded unit count). Shared by the desktop sidebar card
+ * The Category widget's row list: chevron, name, dashed dividers,
+ * zero-padded unit count. Shared by the desktop sidebar card
  * and the mobile bottom drawer (`onNavigate` closes the drawer on tap).
  */
 export function CategoryList({

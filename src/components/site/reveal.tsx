@@ -17,10 +17,9 @@ interface RevealProps {
 const OFFSET = 28;
 
 /**
- * Scroll-reveal wrapper (the animate.css/waypoints equivalent from the
- * reference template, done with motion/react): children fade/slide in once
- * when they enter the viewport. Respects prefers-reduced-motion by
- * rendering statically.
+ * Scroll-reveal wrapper on motion/react: children fade/slide in once when
+ * they enter the viewport. Respects prefers-reduced-motion by rendering
+ * statically.
  */
 export function Reveal({
   children,
@@ -56,11 +55,10 @@ export function Reveal({
   // A horizontal slide parks its child translated 28px sideways until it
   // scrolls into view. Below the fold, a full-width block shifted right
   // therefore widens the document by 28px, and the page scrolls sideways
-  // while the visitor is still looking at the hero (the Welcome collage on
-  // phones did exactly this). Clip the x axis on a static wrapper so the
-  // parked transform can never contribute scrollable overflow; y stays
-  // visible, so nothing that intentionally hangs below (offset frames,
-  // shadows) is cut.
+  // while the visitor is still looking at the hero. Clip the x axis on a
+  // static wrapper so the parked transform can never contribute scrollable
+  // overflow; y stays visible, so nothing that intentionally hangs below
+  // (offset frames, shadows) is cut.
   if (!horizontal) return inner;
   return <div className={cn('overflow-x-clip', className)}>{inner}</div>;
 }

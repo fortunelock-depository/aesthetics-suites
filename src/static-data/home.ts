@@ -364,7 +364,7 @@ export const FACILITIES: FacilityItem[] = [
   },
 ];
 
-/** Room-detail editorial content (same for every room, template-style). */
+/** Room-detail editorial content (same for every room). */
 export const ROOM_DETAILS_CONTENT = {
   checkInTitle: 'Special check-in instructions',
   checkInParagraphs: [

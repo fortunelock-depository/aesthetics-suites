@@ -1,4 +1,4 @@
-// Booking creation: the CRITICAL-1 race (advisory lock + in-tx re-check),
+// Booking creation: the double-seating race (advisory lock + in-tx recheck),
 // the DB exclusion-constraint backstop, manual-booking guards, override tax
 // identity, actor stamping, code-collision retry, and the schema-level stay
 // caps.

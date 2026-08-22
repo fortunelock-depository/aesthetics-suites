@@ -7,7 +7,7 @@ export const BRAND = SITE.name;
 const TAGLINE = SITE.tagline;
 
 /**
- * The agritrade logo approach: a HOSTED image, never a cid attachment (cid
+ * The logo is a HOSTED image, never a cid attachment (cid
  * displays fine but clients list it as an attachment, so every email wears
  * a paperclip). Gmail proxies remote images by default; clients that block
  * them fall back to the brand text beside it. Renders once the site is

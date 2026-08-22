@@ -1,7 +1,7 @@
 // src/components/admin/rooms/room-type-form.tsx
 //
 // The one source of truth for room-type form fields, shared by the create
-// dialog and the detail page's read-only-until-edit card (dms pattern).
+// dialog and the detail page's read-only-until-edit card.
 // Inputs hold strings; the schema transforms to the API contract
 // (roomTypeCreateSchema) on submit - GHS amounts become integer pesewas,
 // numerics become ints, amenity rows become plain strings.
@@ -34,7 +34,7 @@ import type {
   IRoomTypeRow,
 } from '@/types/room.types';
 
-/** dms input treatment: calm muted fill at rest, alive while editing. */
+/** Input treatment: calm muted fill at rest, alive while editing. */
 export const inputCls = (active: boolean) =>
   cn(
     'transition-all duration-200',
@@ -187,7 +187,7 @@ function Field({
 /** Shared props for every field group. */
 export interface RoomTypeFieldsProps {
   form: UseFormReturn<RoomTypeFormInput, unknown, RoomTypeFormOutput>;
-  /** Drives the dms muted-at-rest treatment; false disables everything. */
+  /** Drives the muted-at-rest treatment; false disables everything. */
   active: boolean;
   busy: boolean;
 }

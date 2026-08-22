@@ -108,7 +108,7 @@ function SectionCard({
 }
 
 /**
- * The rich admin dashboard (dms-style): range picker + trend cards, today's
+ * The rich admin dashboard: range picker + trend cards, today's
  * operations, needs-attention, breakdowns and activity lists.
  */
 export function OverviewClient() {
@@ -164,7 +164,7 @@ export function OverviewClient() {
 
   return (
     <div className="space-y-6">
-      {/* Range picker: presets, or a custom from/to (the dms filter). */}
+      {/* Range picker: presets, or a custom from/to. */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="w-full max-w-[220px] min-[480px]:w-[180px]">
           <LabeledSelect

@@ -1,7 +1,7 @@
 // src/validations/hotel-validation.ts
 //
-// Zod schemas for the hotel domain APIs. Frontend forms must mirror these
-// (frontend-conventions: one contract, two enforcers).
+// Zod schemas for the hotel domain APIs. Frontend forms must mirror these:
+// one contract, two enforcers.
 import { z } from 'zod';
 import { optionalPhoneField } from '@/validations/phone-validation';
 import { isValidDateOnly, parseDateOnly } from '@/lib/hotel/dates';

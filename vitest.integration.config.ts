@@ -30,7 +30,7 @@ export default defineConfig({
     environment: 'node',
     include: ['test/integration/**/*.test.ts'],
     // Pin every env var the code under test reads - tests must never see
-    // the developer's real .env values (khadys/agritrade convention).
+    // the developer's real .env values.
     env: {
       NODE_ENV: 'test',
       DATABASE_URL: testDbUrl,

@@ -6,9 +6,9 @@ import { Loader2, Navigation } from 'lucide-react';
 import { SITE, CONTACT } from '@/config/constants';
 
 /**
- * The map section, done the mhp website-frontend way: a Google Maps embed
- * using `q=label@lat,lng` (which drops a labelled pin - the `pb=` form only
- * frames an area), a loading overlay until the iframe paints, a light
+ * The map section: a Google Maps embed using `q=label@lat,lng` (which
+ * drops a labelled pin - the `pb=` form only frames an area), a loading
+ * overlay until the iframe paints, a light
  * grayscale treatment at rest that clears on hover, and a "Get Directions"
  * link that opens turn-by-turn navigation from wherever the visitor is.
  */

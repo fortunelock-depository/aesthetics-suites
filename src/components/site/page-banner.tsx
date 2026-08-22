@@ -9,9 +9,9 @@ export interface BreadcrumbEntry {
 }
 
 /**
- * The template's inner-page breadcrumb banner: dark room photography with a
- * centered white display title and the trail "Home - [ancestors] - {page}"
- * (current page in gold). Detail pages pass their list page via `trail` so
+ * The inner-page breadcrumb banner: dark room photography with a centered
+ * white display title and the trail "Home - [ancestors] - {page}" (current
+ * page in gold). Detail pages pass their list page via `trail` so
  * the crumb reads Home - Room List - {room}.
  */
 export function PageBanner({

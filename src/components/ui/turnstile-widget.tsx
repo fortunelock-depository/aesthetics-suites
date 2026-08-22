@@ -48,11 +48,11 @@ interface TurnstileWidgetProps {
 }
 
 /**
- * Cloudflare Turnstile challenge for the public forms (khadys-kitchen
- * pattern). Renders nothing when no site key is configured, so dev without
- * keys keeps working. Otherwise it loads the Turnstile script once, renders
- * the widget explicitly, surfaces the token via `onVerify`, and resets on
- * expiry/error or when `resetSignal` changes.
+ * Cloudflare Turnstile challenge for the public forms. Renders nothing
+ * when no site key is configured, so dev without keys keeps working.
+ * Otherwise it loads the Turnstile script once, renders the widget
+ * explicitly, surfaces the token via `onVerify`, and resets on expiry/error
+ * or when `resetSignal` changes.
  */
 export function TurnstileWidget(props: TurnstileWidgetProps) {
   if (!SITE_KEY) return null;

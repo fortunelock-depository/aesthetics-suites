@@ -16,8 +16,8 @@ import {
 } from './profile-info-tab';
 
 /**
- * The dms profile page shape: Profile Information and Security Settings
- * as side tabs on the one page. `defaultTab` lets /admin/settings-style
+ * The profile page shape: Profile Information and Security Settings as
+ * side tabs on the one page. `defaultTab` lets /admin/settings-style
  * links land straight on Security.
  */
 export function ProfileTabs({

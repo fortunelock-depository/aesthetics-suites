@@ -195,8 +195,8 @@ export function UsersTable() {
                 Boolean(filters.search) || filters.role !== undefined
               }
               onClearAll={() => patchFilters(clearAllFiltersPatch(filters))}
-              // ONE filter -> inline beside the search, no Filters toggle
-              // (the dms rule; 2+ filters would use filterFields instead).
+              // ONE filter -> inline beside the search, no Filters toggle;
+              // 2+ filters would use filterFields instead.
               inlineFilter={
                 <LabeledSelect
                   id="users-role-filter"

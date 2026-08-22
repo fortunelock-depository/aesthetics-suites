@@ -2,10 +2,9 @@
 
 Hotel site: public pages where guests browse rooms and book (Paystack or a
 link out to Airbnb), plus an authenticated admin console - one fullstack
-Next.js 16 (App Router) codebase backed by PostgreSQL via Prisma. Scaffolded
-after the `portfolio`, `khadys-kitchen` and `dms` conventions so every shared
-concern (auth, security, SEO, errors, data layer, tables, payments) is in
-place before the hotel features are.
+Next.js 16 (App Router) codebase backed by PostgreSQL via Prisma. Every
+shared concern (auth, security, SEO, errors, data layer, tables, payments)
+is in place before the hotel features that sit on top of it.
 
 ## Stack
 
@@ -28,7 +27,7 @@ ADMIN_SEED_ENABLED=true npm run seed   # create the first admin (see .env.exampl
 npm run dev
 ```
 
-Sign in at `/login` with the seeded admin; you land on `/admin`.
+Sign in at `/login` with the seeded admin to reach `/admin`.
 
 ## What's scaffolded (and where)
 
@@ -79,9 +78,9 @@ Sign in at `/login` with the seeded admin; you land on `/admin`.
   `successResponse` / `handleApiError` (lists add
   `pagination: { page, limit, totalItems, totalPages }`, errors are
   `{ status: 'error', message, code? }`); throw the typed errors from
-  `src/lib/errors.ts`. This envelope is THIS repo's contract - it predates
-  the `{ message, data, meta }` dialect used by the split-repo apps and is
-  kept deliberately (one colocated repo, zero drift risk).
+  `src/lib/errors.ts`. This envelope is the contract for the whole repo -
+  pages and API live together, so there is exactly one shape and nothing to
+  keep in sync.
 - **Zod schemas** live in `src/validations/`; response types in `src/types/`.
 - **Per-page SEO** via `pageMetadata()` and a colocated `opengraph-image.tsx`
   that calls `brandOgImage()`.
@@ -129,10 +128,10 @@ Target: Vercel (serverless) + Neon Postgres. The pieces that are NOT code:
    window (~5 minutes) on *any* query. Cost therefore tracks how often
    something pings the database, not how much work each ping does. Hourly
    costs roughly 2 compute-hours a day in the worst case; every 15 minutes
-   costs around 8, for sweeps that are not time-critical now that calendar
-   freshness rides on demand. If your Neon plan allows it, lowering the
-   scale-to-zero delay cuts this further. Nothing here needs a tighter
-   interval - if you ever want one, it is a one-line change in the pinger.
+   costs around 8, for sweeps that are not time-critical while calendar
+   freshness rides on demand. Lowering Neon's scale-to-zero delay (where the
+   plan allows it) cuts this further. Nothing here needs a tighter interval;
+   changing it is a one-line edit in the pinger.
 
    Without `CRON_SECRET` the route fails closed (and logs fatally at boot):
    no hold expiry, no batch Airbnb sync, no lifecycle emails.

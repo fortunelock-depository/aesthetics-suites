@@ -1,8 +1,8 @@
 // src/lib/hotel/dashboard-service.ts
 //
-// Read-side aggregation for the admin dashboard, after dms-backend's
-// dashboard: a date-range preset drives the headline cards, each carrying a
-// trend vs the previous period of equal length; alongside sit today's
+// Read-side aggregation for the admin dashboard: a date-range preset
+// drives the headline cards, each carrying a trend vs the previous period
+// of equal length; alongside sit today's
 // operations, a 12-month revenue series, breakdowns, a needs-attention
 // summary and recent activity.
 import 'server-only';

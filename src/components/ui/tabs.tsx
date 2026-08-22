@@ -1,7 +1,7 @@
 // src/components/ui/tabs.tsx
 //
-// Tabs primitive ported from dms-frontend, adapted to the radix-ui
-// monopackage and the suites' brand tokens (gold underline accent).
+// Tabs primitive on the radix-ui monopackage, carrying the suites' brand
+// tokens (gold underline accent).
 'use client';
 
 import * as React from 'react';

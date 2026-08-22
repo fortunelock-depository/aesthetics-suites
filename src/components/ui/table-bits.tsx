@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { formatDate, formatTime } from '@/lib/format-date';
 
 /**
- * The dms two-line date cell for data tables: date on top, time just
+ * Two-line date cell for data tables: date on top, time just
  * below in muted text, right-aligned. Every date column uses this so
  * tables always show the time.
  */
@@ -135,7 +135,7 @@ export const ROW_BADGE = 'px-1.5 py-px text-[10px] tracking-[0.04em]';
 /**
  * Pulsing placeholder rows shaped like a RowCard (checkbox, meta line,
  * title + subtitle, action button) - the mobile counterpart of the table
- * skeleton, per the content-shaped-skeleton convention.
+ * skeleton, shaped like the content it stands in for.
  */
 export function SkeletonRowCards({ rows = 8 }: { rows?: number }) {
   return (

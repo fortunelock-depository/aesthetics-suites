@@ -39,8 +39,8 @@ const BLANK: FormInput = {
 };
 
 /**
- * Staff-account creation in the dms form-dialog shell: a centred modal on
- * tablet and up, a full-screen slide-over on phones. SUPER_ADMIN only -
+ * Staff-account creation in the shared form-dialog shell: a centred modal
+ * on tablet and up, a full-screen slide-over on phones. SUPER_ADMIN only -
  * the API enforces it. The password is set here and shared out of band;
  * the user can change it from their own Security tab.
  */

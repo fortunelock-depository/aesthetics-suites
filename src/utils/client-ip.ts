@@ -5,9 +5,9 @@
  *
  * Trust model: on Vercel (the deployment target) the platform overwrites
  * x-real-ip and x-forwarded-for with values it derived itself, so neither
- * can be spoofed by the caller. Self-hosting behind another proxy? Make
- * sure that proxy strips/overwrites these headers, or every limiter keyed
- * by IP becomes a no-op for an attacker who rotates the header.
+ * can be spoofed by the caller. Behind any other proxy, that proxy must
+ * strip or overwrite these headers, or every limiter keyed by IP becomes a
+ * no-op for an attacker who rotates the header.
  *
  * Preference order: x-real-ip (single value, platform-set), else the
  * RIGHTMOST x-forwarded-for entry (the hop closest to us - the leftmost is

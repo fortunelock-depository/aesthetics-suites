@@ -12,15 +12,15 @@ import { siteNavLinks, isActiveSiteLink, BOOK_NOW_HREF } from './nav-links';
 import { MobileMenu } from './mobile-menu';
 
 /**
- * Public navbar - the template's bar re-toned light: logo + wordmark left,
- * centered links, the square gold BOOK NOW right (121px bar, 1320px
- * container, 16px links, 16x43px button - measured from the reference).
+ * Public navbar, light-toned: logo + wordmark left, centered links, the
+ * square gold BOOK NOW right (121px bar, 1320px container, 16px links,
+ * 16x43px button).
  *
- * `variant="overlay"` reproduces the template's hero blending: the bar sits
- * FIXED over the hero with no background or border while the page is at the
- * top (the hero's imagery reads straight through it), then gains its solid
- * blurred background the moment you scroll. Pages without a hero use the
- * default solid sticky bar.
+ * `variant="overlay"` blends the bar into the hero: it sits FIXED over the
+ * hero with no background or border while the page is at the top (the
+ * hero's imagery reads straight through it), then gains its solid blurred
+ * background on scroll. Pages without a hero use the default solid sticky
+ * bar.
  */
 export function SiteHeader({
   variant = 'solid',
@@ -53,7 +53,7 @@ export function SiteHeader({
       <div className="relative mx-auto flex h-20 w-full max-w-[1320px] items-center justify-between gap-4 px-4 lg:h-[121px] lg:px-3">
         <BrandLogo />
 
-        {/* Centered links from lg up (the template's desktop layout). */}
+        {/* Centered links from lg up. */}
         <nav aria-label="Site" className="hidden lg:block">
           <ul className="flex items-center gap-10">
             {siteNavLinks.map((link) => {

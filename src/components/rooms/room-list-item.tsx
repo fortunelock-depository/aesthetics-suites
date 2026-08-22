@@ -7,11 +7,11 @@ import type { IPublicRoomCard } from '@/lib/hotel/public-rooms';
 import { roomDetail } from '@/lib/routes';
 
 /**
- * One row of the room list (template's room__list-item): bordered white
- * card - photo left (300x250), content with a hairline divider on its
- * right, then the centered meta column (gold price, star rating, READ
- * MORE). Stacks photo-on-top below lg; the meta column becomes a bottom
- * row so price and actions never squeeze the text.
+ * One row of the room list: bordered white card - photo left (300x250),
+ * content with a hairline divider on its right, then the centered meta
+ * column (gold price, star rating, READ MORE). Stacks photo-on-top below
+ * lg; the meta column becomes a bottom row so price and actions never
+ * squeeze the text.
  */
 export function RoomListItem({ room }: { room: IPublicRoomCard }) {
   const guests = room.capacityAdults + room.capacityChildren;
@@ -74,7 +74,7 @@ export function RoomListItem({ room }: { room: IPublicRoomCard }) {
           >
             {formatMoney(room.basePrice, room.currency)}/Night
           </p>
-          {/* Rating always sits on the card (template): "New" pre-reviews. */}
+          {/* Rating always sits on the card; "New" until reviews exist. */}
           <p className="flex items-center gap-2 text-[13px] text-muted-foreground">
             <Star className="h-3.5 w-3.5 fill-brand text-brand" />
             {room.rating && room.rating.count > 0 ? (

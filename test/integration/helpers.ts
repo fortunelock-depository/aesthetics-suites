@@ -9,8 +9,8 @@ let seq = 0;
 
 /**
  * One anchor for the whole run, fixed at midday UTC on the day the suite
- * loaded. Computing each fixture from `new Date()` meant two calls either
- * side of a UTC midnight disagreed by a day, so a "2 night" stay could be
+ * loaded. Computing each fixture from `new Date()` lets two calls either
+ * side of a UTC midnight disagree by a day, so a "2 night" stay can be
  * seeded as 1 or 3 - a confusing failure with no relation to the code
  * under test. Anchoring removes that entirely.
  *

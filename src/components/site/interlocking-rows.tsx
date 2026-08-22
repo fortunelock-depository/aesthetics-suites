@@ -7,8 +7,8 @@ import type { IEditorialRow } from '@/lib/hotel/editorial';
 import { cn } from '@/lib/utils';
 
 /**
- * The template's alternating feature rows (interlocking image/text with an
- * offset light-gray band bleeding past the content edge), shared by the
+ * Alternating feature rows: interlocking image/text with an offset
+ * light-gray band bleeding past the content edge, shared by the
  * facilities and services surfaces. READ MORE leads to
  * `{hrefBase}/{slug}`.
  */
@@ -44,7 +44,7 @@ export function InterlockingRows({
         const cover = item.photos[0];
         return (
           <div key={item.id} className="relative">
-            {/* Offset band behind the row (the template's bg-left/bg-right). */}
+            {/* Offset band behind the row, left or right by index. */}
             <div
               aria-hidden
               className={cn(

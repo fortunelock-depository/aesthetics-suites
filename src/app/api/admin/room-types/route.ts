@@ -37,9 +37,8 @@ export async function GET(req: NextRequest) {
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
         skip: (query.page - 1) * query.limit,
         take: query.limit,
-        // Explicit select mirroring IRoomTypeRow (the users routes'
-        // userSelect pattern) - a raw include ships internal columns
-        // (deletedAt) the DTO never declared.
+        // Explicit select mirroring IRoomTypeRow - a raw include ships
+        // internal columns (deletedAt) the DTO never declared.
         select: {
           id: true,
           name: true,

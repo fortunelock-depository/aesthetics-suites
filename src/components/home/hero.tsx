@@ -6,9 +6,9 @@ import { BookingBar } from './booking-bar';
 import { HeroSlideshow } from './hero-slideshow';
 
 /**
- * The landing hero: the reference template's composition (full-bleed
- * imagery, two-line staircase headline, booking bar riding the bottom
- * edge) re-toned light - ivory field, dark display type, gold accents.
+ * The landing hero: full-bleed imagery, a two-line staircase headline and
+ * the booking bar riding the bottom edge, toned light - ivory field, dark
+ * display type, gold accents.
  */
 export function Hero() {
   return (
@@ -29,7 +29,7 @@ export function Hero() {
             <p className="text-sm font-medium tracking-[0.2em] text-brand-text uppercase">
               {HERO.eyebrow}
             </p>
-            {/* The template's staircase headline: line two steps inward. */}
+            {/* Staircase headline: line two steps inward. */}
             <h1 className="mt-4 font-heading text-[44px] leading-[1.2] font-bold text-foreground sm:text-6xl lg:text-[80px] lg:leading-[100px]">
               {HERO.titleLine1}
               <span className="block sm:pl-[12%]">{HERO.titleLine2}</span>
@@ -39,7 +39,7 @@ export function Hero() {
             </p>
           </Reveal>
 
-          {/* The template's animated play medallion, right of the headline. */}
+          {/* Animated play medallion, right of the headline. */}
           <Reveal delay={0.25} from="right" className="hidden md:block">
             <PlayCircle tone="dark" />
           </Reveal>

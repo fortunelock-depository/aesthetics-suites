@@ -1,6 +1,6 @@
 // src/components/ui/responsive-form-dialog.tsx
 //
-// The dms form-dialog shell: a centred modal on tablet and up, a
+// The shared form-dialog shell: a centred modal on tablet and up, a
 // full-screen slide-over on phones where the extra space matters. The
 // same children render in both, so a form describes its header, body and
 // footer once.

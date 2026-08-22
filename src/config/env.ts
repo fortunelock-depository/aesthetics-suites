@@ -44,7 +44,7 @@ export const ENV = {
     ? required('NEXT_PUBLIC_BASE_URL')
     : (optional('NEXT_PUBLIC_BASE_URL') ?? 'http://localhost:3000'),
 
-  // SMTP - optional (agritrade pattern). When unset, the mail layer logs
+  // SMTP - optional. When unset, the mail layer logs
   // codes/links to the server console instead of sending email (fine for
   // local development). Gmail works with host smtp.gmail.com + app password.
   SMTP_HOST: optional('SMTP_HOST') ?? 'smtp.gmail.com',

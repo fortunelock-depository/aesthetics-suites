@@ -252,13 +252,12 @@ describe('initializePayment', () => {
 });
 
 describe('CRITICAL-2 reconcile: payment settles after the hold lapsed', () => {
-  // Note on what this pins: the reconcile path's OUTCOME, not the fix
-  // itself. Pre-fix code (a status-only claim) also confirmed this booking,
-  // so this case cannot fail on the old code - the auto-refund case below
-  // is what discriminates. Its value is proving that a lapsed hold whose
-  // unit is still free is reseated rather than refunded, and that the
-  // reconcile branch fires at all (the sweep would otherwise have expired
-  // it out from under the payment).
+  // What this pins: the reconcile path's OUTCOME. A status-only claim would
+  // confirm this booking too, so this case does not discriminate - the
+  // auto-refund case below is what does. Its value is proving that a lapsed
+  // hold whose unit is still free is reseated rather than refunded, and that
+  // the reconcile branch fires at all (the sweep would otherwise have
+  // expired it out from under the payment).
   it('reseats the booking when its unit is still free', async () => {
     const { roomType } = await createRoomTypeWithUnits();
     const { booking, payment } = await bookAndGetReference(roomType.slug);
@@ -417,10 +416,9 @@ describe('Paystack webhook route', () => {
   });
 });
 
-// The return page branches on `outcome` alone. These assertions exist
-// because the naive version (branch on payment status) told a guest whose
-// room was resold that their payment "was not confirmed" - the money had
-// arrived and a refund was already in flight.
+// The return page branches on `outcome` alone. Branching on payment status
+// instead tells a guest whose room was resold that their payment "was not
+// confirmed", when the money has arrived and a refund is already in flight.
 describe('verify route outcome', () => {
   it('reports confirmed for a normal settle', async () => {
     const { roomType } = await createRoomTypeWithUnits();

@@ -4,8 +4,9 @@
 // facilities, services). They differ only in Prisma model, Cloudinary
 // folder, and which public surface to revalidate - everything else
 // (multipart parsing, size/type gate, sort-order append, cleanup) is one
-// implementation. This exists because the hand-cloned copies drifted in
-// production once (the services clone revalidated the facilities pages).
+// implementation. Hand-cloned copies drift silently: a clone that
+// revalidates another section's pages raises no error, it just serves
+// stale content.
 import 'server-only';
 import { requireAdmin } from '@/lib/api-auth';
 import { successResponse, handleApiError } from '@/utils/api-response';

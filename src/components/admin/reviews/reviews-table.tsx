@@ -1,7 +1,7 @@
 // src/components/admin/reviews/reviews-table.tsx
 //
 // The moderation queue on the shared table stack. Two filters (status +
-// room), so they live behind the Filters toggle per the dms layout rule.
+// room), so they live behind the Filters toggle.
 'use client';
 
 import * as React from 'react';

@@ -2,7 +2,7 @@
 //
 // The bookings ledger on the shared table stack. Four filters (status,
 // room, from, to), so they live behind the Filters toggle in a 4-col
-// desktop panel per the dms layout rule.
+// desktop panel.
 'use client';
 
 import * as React from 'react';

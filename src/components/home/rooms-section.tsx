@@ -6,9 +6,8 @@ import type { IPublicRoomCard } from '@/lib/hotel/public-rooms';
 import { RoomCard } from './room-card';
 
 /**
- * "Our Luxury Rooms" on its light-gray band - the template's mixed-width
- * grid, measured: rows of [25%, 50%, 25%] then [50%, 50%] at 357px tall
- * with 24px gutters. The span pattern repeats every 5 cards for any count;
+ * "Our Luxury Rooms" on its light-gray band: a mixed-width grid of
+ * [25%, 50%, 25%] rows then [50%, 50%], 357px tall with 24px gutters. The span pattern repeats every 5 cards for any count;
  * below xl it settles into a 2-col grid, single column on phones.
  */
 const SPAN_PATTERN = [

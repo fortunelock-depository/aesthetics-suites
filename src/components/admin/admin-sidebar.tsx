@@ -22,9 +22,9 @@ import { routes } from '@/lib/routes';
 import type { UserRoleValue } from '@/types/user.types';
 
 /**
- * The console's sidebar (dms pattern on the shadcn sidebar primitive):
- * brand header, role-filtered nav with active highlighting, and a footer
- * link back to the public site. Collapses to icons on desktop via the
+ * The console's sidebar, on the shadcn sidebar primitive: brand header,
+ * role-filtered nav with active highlighting, and a footer link back to
+ * the public site. Collapses to icons on desktop via the
  * rail; becomes an off-canvas sheet on mobile.
  */
 export function AdminSidebar({ role }: { role: UserRoleValue }) {

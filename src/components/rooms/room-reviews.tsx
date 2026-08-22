@@ -9,8 +9,8 @@ import { REVIEWS_PAGE_SIZE } from '@/lib/hotel/public-room-detail';
 import type { IPublicRoomDetail } from '@/lib/hotel/public-room-detail';
 
 /**
- * Guest reviews at the bottom of the room detail page (the product
- * decision: reviews live under each listing). The heading and aggregate
+ * Guest reviews at the bottom of the room detail page: reviews live under
+ * each listing. The heading and aggregate
  * render on the server; the list itself is server-PAGINATED through the
  * public API since reviews grow without bound.
  */
@@ -64,7 +64,7 @@ export function RoomReviews({
         />
       )}
 
-      {/* Stayed here? The dialog verifies via booking code. */}
+      {/* The dialog verifies the stay via booking code. */}
       <div className="mt-10 flex justify-center">
         <WriteReviewButton slug={slug} roomName={roomName} />
       </div>

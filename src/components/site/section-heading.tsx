@@ -10,8 +10,8 @@ interface SectionHeadingProps {
 }
 
 /**
- * The template's section heading, measured: 15px semibold gold eyebrow in
- * capitalize (not uppercase), then the 45/60px medium display title.
+ * The section heading: 15px semibold gold eyebrow in capitalize (not
+ * uppercase), then the 45/60px medium display title.
  */
 export function SectionHeading({
   eyebrow,

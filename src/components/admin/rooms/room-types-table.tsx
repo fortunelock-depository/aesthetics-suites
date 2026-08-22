@@ -2,7 +2,7 @@
 //
 // Rooms list on the shared table stack: URL-synced query state -> RTK
 // Query -> the dual-render DataTable, with the single published filter
-// inline beside the search (the dms one-filter rule).
+// inline beside the search.
 'use client';
 
 import * as React from 'react';
@@ -290,7 +290,7 @@ export function RoomTypesTable() {
                 Boolean(filters.search) || filters.isPublished !== undefined
               }
               onClearAll={() => patchFilters(clearAllFiltersPatch(filters))}
-              // ONE filter -> inline beside the search (the dms rule).
+              // ONE filter -> inline beside the search, no Filters toggle.
               inlineFilter={
                 <LabeledSelect
                   id="rooms-status-filter"

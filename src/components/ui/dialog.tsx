@@ -1,7 +1,7 @@
 // src/components/ui/dialog.tsx
 //
-// Dialog primitive ported from dms-frontend, adapted to the radix-ui
-// monopackage. Title/description carry overflow-wrap hardening because
+// Dialog primitive on the radix-ui monopackage. Title/description carry
+// overflow-wrap hardening because
 // they often interpolate user-authored names; content is capped and
 // scrolls internally so the footer is always reachable.
 'use client';

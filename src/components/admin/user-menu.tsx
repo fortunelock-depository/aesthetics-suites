@@ -21,9 +21,9 @@ import { initials } from '@/lib/initials';
 import { USER_ROLE_LABEL, type UserRoleValue } from '@/types/user.types';
 
 /**
- * The console header's account dropdown (dms pattern): avatar (photo, or
- * initials) opening a menu with the signed-in identity, Profile and
- * Settings links, and a confirmed sign-out. The theme toggle deliberately
+ * The console header's account dropdown: avatar (photo, or initials)
+ * opening a menu with the signed-in identity, Profile and Settings links,
+ * and a confirmed sign-out. The theme toggle deliberately
  * stays OUTSIDE it.
  */
 export function UserMenu({

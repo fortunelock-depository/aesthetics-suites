@@ -1,7 +1,7 @@
 // src/validations/form-primitives.ts
 //
 // Pure zod building blocks for CLIENT form schemas whose inputs hold raw
-// strings (the house rule: no clamping while typing - parse on submit).
+// strings: no clamping while typing - parse on submit.
 // Money enters as GHS text and leaves as integer pesewas; numerics leave
 // as ints. Shared by every admin form so the transforms can never drift.
 import { z } from 'zod';

@@ -34,7 +34,7 @@ const querySchema = z
     { message: 'A custom range needs from and to dates (to >= from)' },
   );
 
-/** The rich dashboard payload (dms-style: range cards w/ trends + ops). */
+/** The rich dashboard payload: range cards with trends, plus ops. */
 export async function GET(req: NextRequest) {
   try {
     await requireStaff();

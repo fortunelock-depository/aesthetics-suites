@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Applied to every route. A full Content-Security-Policy is deliberately
-// omitted for now (third-party scripts would need careful allowlisting);
+// omitted (third-party scripts would need careful allowlisting);
 // frame-ancestors covers the clickjacking half of it.
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },

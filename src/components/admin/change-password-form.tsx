@@ -57,8 +57,8 @@ export function PasswordField({
 }
 
 /**
- * Authenticated password change (khadys/dms pattern): a read-only row
- * until "Change password" is clicked, then current + new + confirmation,
+ * Authenticated password change: a read-only row until "Change password"
+ * is clicked, then current + new + confirmation,
  * all inline-validated; success signs every OTHER device out
  * (session-epoch bump) while this one stays in.
  */

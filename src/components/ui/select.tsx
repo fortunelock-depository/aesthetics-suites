@@ -19,8 +19,8 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        // w-full min-w-0 by default per the mobile-first form rule; the
-        // selected value clamps to one line without stretching the track.
+        // w-full min-w-0 by default; the selected value clamps to one
+        // line without stretching the track.
         'flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm whitespace-nowrap outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground dark:bg-input/30 [&>span]:min-w-0 [&>span]:truncate',
         className,
       )}

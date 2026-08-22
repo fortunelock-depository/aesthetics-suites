@@ -1,8 +1,8 @@
 // src/lib/mail/contact-email.ts
 //
 // Contact-form mail: the message goes straight to the admins' inboxes and
-// the sender gets an acknowledgement. Nothing is stored - email IS the
-// pipeline (per the product decision).
+// the sender gets an acknowledgement. Nothing is stored: email IS the
+// pipeline.
 import 'server-only';
 import { shell, escapeHtml } from './email-shell';
 import { deliver, adminRecipients } from './deliver';

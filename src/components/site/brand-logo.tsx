@@ -6,8 +6,8 @@ import { routes } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 /**
- * The brand lockup for site chrome: the "A" mark beside the wordmark - the
- * template's icon-plus-name navbar arrangement. The mark is theme-aware: the
+ * The brand lockup for site chrome: the "A" mark beside the wordmark, the
+ * icon-plus-name navbar arrangement. The mark is theme-aware: the
  * dark variant sits on light surfaces and swaps for the light variant in dark
  * mode, where the dark mark would vanish into the background. `withTagline`
  * adds the logo's tagline underneath (footer).

@@ -4,7 +4,7 @@ import { CategoryList } from './category-list';
 import { SidebarBookingCard } from './sidebar-booking-card';
 import { MobileSidebarDrawers } from './mobile-sidebar-drawers';
 
-/** The template's sidebar widget shell (white bordered card, underlined title). */
+/** Sidebar widget shell: bordered card with an underlined title. */
 export function SidebarWidget({
   title,
   children,
@@ -25,7 +25,7 @@ export function SidebarWidget({
 
 /**
  * Category + Booking Now (shared by the room list and room detail
- * sidebars). Desktop: the template's inline widget cards. Phones: two
+ * sidebars). Desktop: inline widget cards. Phones: two
  * side-by-side buttons lifting each card up as a bottom drawer, so the
  * widgets never stretch the page.
  */

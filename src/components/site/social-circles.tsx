@@ -4,9 +4,8 @@ import type { SVGProps } from 'react';
 import { ArcRing } from './arc-ring';
 
 /**
- * Brand marks lucide dropped (or never had), drawn the same way the
- * website-frontend / dms-frontend footers do it: a single currentColor
- * path in a 24×24 viewBox, so they slot in beside the lucide icons.
+ * Brand marks lucide dropped (or never had): a single currentColor path in
+ * a 24×24 viewBox, so they slot in beside the lucide icons.
  */
 const XIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg

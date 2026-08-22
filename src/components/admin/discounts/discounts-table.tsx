@@ -1,7 +1,7 @@
 // src/components/admin/discounts/discounts-table.tsx
 //
 // Discounts on the shared table stack. Small forms, so create/edit live
-// in the dms form-dialog shell; code/type/room are immutable after
+// in the shared form-dialog shell; code/type/room are immutable after
 // creation (a shared code must keep meaning what it meant).
 'use client';
 
@@ -698,7 +698,7 @@ export function DiscountsTable() {
                 Boolean(filters.search) || filters.isActive !== undefined
               }
               onClearAll={() => patchFilters(clearAllFiltersPatch(filters))}
-              // ONE filter -> inline beside the search (the dms rule).
+              // ONE filter -> inline beside the search, no Filters toggle.
               inlineFilter={
                 <LabeledSelect
                   id="discounts-status-filter"

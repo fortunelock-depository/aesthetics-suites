@@ -1,10 +1,9 @@
 // src/app/api/users/[id]/password/route.ts
 //
-// Admin password rescue (chosen-fintech pattern): a super admin sets a
-// locked-out user a new password. The session epoch is bumped so EVERY
-// existing session of that user dies - whoever holds the old password is
-// out - and their pending security tokens are revoked. The user is
-// notified by email.
+// Admin password rescue: a super admin sets a locked-out user a new
+// password. The session epoch is bumped so EVERY existing session of that
+// user dies - whoever holds the old password is out - and their pending
+// security tokens are revoked. The user is notified by email.
 import bcrypt from 'bcrypt';
 import prisma from '@/lib/prisma';
 import { requireSuperAdmin } from '@/lib/api-auth';

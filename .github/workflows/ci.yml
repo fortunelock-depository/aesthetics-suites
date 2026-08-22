@@ -49,9 +49,9 @@ jobs:
       - run: npm run build
 
   # Applies pending migrations to the production database BEFORE Vercel
-  # builds the new code (release-deploy convention: schema first, code
-  # second). PROD_DATABASE_URL must be the DIRECT (non-pooled) connection
-  # string - pgbouncer transaction pooling and DDL do not mix.
+  # builds the new code: schema first, code second. PROD_DATABASE_URL must
+  # be the DIRECT (non-pooled) connection string - pgbouncer transaction
+  # pooling and DDL do not mix.
   #
   # When the secret is not configured the job succeeds as a no-op (every
   # step skips) instead of failing the pipeline - secrets are invisible to

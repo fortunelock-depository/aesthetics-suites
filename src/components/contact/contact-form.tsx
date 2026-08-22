@@ -53,8 +53,8 @@ function FieldErrorText({ message, id }: { message?: string; id?: string }) {
 }
 
 /**
- * The template's "Send Message" form (icon-in-field boxes, gold submit)
- * wired end to end: react-hook-form + the shared zod schema for inline
+ * The "Send Message" form (icon-in-field boxes, gold submit), wired end
+ * to end: react-hook-form + the shared zod schema for inline
  * client errors (native validation disabled), Turnstile when configured,
  * and server field errors mapped back inline via setError.
  */

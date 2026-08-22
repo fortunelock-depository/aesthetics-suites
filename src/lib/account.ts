@@ -1,7 +1,7 @@
 // src/lib/account.ts
 //
-// Self-service account actions for signed-in staff (the khadys/dms
-// pattern): profile edit, and a password change that bumps the session
+// Self-service account actions for signed-in staff: profile edit, and a
+// password change that bumps the session
 // epoch - signing the account out of every OTHER device - then re-issues
 // the current device's cookie so it stays signed in.
 'use server';
@@ -82,7 +82,7 @@ export async function updateProfile(
   const newEmail = parsed.data.email?.toLowerCase().trim();
   const changingEmail = !!newEmail && newEmail !== user.email;
 
-  // The dms guarded email flow: the current password re-authorizes the
+  // Guarded email flow: the current password re-authorizes the
   // change, then a confirmation link goes to the CURRENT address. Nothing
   // switches until that link is clicked.
   if (changingEmail) {

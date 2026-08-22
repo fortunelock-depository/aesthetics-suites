@@ -7,8 +7,8 @@ import { afterAll, beforeEach, vi } from 'vitest';
 
 // ── Paystack fake ───────────────────────────────────────────────────────────
 // Echoes the amount/currency `initialize` was called with (keyed by
-// reference), so the service's amount-reconciliation check runs for real,
-// exactly like khadys-kitchen's fake. Tests can override any call with
+// reference), so the service's amount-reconciliation check runs for real.
+// Tests can override any call with
 // vi.mocked(...).mockXxxOnce and read `paystackCharged` to inspect charges.
 const paystackState = vi.hoisted(() => ({
   charged: new Map<string, { amount: number; currency: string }>(),

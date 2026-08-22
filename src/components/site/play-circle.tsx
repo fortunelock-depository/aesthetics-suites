@@ -4,16 +4,16 @@ import { cn } from '@/lib/utils';
 import { ArcRing } from './arc-ring';
 
 const SIZES = {
-  /** The hero medallion (template: 100px). */
+  /** The hero medallion (100px). */
   md: 'h-[100px] w-[100px]',
-  /** The media-band medallion (template: 150px). */
+  /** The media-band medallion (150px). */
   lg: 'h-[110px] w-[110px] lg:h-[150px] lg:w-[150px]',
 } as const;
 
 /**
- * The template's play medallion (.video__play): a faint 1px static ring
- * with the play glyph, plus the tapered arc orbiting it continuously (2s
- * linear). Ring, arc, and glyph warm to gold on hover. Decorative until a
+ * The play medallion (.video__play): a faint 1px static ring with the
+ * play glyph, plus the tapered arc orbiting it continuously (2s linear).
+ * Ring, arc, and glyph warm to gold on hover. Decorative until a
  * video/booking action backs it.
  */
 export function PlayCircle({

@@ -16,7 +16,7 @@ export default async function UserDetailPage({
   const { userId: currentUserId } = await requireSession();
   const { id } = await params;
 
-  // Your own account is managed from your profile page (self-guards like
+  // A user's own account is managed from the profile page (self-guards like
   // "no self-delete/demote" live there and in the API).
   if (id === currentUserId) redirect('/admin/profile');
 

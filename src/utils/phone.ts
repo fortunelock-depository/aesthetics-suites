@@ -1,7 +1,7 @@
 // src/utils/phone.ts
 //
-// Unified phone normalization (the dms-backend pattern): every phone number
-// that enters the system is parsed with libphonenumber-js and STORED in
+// Unified phone normalization: every phone number that enters the system
+// is parsed with libphonenumber-js and STORED in
 // E.164 ("+233241234567"), so lookups, deduping, SMS/WhatsApp integrations
 // and display formatting all work from one canonical shape. Ghana-first:
 // national input ("024...") assumes GH unless the number is international.

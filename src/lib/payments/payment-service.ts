@@ -1,6 +1,6 @@
 // src/lib/payments/payment-service.ts
 //
-// The generic Paystack payment rail (khadys-kitchen ledger pattern):
+// The generic Paystack payment rail:
 //
 // - `initializePayment` writes the PENDING ledger row FIRST, then calls
 //   Paystack - so a settled charge can never arrive for an unknown reference.
@@ -10,10 +10,6 @@
 //   the verify-on-return call and the webhook can race safely.
 // - Amount/currency mismatches are NEVER credited - they throw and are left
 //   for manual review.
-//
-// When the booking domain lands, hook post-settlement side effects (marking
-// the booking paid, confirmation email, public-page revalidation) into the
-// `claimed` branch of confirmPayment.
 import 'server-only';
 import prisma, { PaymentStatus, type Payment } from '@/lib/prisma';
 import {

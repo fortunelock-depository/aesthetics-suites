@@ -10,9 +10,9 @@ const isEmailConfigured = (): boolean =>
   Boolean(ENV.SMTP_USER && ENV.SMTP_PASSWORD);
 
 /**
- * Lazily builds (and caches) the SMTP transporter (agritrade pattern), or
- * returns null when credentials are not set - callers fall back to console
- * logging in that case, so local development works without email.
+ * Lazily builds (and caches) the SMTP transporter, or returns null when
+ * credentials are not set - callers fall back to console logging in that
+ * case, so local development works without email.
  */
 export const getTransporter = (): Transporter | null => {
   if (!isEmailConfigured()) return null;

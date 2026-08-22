@@ -1,8 +1,8 @@
 // src/components/admin/overview-charts.tsx
 //
-// The dashboard's charts (dms pattern, recharts): the 12-month revenue +
-// bookings trend, the period's booking-status breakdown, and where
-// bookings come from. Deliberately just these three - enough to read how
+// The dashboard's charts (recharts): the 12-month revenue + bookings
+// trend, the period's booking-status breakdown, and where bookings come
+// from. Deliberately just these three - enough to read how
 // the hotel is running, nothing decorative.
 'use client';
 

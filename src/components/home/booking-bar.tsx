@@ -8,8 +8,8 @@ import { toDateOnlyString } from '@/lib/hotel/dates';
 import { DatePlaceholder } from '@/components/ui/date-placeholder';
 
 /**
- * The hero's check-in / check-out / guests bar (the template's flat joined
- * cells, light). Submit hands the chosen stay to the rooms list as URL
+ * The hero's check-in / check-out / guests bar: flat joined cells, light.
+ * Submit hands the chosen stay to the rooms list as URL
  * params; every room link there carries them onward (StayLink) so the
  * checkout arrives prefilled - dates typed here are never typed again.
  * Cells stack full-width on phones; labels sit ABOVE values (never beside).

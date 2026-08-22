@@ -64,11 +64,10 @@ import {
 const HOLD_MINUTES = 30;
 
 /**
- * Active taxes/levies applied to every quote. The admin surface for
- * TaxFee was deliberately deferred (c6fb2c2) - rows are currently seeded
- * or SQL-managed - but the pricing pipeline stays wired so switching VAT
- * on is a data change, not a code change. request-cached so one checkout
- * does not query it twice.
+ * Active taxes/levies applied to every quote. TaxFee has no admin surface -
+ * rows are seeded or SQL-managed - but the pricing pipeline stays wired so
+ * switching VAT on is a data change, not a code change. request-cached so
+ * one checkout does not query it twice.
  */
 const getActiveTaxFees = cache(() =>
   prisma.taxFee.findMany({
@@ -1167,7 +1166,7 @@ export async function sendLifecycleEmails(): Promise<{
  * PENDING - and once its hold lapses it becomes EXPIRED and the unit is
  * resold under someone who paid.
  *
- * `confirmPayment` now re-drives fulfilment on every retry, so most gaps
+ * `confirmPayment` re-drives fulfilment on every retry, so most gaps
  * close on the next webhook attempt. This sweep is the backstop for the
  * case where nothing retries at all, and guarantees repair within the hour.
  * `markBookingPaid` is the right repair for both states: a live hold is

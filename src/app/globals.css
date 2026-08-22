@@ -51,7 +51,7 @@
 }
 
 :root {
-  /* Aesthetics Suites brand palette (from the brand board):
+  /* Aesthetics Suites brand palette:
      Ivory #FFF9E2 (field) · Pistachio #EBECCC (soft surfaces) ·
      Eucalyptus #CDD3B1 (secondary) · Clay #DCA278 (accent) ·
      Peach #FEECD0 (hover warmth) · derived deep-olive ink for text. */
@@ -177,7 +177,7 @@
   }
 }
 
-/* ── Template interaction primitives (copied from the reference CSS) ─── */
+/* ── Interaction primitives ──────────────────────────────────────── */
 
 /* Sweep buttons (.theme-btn): two halves grow WIDTH from the outer edges
    to the center with an opacity fade-in - 0.5s ease-out, so the fill

@@ -19,7 +19,7 @@ import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { cn } from '@/lib/utils';
 
 /**
- * The dms panel-grid rule: 2 columns on phones, 3 on tablets; on desktop
+ * Panel grid: 2 columns on phones, 3 on tablets; on desktop
  * fewer than 4 filters sit in a 4-col grid filling from the left, while
  * 4-7 filters all share ONE row (grid-cols-n). Literal classes so
  * Tailwind can see them; no page has 8+ filters.
@@ -73,7 +73,7 @@ interface IDataTableToolbarProps<TData> {
 }
 
 /**
- * Shared toolbar for every admin data table (the dms conventions).
+ * Shared toolbar for every admin data table.
  *
  * - Search box takes the available width.
  * - ONE filter (`inlineFilter`) sits beside the search from `sm` up with

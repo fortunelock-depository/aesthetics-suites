@@ -7,13 +7,11 @@ import type { IPublicRoomCard } from '@/lib/hotel/public-rooms';
 import { roomDetail } from '@/lib/routes';
 
 /**
- * A room card copied from the template mechanically: full-bleed photo (no
- * zoom), bottom gradient, and the caption block parked at `bottom: -57px`
- * so its BOOKING NOW row hides below the card edge. Hover slides the whole
- * block to `bottom: 0` (0.4s ease-in-out) while the row fades in above its
- * hairline divider. Below lg (touch - no hover) the block rests at 0 with
- * the row always visible. BOOKING NOW points at the contact anchor until
- * the booking flow lands.
+ * A room card: full-bleed photo (no zoom), bottom gradient, and the caption
+ * block parked at `bottom: -57px` so its BOOKING NOW row hides below the
+ * card edge. Hover slides the whole block to `bottom: 0` (0.4s ease-in-out)
+ * while the row fades in above its hairline divider. Below lg (touch - no
+ * hover) the block rests at 0 with the row always visible.
  */
 export function RoomCard({ room }: { room: IPublicRoomCard }) {
   return (
@@ -25,7 +23,7 @@ export function RoomCard({ room }: { room: IPublicRoomCard }) {
         className="absolute inset-0 h-full"
         sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 660px"
       />
-      {/* Legibility gradient (the template's #0E1317 fade). */}
+      {/* Legibility gradient: #0E1317 fade. */}
       <div
         aria-hidden
         className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-[#0E1317] via-[#0E1317]/40 to-transparent"

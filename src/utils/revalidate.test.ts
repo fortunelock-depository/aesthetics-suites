@@ -1,10 +1,9 @@
 // Which paths each helper purges.
 //
-// This file has already produced one silent production bug: the services
-// mutation routes called `revalidatePublicFacilities`, so editing a service
-// purged a page that does not exist while /services served stale content
-// for an hour. Nothing failed, nothing logged. Asserting the exact paths is
-// cheap insurance against the next mismatch of that shape.
+// A mismatch here is silent: services mutation routes calling
+// `revalidatePublicFacilities` purge a page that does not exist while
+// /services keeps serving stale content, with nothing failing and nothing
+// logged. Asserting the exact paths is cheap insurance.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const revalidatePath = vi.fn();

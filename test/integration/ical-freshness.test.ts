@@ -1,10 +1,10 @@
 // Demand-driven Airbnb calendar freshness, and the housekeeping run lock.
 //
-// Calendar accuracy is not on a timer any more: the room somebody is about
-// to book is synced right then. These pin the parts that make that safe -
-// the compare-and-swap claim (so concurrent visitors fetch once), the
-// failure path (so a broken feed cannot mark a room falsely fresh), and the
-// guarantee that none of it can block or break a booking.
+// The room somebody is about to book is synced right then, so these pin the
+// parts that make that safe: the compare-and-swap claim (so concurrent
+// visitors fetch once), the failure path (so a broken feed cannot mark a
+// room falsely fresh), and the guarantee that none of it can block or break
+// a booking.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import prisma, { BlockSource } from '@/lib/prisma';
 import {

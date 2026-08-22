@@ -27,9 +27,8 @@ const ROWS: InfoRow[] = [
 ];
 
 /**
- * The "Get In Touch" column (template's contact__area-info): gold outline
- * icon, small muted label on top, bold value below - stacked rows, then
- * the social circles.
+ * The "Get In Touch" column: gold outline icon, small muted label on top,
+ * bold value below - stacked rows, then the social circles.
  */
 export function ContactInfo() {
   return (

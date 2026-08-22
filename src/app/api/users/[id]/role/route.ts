@@ -1,8 +1,8 @@
 // src/app/api/users/[id]/role/route.ts
 //
-// Role changes are their own endpoint (chosen-fintech pattern) so the
-// permission move is a deliberate call, never a side effect of a profile
-// edit. Takes effect immediately: resolveSession reads the role live from
+// Role changes are their own endpoint so the permission move is a
+// deliberate call, never a side effect of a profile edit. Takes effect
+// immediately: resolveSession reads the role live from
 // the DB on every request, so open sessions gain/lose access next request.
 import prisma from '@/lib/prisma';
 import { requireSuperAdmin } from '@/lib/api-auth';

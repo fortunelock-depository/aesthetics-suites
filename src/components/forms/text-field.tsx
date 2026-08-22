@@ -15,7 +15,7 @@ interface TextFieldProps extends React.ComponentProps<'input'> {
 }
 
 /**
- * Label + input + error in the house layout. Designed for react-hook-form's
+ * Label + input + error in the standard layout. Designed for react-hook-form's
  * `register`: `<TextField label="Email" error={errors.email?.message}
  * {...register('email')} />`.
  */

@@ -250,7 +250,7 @@ export function FacilityDetailClient({ facilityId }: { facilityId: string }) {
         }
       />
 
-      {/* Identity banner (the dms band shape). */}
+      {/* Identity banner. */}
       <div className="border border-border bg-card p-4 sm:p-6">
         <div className="flex flex-col items-center gap-5 bg-muted p-5 sm:flex-row">
           <div className="relative grid h-24 w-32 flex-none place-items-center overflow-hidden bg-background">

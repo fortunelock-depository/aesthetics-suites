@@ -68,7 +68,7 @@ export type UsersQuery = z.infer<typeof usersQuerySchema>;
 /**
  * Self-service profile edit. Role stays admin-managed; a changed email is
  * NOT applied directly - it requires the current password and a
- * confirmation link sent to the current address (dms flow).
+ * confirmation link sent to the current address.
  */
 export const profileUpdateSchema = z.object({
   fullname: z.string().trim().min(2, 'Enter your name').max(50),

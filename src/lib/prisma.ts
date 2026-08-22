@@ -17,8 +17,8 @@ const adapter = new PrismaPg({ connectionString: ENV.DATABASE_URL });
  *   (pass `deletedAt` explicitly in `where` to include them).
  *
  * `findUnique` is intentionally NOT filtered - Prisma only allows unique
- * fields in its `where`. Use `findFirst` when you need a soft-delete-aware
- * lookup. When a new model gains a `deletedAt` column, add its block here.
+ * fields in its `where`; `findFirst` is the soft-delete-aware lookup. A
+ * new model with a `deletedAt` column needs its own block here.
  */
 function withSoftDelete(base: PrismaClient) {
   return base.$extends({

@@ -10,11 +10,10 @@ import { siteNavLinks } from './nav-links';
 import { routes } from '@/lib/routes';
 
 /**
- * Public footer - the reference's light footer: brand lockup + blurb +
- * social circles, quick links, contact column, opening-hours rows with
- * dotted leaders, then the bottom bar with legal links and the developer
- * credit (chosen-fintech style). `id="contact"` anchors the navbar's
- * Contact link.
+ * Public footer, light-toned: brand lockup + blurb + social circles, quick
+ * links, contact column, opening-hours rows with dotted leaders, then the
+ * bottom bar with legal links and the developer credit. `id="contact"`
+ * anchors the navbar's Contact link.
  */
 export function SiteFooter() {
   const legalLinks = [
@@ -105,7 +104,7 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        {/* Opening hours - dotted-leader rows like the reference. */}
+        {/* Opening hours - dotted-leader rows. */}
         <div>
           <h2 className="font-heading text-xl font-medium text-foreground">
             Opening Hours

@@ -83,10 +83,10 @@ function RoleCard({ user }: { user: IUserRow }) {
 }
 
 /**
- * Another user's profile, presented exactly like one's own (dms shape):
- * avatar band + always-visible form under a Profile Information tab, and
- * a Security Settings tab holding the super-admin rescue tools. Viewing
- * YOURSELF never lands here - the server page redirects to /admin/profile.
+ * Another user's profile, presented exactly like one's own: avatar band +
+ * always-visible form under a Profile Information tab, and a Security
+ * Settings tab holding the super-admin rescue tools. Viewing one's own
+ * account never lands here - the server page redirects to /admin/profile.
  */
 export function UserDetailClient({ userId }: { userId: string }) {
   const router = useRouter();

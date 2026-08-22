@@ -26,7 +26,7 @@ import type {
   IServiceRow,
 } from '@/types/service.types';
 
-/** dms input treatment: calm muted fill at rest, alive while editing. */
+/** Input treatment: calm muted fill at rest, alive while editing. */
 const inputCls = (active: boolean) =>
   cn(
     'transition-all duration-200',
@@ -56,8 +56,8 @@ export const serviceFormSchema = z.object({
 export type ServiceFormInput = z.input<typeof serviceFormSchema>;
 export type ServiceFormOutput = z.output<typeof serviceFormSchema>;
 
-// (Named for THIS module - the facilities clone this file started from
-// exported BLANK_FACILITY here for a while, the first drift symptom of the
+// (Named for THIS module: the facilities twin owns BLANK_FACILITY, and a
+// blank exported under the wrong name is the first drift symptom of the
 // clone pair. The two modules remain near-identical clones by choice; a
 // parameterized editorial-entity module is the eventual dedupe.)
 export const BLANK_SERVICE: ServiceFormInput = {
@@ -132,7 +132,7 @@ function Field({
 }
 
 /**
- * The full service field grid. `active` drives the dms muted-at-rest
+ * The full service field grid. `active` drives the muted-at-rest
  * treatment; when false every control is disabled and the highlight
  * add/remove buttons hide.
  */

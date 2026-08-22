@@ -47,7 +47,7 @@ export const ROLE_TONE: Record<IUserRow['role'], StatusTone> = {
 };
 
 /**
- * Column defs for the users table. Width rules (house convention):
+ * Column defs for the users table. Width rules:
  * - Name is the ONE stretch column: 40% of the table, text truncating at
  *   90% of the cell so content never runs to the column edge.
  * - Email gets a fixed cap + title tooltip (secondary long content).

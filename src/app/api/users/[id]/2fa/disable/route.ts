@@ -1,8 +1,8 @@
 // src/app/api/users/[id]/2fa/disable/route.ts
 //
-// Admin 2FA rescue (chosen-fintech pattern): when a user with 2FA loses
-// access to their email, a super admin can switch it off so they can sign
-// in with their password again. Pending security tokens are revoked.
+// Admin 2FA rescue: when a user with 2FA loses access to their email, a
+// super admin can switch it off so they can sign in with their password
+// again. Pending security tokens are revoked.
 import prisma from '@/lib/prisma';
 import { requireSuperAdmin } from '@/lib/api-auth';
 import { successResponse, handleApiError } from '@/utils/api-response';

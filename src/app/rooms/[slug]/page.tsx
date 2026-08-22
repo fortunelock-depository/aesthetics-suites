@@ -71,7 +71,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
         />
 
         <section className="mx-auto grid w-full max-w-[1320px] gap-8 px-4 py-16 lg:grid-cols-[305px_1fr] lg:px-3 lg:py-[120px]">
-          {/* Sidebar: Your Price + Category + Booking Now (template order). */}
+          {/* Sidebar: Your Price, then Category and Booking Now. */}
           <aside className="order-2 space-y-8 lg:order-1 lg:sticky lg:top-[137px] lg:self-start">
             <div className="border border-border bg-card p-7">
               <h2 className="font-heading text-[22px] font-medium text-foreground">
@@ -173,7 +173,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
 
             <hr className="mt-[45px] border-border" />
 
-            {/* Amenities grid (template's 3-column icon rows). */}
+            {/* Amenities grid: 3-column icon rows. */}
             <h3 className="mt-[45px] font-heading text-[26px] font-medium text-foreground lg:text-[32px]">
               Amenities
             </h3>
@@ -197,7 +197,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
               })}
             </ul>
 
-            {/* FAQ accordion (first item open, template behavior). */}
+            {/* FAQ accordion, first item open. */}
             <div className="mt-[50px]">
               <Accordion
                 // The room's own FAQs; the generic house set fills in

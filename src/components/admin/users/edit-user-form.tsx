@@ -20,7 +20,7 @@ import type { IUserRow } from '@/types/user.types';
 type FormInput = z.input<typeof updateUserDetailsSchema>;
 type FormOutput = z.output<typeof updateUserDetailsSchema>;
 
-/** dms input treatment: calm muted fill at rest, alive while editing. */
+/** Input treatment: calm muted fill at rest, alive while editing. */
 const inputCls = (active: boolean) =>
   cn(
     'h-11 font-medium transition-all duration-200',
@@ -30,7 +30,7 @@ const inputCls = (active: boolean) =>
   );
 
 /**
- * The dms profile form for OTHER users: fields always visible, read-only
+ * The profile form for OTHER users: fields always visible, read-only
  * (muted) until Edit details is clicked. Role deliberately lives outside
  * this form - it changes what the account can do, so it gets its own
  * confirmed control.

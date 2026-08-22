@@ -1,14 +1,14 @@
 // Settlement and fulfilment are two separate writes, and everything here
 // is about the gap between them.
 //
-// The original bug: `confirmPayment` claimed the payment PENDING -> SUCCESS
-// and then ran the booking side effects inside that same one-shot branch,
-// swallowing any failure. If fulfilment died (DB blip, transaction budget,
-// the function being killed) the booking stayed PENDING while the payment
+// The failure mode guarded here: if `confirmPayment` claimed the payment
+// PENDING -> SUCCESS and then ran the booking side effects inside that same
+// one-shot branch, a fulfilment death (DB blip, transaction budget, the
+// function being killed) would leave the booking PENDING while the payment
 // read SUCCESS - and because `confirmPayment` short-circuits on an
-// already-SUCCESS payment, every webhook retry and guest revisit returned
-// early without repairing it. The hold then lapsed, the unit was resold,
-// and the return page still said "confirmed". Money taken, no stay, one log
+// already-SUCCESS payment, every webhook retry and guest revisit would
+// return early without repairing it. The hold lapses, the unit is resold,
+// and the return page still says "confirmed". Money taken, no stay, one log
 // line.
 //
 // Three defences are asserted below: a retry re-drives fulfilment, the
@@ -95,8 +95,8 @@ describe('fulfilment failure after a settled payment', () => {
 
     await settleWithFulfilmentFailure(payment.reference);
 
-    // Pre-fix this returned early on the SUCCESS short-circuit and the
-    // booking stayed PENDING forever.
+    // Without the re-drive this returns early on the SUCCESS short-circuit
+    // and the booking stays PENDING forever.
     await confirmPayment(payment.reference);
 
     const repaired = await prisma.booking.findUniqueOrThrow({

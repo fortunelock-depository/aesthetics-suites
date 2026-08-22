@@ -1,10 +1,10 @@
 // src/hooks/table-query-state-logic.ts
 //
-// Pure helpers behind useTableQueryState. Every list page used to hand-roll
-// the same URL <-> state plumbing (parse searchParams into filters,
-// serialize state back into the URL, strip empty values before hitting the
-// API). Centralising the logic here makes it unit-testable without
-// rendering a page and keeps each page down to a spec object.
+// Pure helpers behind useTableQueryState: the URL <-> state plumbing every
+// list page needs (parse searchParams into filters, serialize state back
+// into the URL, strip empty values before hitting the API). Keeping it here
+// makes it unit-testable without rendering a page and keeps each page down
+// to a spec object.
 
 /** The primitive value kinds a table filter can hold in the URL. */
 export type TableFilterValue = string | number | boolean | undefined;

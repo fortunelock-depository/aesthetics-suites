@@ -10,11 +10,11 @@ import { optimizeImage } from '@/lib/optimize-image';
 import { MAX_UPLOAD_BYTES } from '@/lib/uploads-shared';
 
 /**
- * A reusable "select an image from your system" field. The chosen file is
- * only STAGED locally (object-URL preview) after client-side downscaling
- * (optimize-image); nothing reaches Cloudinary until the parent form submits
- * it as multipart, so cancelling never orphans an upload. Supports choose /
- * replace / remove, and shows the existing asset when editing.
+ * A reusable image-picker field. The chosen file is only STAGED locally
+ * (object-URL preview) after client-side downscaling (optimize-image);
+ * nothing reaches Cloudinary until the parent form submits it as multipart,
+ * so cancelling never orphans an upload. Supports choose / replace / remove,
+ * and shows the existing asset when editing.
  */
 export function FileUploadField({
   label,

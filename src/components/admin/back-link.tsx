@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 
 /**
  * Plain back link for detail pages: no border, no hover background,
- * underline on hover (the house back-control convention).
+ * underline on hover.
  */
 export function BackLink({ href, label }: { href: string; label: string }) {
   return (

@@ -21,7 +21,7 @@ import type { IUserRow } from '@/types/user.types';
  * Super-admin rescue tools for a locked-out user: set a new password
  * (signs them out of every device) and switch off 2FA when they've lost
  * email access. Both are confirmed before acting; the password form stays
- * hidden behind its button (read-only-until-edit house pattern).
+ * hidden behind its button until then.
  */
 export function UserSecurityCard({ user }: { user: IUserRow }) {
   const [resetting, setResetting] = React.useState(false);

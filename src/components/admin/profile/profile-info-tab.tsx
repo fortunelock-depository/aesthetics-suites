@@ -43,7 +43,7 @@ export interface ProfileUser {
   pendingEmail: string | null;
 }
 
-/** dms input treatment: calm muted fill at rest, alive while editing. */
+/** Input treatment: calm muted fill at rest, alive while editing. */
 const inputCls = (active: boolean) =>
   cn(
     'h-11 font-medium transition-all duration-200',
@@ -53,10 +53,9 @@ const inputCls = (active: boolean) =>
   );
 
 /**
- * The dms ProfileInfoTab, ported: an avatar band (photo with staged
- * preview, hover zoom, camera control, confirmed remove, full-size
- * viewer) over the profile form, whose fields stay read-only until
- * Edit Profile is clicked.
+ * An avatar band (photo with staged preview, hover zoom, camera control,
+ * confirmed remove, full-size viewer) over the profile form, whose fields
+ * stay read-only until Edit Profile is clicked.
  */
 export function ProfileInfoTab({ user }: { user: ProfileUser }) {
   const router = useRouter();
@@ -85,7 +84,7 @@ export function ProfileInfoTab({ user }: { user: ProfileUser }) {
   }>({});
   const [formPending, startForm] = React.useTransition();
 
-  // The guarded dms email flow: changing the address needs the current
+  // The guarded email flow: changing the address needs the current
   // password, and only takes effect via the emailed confirmation link.
   const emailChanged = editing && email.trim().toLowerCase() !== user.email;
 

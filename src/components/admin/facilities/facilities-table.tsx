@@ -1,7 +1,7 @@
 // src/components/admin/facilities/facilities-table.tsx
 //
 // Facilities list on the shared table stack: single published filter
-// inline beside the search (the dms one-filter rule).
+// inline beside the search, no Filters toggle.
 'use client';
 
 import * as React from 'react';
@@ -280,7 +280,7 @@ export function FacilitiesTable() {
                 Boolean(filters.search) || filters.isPublished !== undefined
               }
               onClearAll={() => patchFilters(clearAllFiltersPatch(filters))}
-              // ONE filter -> inline beside the search (the dms rule).
+              // ONE filter -> inline beside the search, no Filters toggle.
               inlineFilter={
                 <LabeledSelect
                   id="facilities-status-filter"

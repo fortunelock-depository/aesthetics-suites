@@ -6,9 +6,9 @@ import type { IPublicService } from '@/lib/hotel/public-services';
 import { serviceDetail } from '@/lib/routes';
 
 /**
- * The three-up services strip (icon in a soft circle, title, blurb) from
- * the template - data-driven, each title linking to its service detail
- * page. Single column on phones, three across from md.
+ * The three-up services strip (icon in a soft circle, title, blurb),
+ * data-driven, each title linking to its service detail page. Single
+ * column on phones, three across from md.
  */
 export function ServicesRow({ services }: { services: IPublicService[] }) {
   return (

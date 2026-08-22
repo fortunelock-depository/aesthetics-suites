@@ -20,7 +20,7 @@ import '@/config/startup-checks';
  * when that env var is set.
  *
  * What this run is NOT responsible for: Airbnb calendar freshness. That is
- * demand-driven now (lib/hotel/ical.ts refreshes the room being browsed or
+ * demand-driven (lib/hotel/ical.ts refreshes the room being browsed or
  * booked, on the spot), because a schedule can only ever be as fresh as its
  * interval. The sweep here is the safety net for units nobody looked at.
  *
