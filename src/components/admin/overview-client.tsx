@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { useGetOverviewQuery } from '@/redux/overview-api';
 import { extractApiError } from '@/lib/extract-api-error';
+import { cn } from '@/lib/utils';
 import { ErrorState } from '@/components/ui/error-state';
 import { OverviewSkeleton } from '@/components/admin/skeletons';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -50,18 +51,40 @@ function Trend({ trend }: { trend: ITrendData }) {
   const up = trend.direction === 'upward';
   return (
     <span
-      className={`inline-flex items-center gap-1 text-xs font-medium ${
-        up ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'
-      }`}
+      // flex-none and nowrap: the badge keeps its size so a long figure beside
+      // it truncates instead of squeezing the percentage onto two lines.
+      className={cn(
+        'inline-flex flex-none items-center gap-1 text-xs font-medium whitespace-nowrap tabular-nums',
+        up ? 'text-brand-text' : 'text-destructive',
+      )}
     >
       {up ? (
-        <TrendingUp className="h-3.5 w-3.5" />
+        <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
       ) : (
-        <TrendingDown className="h-3.5 w-3.5" />
+        <TrendingDown className="h-3.5 w-3.5" aria-hidden="true" />
       )}
       {trend.percentage}%
+      <span className="sr-only">
+        {up ? 'up on the previous period' : 'down on the previous period'}
+      </span>
     </span>
   );
+}
+
+/**
+ * The headline figure steps down a size as the string gets longer, so a card
+ * holds its shape whatever the number turns out to be. Two 360px-wide cards
+ * leave about 133px of content each, which a full money figure at 24px does
+ * not fit, and the value used to break mid-number and scatter its digits over
+ * two or three lines. It is now a single line that shortens instead, with the
+ * exact figure on the title attribute.
+ */
+function valueSizeClass(value: string): string {
+  const length = value.length;
+  if (length <= 7) return 'text-2xl';
+  if (length <= 11) return 'text-xl';
+  if (length <= 15) return 'text-base';
+  return 'text-sm';
 }
 
 function StatCard({
@@ -76,18 +99,29 @@ function StatCard({
   trend?: ITrendData;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <div className="mt-2 flex items-baseline justify-between gap-2">
+    // min-w-0 so the card can be narrower than its content in a grid track,
+    // which is what lets the figure below truncate rather than push the card.
+    <div className="min-w-0 rounded-xl border border-border bg-card p-4">
+      <p className="truncate text-sm text-muted-foreground" title={label}>
+        {label}
+      </p>
+      <div className="mt-2 flex items-baseline gap-2">
         <p
-          className="min-w-0 text-2xl font-semibold tracking-tight [overflow-wrap:anywhere]"
+          className={cn(
+            'min-w-0 flex-1 truncate font-semibold tracking-tight tabular-nums',
+            valueSizeClass(value),
+          )}
           title={value}
         >
           {value}
         </p>
         {trend && <Trend trend={trend} />}
       </div>
-      {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
+      {sub && (
+        <p className="mt-1 truncate text-xs text-muted-foreground" title={sub}>
+          {sub}
+        </p>
+      )}
     </div>
   );
 }
@@ -219,7 +253,7 @@ export function OverviewClient() {
             <Button
               onClick={applyCustom}
               disabled={!customValid}
-              className="col-span-2 w-full sm:col-span-1 sm:w-auto"
+              className="col-span-2 justify-self-stretch sm:justify-self-auto"
             >
               Apply
             </Button>
@@ -249,7 +283,7 @@ export function OverviewClient() {
         <StatCard
           label="Refunds"
           value={formatMoneyCompact(stats.refunds.total)}
-          sub={`${stats.refunds.count} refund(s)`}
+          sub={`${stats.refunds.count} ${stats.refunds.count === 1 ? 'refund' : 'refunds'}`}
         />
       </div>
 
